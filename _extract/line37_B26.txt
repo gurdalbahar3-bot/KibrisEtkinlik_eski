@@ -1,0 +1,7 @@
+﻿### B26–B28. `bus_routes`, `bus_stops`, `bus_return_times`
+
+*(Önceki plan ile aynı; event_id FK, stop/return time alanları)*
+
+---
+
+

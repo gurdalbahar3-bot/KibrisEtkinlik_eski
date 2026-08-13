@@ -1,0 +1,13 @@
+-- Migration 026 — hotel_internal_qr (NO-OP)
+-- Scope: none — migration chain placeholder only
+-- 026-D1 locked decision set.
+--
+-- hotel_internal_qr feature removed.
+-- Otels create/promote events on the platform only; no internal QR table.
+-- v1.3 §026 hotel_internal_qr superseded by 026-D1 (spec file unchanged).
+--
+-- No schema changes in this migration:
+-- CREATE TABLE = 0, ALTER TABLE = 0, DROP = 0, CREATE INDEX = 0,
+-- UNIQUE = 0, CHECK = 0, FK = 0, RLS = 0, RPC = 0, TRIGGER = 0, SEED = 0
+--
+-- 025 qr_codes.entity_type 'hotel_internal' unchanged (not modified here).

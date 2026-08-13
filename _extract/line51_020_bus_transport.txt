@@ -1,0 +1,11 @@
+﻿### 020 — bus_transport
+| | |
+|--|--|
+| **Tablolar** | `bus_routes`, `bus_stops`, `bus_return_times` |
+| **FK** | routes → events; stops/returns → routes — **spec’te var (Düzeltme 6 spec)** |
+| **UNIQUE** | `(route_id, stop_name, departure_time)` stops — **spec’te var** |
+| **Dependency** | 011 |
+
+---
+
+

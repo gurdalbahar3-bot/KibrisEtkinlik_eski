@@ -1,0 +1,10 @@
+### 018 — table_packages
+| | |
+|--|--|
+| **Tablolar** | packages + items + options + upgrades + upgrade_options |
+| **FK** | package → event_id, event_table_id; items/upgrades zinciri — **spec’te var** |
+| **Cross-table** | package.event = event_table.event — **trigger/RPC** — spec’te var |
+| **Dependency** | 016, 011 |
+
+---
+

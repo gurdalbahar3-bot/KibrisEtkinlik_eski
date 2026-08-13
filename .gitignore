@@ -1,0 +1,9 @@
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+.next/
+.supabase/
+supabase/.temp/
+.DS_Store

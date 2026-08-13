@@ -1,0 +1,14 @@
+{
+  "name": "kibris-etkinlik",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Kıbrıs Etkinlik & Rezervasyon Platformu",
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}
