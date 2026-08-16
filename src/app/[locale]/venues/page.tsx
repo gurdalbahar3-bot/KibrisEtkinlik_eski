@@ -1,0 +1,66 @@
+import type { Metadata } from "next";
+import Image from "next/image";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Link } from "@/lib/i18n/navigation";
+import { venuesRepository } from "@/lib/data/events";
+
+type Props = {
+  params: Promise<{ locale: string }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "venuesPage" });
+  return { title: t("metaTitle"), description: t("metaDescription") };
+}
+
+export default async function VenuesListingPage({ params }: Props) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("venuesPage");
+  const tDist = await getTranslations("districts");
+  const tVenueType = await getTranslations("venueTypes");
+  const venues = venuesRepository.getAll();
+
+  return (
+    <section className="section-container py-10 sm:py-12">
+      <Link href="/" className="text-sm font-medium text-brand-700 hover:underline">
+        ← {t("backHome")}
+      </Link>
+      <header className="mb-8 mt-4">
+        <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">{t("title")}</h1>
+        <p className="mt-2 text-slate-600">{t("subtitle")}</p>
+      </header>
+
+      <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {venues.map((venue) => (
+          <li key={venue.id}>
+            <Link
+              href={{ pathname: "/venues/[slug]", params: { slug: venue.slug } }}
+              className="group block overflow-hidden rounded-2xl bg-white shadow-card transition hover:-translate-y-0.5 hover:shadow-card-hover"
+            >
+              <div className="relative aspect-[16/10]">
+                <Image
+                  src={venue.photo}
+                  alt={venue.name}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className="object-cover transition duration-500 group-hover:scale-105"
+                />
+              </div>
+              <div className="p-4">
+                <h2 className="font-bold text-slate-900 group-hover:text-brand-700">{venue.name}</h2>
+                <p className="mt-1 text-sm text-slate-600">
+                  {tDist(venue.district)} · {tVenueType(venue.venueType as "outdoor" | "culture" | "arena" | "beach")}
+                </p>
+                <p className="mt-2 text-xs font-medium text-brand-700">
+                  {t("upcoming", { count: venue.upcomingEventCount })}
+                </p>
+              </div>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}

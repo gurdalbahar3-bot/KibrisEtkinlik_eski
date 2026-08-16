@@ -1,0 +1,188 @@
+{
+  "meta": {
+    "siteName": "Global Event Discovery",
+    "siteNameShort": "Event Discovery",
+    "homeTitle": "Kıbrıs Etkinlikleri — Konser, Festival, Tiyatro | Global Event Discovery",
+    "homeDescription": "Kıbrıs'ta ne var? Konserlerden festivallere, tiyatrodan gece hayatına kadar KKTC'deki tüm etkinlikleri keşfedin. Lefkoşa, Girne, Gazimağusa, Güzelyurt, Lefke ve İskele.",
+    "homeKeywords": "Kıbrıs etkinlikleri, KKTC konser, Girne festival, Lefkoşa tiyatro, İskele etkinlik"
+  },
+  "nav": {
+    "events": "Etkinlikler",
+    "venues": "Mekanlar",
+    "categories": "Kategoriler",
+    "districts": "İlçeler",
+    "search": "Ara",
+    "menu": "Menü",
+    "close": "Kapat"
+  },
+  "hero": {
+    "title": "Kıbrıs'ta ne var?",
+    "subtitle": "Konserlerden festivallere, tiyatrodan gece hayatına kadar Kıbrıs'taki etkinlikleri keşfet.",
+    "searchPlaceholder": "Etkinlik, sanatçı veya mekan ara...",
+    "searchButton": "Ara",
+    "filterToday": "Bugün",
+    "filterTomorrow": "Yarın",
+    "filterWeekend": "Bu hafta sonu",
+    "filterThisWeek": "Bu hafta",
+    "filterDate": "Tarih seç",
+    "filterDistrict": "İlçe",
+    "filterCategory": "Kategori"
+  },
+  "quickDiscover": {
+    "title": "Hızlı Keşif",
+    "today": "Bugün",
+    "tomorrow": "Yarın",
+    "weekend": "Bu hafta sonu",
+    "thisWeek": "Bu hafta",
+    "thisMonth": "Bu ay"
+  },
+  "todaySection": {
+    "badge": "Canlı",
+    "title": "Bugün Kıbrıs'ta",
+    "subtitle": "Bugün gerçekleşen etkinlikler",
+    "viewAll": "Tümünü gör"
+  },
+  "popularSection": {
+    "title": "Popüler Etkinlikler",
+    "subtitle": "Öne çıkan etkinlikler — bu hafta ve sonrası",
+    "viewAll": "Tümünü gör"
+  },
+  "categoriesSection": {
+    "title": "Kategoriler",
+    "subtitle": "İlgi alanına göre keşfet"
+  },
+  "districtsSection": {
+    "title": "İlçelere Göre Keşfet",
+    "subtitle": "KKTC'nin 6 ilçesinde etkinlikleri keşfet",
+    "eventCount": "{count} etkinlik",
+    "explore": "Etkinlikleri keşfet"
+  },
+  "upcomingSection": {
+    "title": "Yaklaşan Etkinlikler",
+    "subtitle": "Diğer yaklaşan etkinlikler",
+    "filterDate": "Bu hafta",
+    "filterDistrict": "İlçe",
+    "filterCategory": "Kategori",
+    "all": "Tümü",
+    "viewAll": "Tüm etkinlikler"
+  },
+  "venuesSection": {
+    "title": "Popüler Mekanlar",
+    "subtitle": "En çok etkinliğe ev sahipliği yapan mekanlar",
+    "upcoming": "{count} yaklaşan etkinlik",
+    "viewVenue": "Mekanı gör"
+  },
+  "eventCard": {
+    "free": "Ücretsiz",
+    "details": "Detaylar"
+  },
+  "categories": {
+    "concert": "Konser",
+    "festival": "Festival",
+    "theater": "Tiyatro",
+    "standup": "Stand-up",
+    "nightlife": "Parti / Gece Hayatı",
+    "sports": "Spor",
+    "family": "Çocuk & Aile",
+    "art-culture": "Sanat & Kültür",
+    "wedding": "Düğün",
+    "other": "Diğer"
+  },
+  "districts": {
+    "lefkosa": "Lefkoşa",
+    "girne": "Girne",
+    "gazimagusa": "Gazimağusa",
+    "guzelyurt": "Güzelyurt",
+    "lefke": "Lefke",
+    "iskele": "İskele"
+  },
+  "venueTypes": {
+    "outdoor": "Açık Hava",
+    "culture": "Kültür Merkezi",
+    "arena": "Arena",
+    "beach": "Sahil"
+  },
+  "seoContent": {
+    "title": "Kıbrıs Etkinlikleri",
+    "summary": "Global Event Discovery, KKTC'deki konser, festival, tiyatro ve gece hayatı etkinliklerini tek platformda toplar.",
+    "expand": "Daha fazla",
+    "collapse": "Daralt",
+    "p1": "Global Event Discovery, Kıbrıs'taki konserler, festivaller, tiyatro gösterileri, stand-up geceleri, gece hayatı etkinlikleri ve spor organizasyonlarını tek bir platformda toplar. Lefkoşa'dan Girne'ye, Gazimağusa'dan İskele'ye kadar KKTC'nin her köşesindeki etkinlikleri kolayca keşfedebilirsiniz.",
+    "p2": "Hafta sonu planı mı yapıyorsunuz? Bugün Kıbrıs'ta ne var diye mi merak ediyorsunuz? İlçenize göre filtreleyerek size en yakın etkinlikleri bulabilir, kategori bazlı arama ile konser, festival, çocuk etkinlikleri veya sanat & kültür programlarına hızlıca ulaşabilirsiniz.",
+    "p3": "Platformumuz bir bilet satış sitesi değil; öncelikli amacı etkinlik keşfi sağlamaktır. Etkinlik detay sayfasından resmi bilet ve rezervasyon noktalarına yönlendirilirsiniz."
+  },
+  "bannerSlots": {
+    "default": "Reklam alanı",
+    "afterToday": "Ana sayfa — Bugün sonrası banner",
+    "beforeVenues": "Ana sayfa — Mekanlar öncesi banner"
+  },
+  "footer": {
+    "tagline": "Kıbrıs'taki etkinlikleri keşfet",
+    "discover": "Keşfet",
+    "about": "Hakkında",
+    "aboutText": "Global Event Discovery, KKTC'deki etkinlikleri keşfetmenizi sağlayan bağımsız bir platformdur.",
+    "rights": "Tüm hakları saklıdır."
+  },
+  "eventDetail": {
+    "back": "Geri",
+    "date": "Tarih",
+    "time": "Saat",
+    "venue": "Mekan",
+    "district": "İlçe",
+    "category": "Kategori",
+    "officialTickets": "Resmi Bilet / Rezervasyon",
+    "comingSoon": "Yakında"
+  },
+  "listing": {
+    "title": "Etkinlikleri Keşfet",
+    "subtitle": "Kıbrıs'taki tüm etkinlikleri ara ve filtrele",
+    "metaTitle": "Kıbrıs Etkinlikleri | Global Event Discovery",
+    "metaSearchTitle": "\"{query}\" arama sonuçları | Global Event Discovery",
+    "metaDescription": "Konser, festival, tiyatro ve daha fazlasını Kıbrıs genelinde keşfedin.",
+    "searchLabel": "Ara",
+    "searchPlaceholder": "Etkinlik, sanatçı veya mekan ara...",
+    "dateLabel": "Tarih",
+    "districtLabel": "İlçe",
+    "categoryLabel": "Kategori",
+    "all": "Tümü",
+    "dateToday": "Bugün",
+    "dateTomorrow": "Yarın",
+    "dateWeekend": "Bu hafta sonu",
+    "dateWeek": "Bu hafta",
+    "dateMonth": "Bu ay",
+    "applyFilters": "Filtrele",
+    "resultCount": "{count} etkinlik bulundu",
+    "emptyTitle": "Etkinlik bulunamadı",
+    "emptyHint": "Farklı bir arama veya filtre deneyin."
+  },
+  "categoriesPage": {
+    "title": "Kategoriler",
+    "subtitle": "İlgi alanına göre etkinlikleri keşfet",
+    "metaTitle": "Etkinlik Kategorileri | Global Event Discovery",
+    "metaDescription": "Konser, festival, tiyatro, stand-up ve daha fazlası.",
+    "metaCategoryTitle": "{category} Etkinlikleri | Global Event Discovery",
+    "metaCategoryDescription": "Kıbrıs'taki {category} etkinliklerini keşfedin.",
+    "categorySubtitle": "Bu kategorideki yaklaşan etkinlikler",
+    "backHome": "Ana sayfa",
+    "backCategories": "Kategoriler"
+  },
+  "venuesPage": {
+    "title": "Popüler Mekanlar",
+    "subtitle": "Etkinlik mekanlarını keşfet",
+    "metaTitle": "Mekanlar | Global Event Discovery",
+    "metaDescription": "Kıbrıs'taki konser ve etkinlik mekanları.",
+    "viewAll": "Tüm mekanlar",
+    "upcoming": "{count} yaklaşan etkinlik",
+    "backHome": "Ana sayfa",
+    "backVenues": "Mekanlar",
+    "eventsAtVenue": "Bu mekandaki etkinlikler",
+    "noEvents": "Şu an listelenen etkinlik yok."
+  },
+  "districtsPage": {
+    "title": "İlçelere Göre Keşfet",
+    "subtitle": "KKTC'nin 6 ilçesinde etkinlikleri keşfet",
+    "metaTitle": "İlçelere Göre Etkinlikler | Global Event Discovery",
+    "metaDescription": "Lefkoşa, Girne, Gazimağusa, Güzelyurt, Lefke ve İskele etkinlikleri.",
+    "backHome": "Ana sayfa"
+  }
+}

@@ -1,0 +1,188 @@
+{
+  "meta": {
+    "siteName": "Global Event Discovery",
+    "siteNameShort": "Event Discovery",
+    "homeTitle": "Cyprus Events — Concerts, Festivals, Theatre | Global Event Discovery",
+    "homeDescription": "What's on in Cyprus? Discover concerts, festivals, theatre, nightlife and sports across Northern Cyprus — Lefkoşa, Girne, Famagusta, Güzelyurt, Lefke and İskele.",
+    "homeKeywords": "Cyprus events, Northern Cyprus concerts, Kyrenia festival, Nicosia theatre, İskele events"
+  },
+  "nav": {
+    "events": "Events",
+    "venues": "Venues",
+    "categories": "Categories",
+    "districts": "Districts",
+    "search": "Search",
+    "menu": "Menu",
+    "close": "Close"
+  },
+  "hero": {
+    "title": "What's on in Cyprus?",
+    "subtitle": "Discover events across Cyprus — from concerts and festivals to theatre and nightlife.",
+    "searchPlaceholder": "Search events, artists or venues...",
+    "searchButton": "Search",
+    "filterToday": "Today",
+    "filterTomorrow": "Tomorrow",
+    "filterWeekend": "This weekend",
+    "filterThisWeek": "This week",
+    "filterDate": "Pick date",
+    "filterDistrict": "District",
+    "filterCategory": "Category"
+  },
+  "quickDiscover": {
+    "title": "Quick Discover",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "weekend": "This weekend",
+    "thisWeek": "This week",
+    "thisMonth": "This month"
+  },
+  "todaySection": {
+    "badge": "Live",
+    "title": "Today in Cyprus",
+    "subtitle": "Events happening today",
+    "viewAll": "View all"
+  },
+  "popularSection": {
+    "title": "Popular Events",
+    "subtitle": "Featured picks — this week and beyond",
+    "viewAll": "View all"
+  },
+  "categoriesSection": {
+    "title": "Categories",
+    "subtitle": "Explore by interest"
+  },
+  "districtsSection": {
+    "title": "Explore by District",
+    "subtitle": "Discover events across all 6 districts of Northern Cyprus",
+    "eventCount": "{count} events",
+    "explore": "Explore events"
+  },
+  "upcomingSection": {
+    "title": "Upcoming Events",
+    "subtitle": "More events coming up",
+    "filterDate": "This week",
+    "filterDistrict": "District",
+    "filterCategory": "Category",
+    "all": "All",
+    "viewAll": "All events"
+  },
+  "venuesSection": {
+    "title": "Popular Venues",
+    "subtitle": "Venues hosting the most events",
+    "upcoming": "{count} upcoming events",
+    "viewVenue": "View venue"
+  },
+  "eventCard": {
+    "free": "Free",
+    "details": "Details"
+  },
+  "categories": {
+    "concert": "Concert",
+    "festival": "Festival",
+    "theater": "Theatre",
+    "standup": "Stand-up",
+    "nightlife": "Party / Nightlife",
+    "sports": "Sports",
+    "family": "Kids & Family",
+    "art-culture": "Art & Culture",
+    "wedding": "Wedding",
+    "other": "Other"
+  },
+  "districts": {
+    "lefkosa": "Nicosia (Lefkoşa)",
+    "girne": "Kyrenia (Girne)",
+    "gazimagusa": "Famagusta (Gazimağusa)",
+    "guzelyurt": "Güzelyurt (Morphou)",
+    "lefke": "Lefke (Lefka)",
+    "iskele": "İskele (Trikomo)"
+  },
+  "venueTypes": {
+    "outdoor": "Outdoor",
+    "culture": "Culture Centre",
+    "arena": "Arena",
+    "beach": "Beach"
+  },
+  "seoContent": {
+    "title": "Cyprus Events Guide",
+    "summary": "Global Event Discovery brings concerts, festivals, theatre and nightlife across Northern Cyprus into one place.",
+    "expand": "Read more",
+    "collapse": "Show less",
+    "p1": "Global Event Discovery brings together concerts, festivals, theatre, stand-up nights, nightlife and sports across Cyprus. From Nicosia to Kyrenia, Famagusta to İskele — find what's on near you.",
+    "p2": "Planning your weekend? Wondering what's on today? Filter by district to find nearby events, or browse by category — concerts, festivals, family activities, art & culture and more.",
+    "p3": "We are an event discovery platform, not a ticket seller. Event detail pages link you to official ticket and reservation partners."
+  },
+  "bannerSlots": {
+    "default": "Ad slot",
+    "afterToday": "Homepage — after Today banner",
+    "beforeVenues": "Homepage — before Venues banner"
+  },
+  "footer": {
+    "tagline": "Discover events in Cyprus",
+    "discover": "Discover",
+    "about": "About",
+    "aboutText": "Global Event Discovery is an independent platform helping you find events across Northern Cyprus.",
+    "rights": "All rights reserved."
+  },
+  "eventDetail": {
+    "back": "Back",
+    "date": "Date",
+    "time": "Time",
+    "venue": "Venue",
+    "district": "District",
+    "category": "Category",
+    "officialTickets": "Official Tickets / Reservation",
+    "comingSoon": "Coming soon"
+  },
+  "listing": {
+    "title": "Discover Events",
+    "subtitle": "Search and filter events across Cyprus",
+    "metaTitle": "Cyprus Events | Global Event Discovery",
+    "metaSearchTitle": "\"{query}\" search results | Global Event Discovery",
+    "metaDescription": "Discover concerts, festivals, theatre and more across Cyprus.",
+    "searchLabel": "Search",
+    "searchPlaceholder": "Search events, artists or venues...",
+    "dateLabel": "Date",
+    "districtLabel": "District",
+    "categoryLabel": "Category",
+    "all": "All",
+    "dateToday": "Today",
+    "dateTomorrow": "Tomorrow",
+    "dateWeekend": "This weekend",
+    "dateWeek": "This week",
+    "dateMonth": "This month",
+    "applyFilters": "Apply filters",
+    "resultCount": "{count} events found",
+    "emptyTitle": "No events found",
+    "emptyHint": "Try a different search or filter."
+  },
+  "categoriesPage": {
+    "title": "Categories",
+    "subtitle": "Explore events by interest",
+    "metaTitle": "Event Categories | Global Event Discovery",
+    "metaDescription": "Concerts, festivals, theatre, stand-up and more.",
+    "metaCategoryTitle": "{category} Events | Global Event Discovery",
+    "metaCategoryDescription": "Discover {category} events in Cyprus.",
+    "categorySubtitle": "Upcoming events in this category",
+    "backHome": "Home",
+    "backCategories": "Categories"
+  },
+  "venuesPage": {
+    "title": "Popular Venues",
+    "subtitle": "Discover event venues",
+    "metaTitle": "Venues | Global Event Discovery",
+    "metaDescription": "Concert and event venues across Cyprus.",
+    "viewAll": "All venues",
+    "upcoming": "{count} upcoming events",
+    "backHome": "Home",
+    "backVenues": "Venues",
+    "eventsAtVenue": "Events at this venue",
+    "noEvents": "No events listed right now."
+  },
+  "districtsPage": {
+    "title": "Explore by District",
+    "subtitle": "Discover events across all 6 districts",
+    "metaTitle": "Events by District | Global Event Discovery",
+    "metaDescription": "Events in Nicosia, Kyrenia, Famagusta, Güzelyurt, Lefke and İskele.",
+    "backHome": "Home"
+  }
+}
