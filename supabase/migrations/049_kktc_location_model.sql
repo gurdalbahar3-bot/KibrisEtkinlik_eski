@@ -332,10 +332,6 @@ REVOKE ALL ON FUNCTION public.kktc_normalize_location_text(text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.kktc_district_code_from_text(text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.kktc_resolve_district_code(text, text) FROM PUBLIC;
 
-REVOKE ALL ON FUNCTION public.upsert_event_location_atomic(
-  uuid, text, text, text, numeric, numeric, text
-) FROM PUBLIC;
-
 GRANT EXECUTE ON FUNCTION public.kktc_normalize_location_text(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.kktc_district_code_from_text(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.kktc_resolve_district_code(text, text) TO authenticated;
