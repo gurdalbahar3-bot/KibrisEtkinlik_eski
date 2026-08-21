@@ -4,6 +4,7 @@
 node_modules/
 dist/
 .next/
+*.tsbuildinfo
 .supabase/
 supabase/.temp/
 .DS_Store
