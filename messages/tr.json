@@ -34,7 +34,9 @@
     "scopeLabel": "Arama türü",
     "scopeEvent": "Etkinlik",
     "scopeArtist": "Sanatçı",
-    "scopeVenue": "Mekan"
+    "scopeVenue": "Mekan",
+    "spotlightCta": "Etkinliği gör",
+    "quickDatesLabel": "Hızlı tarih filtreleri"
   },
   "quickDiscover": {
     "title": "Hızlı Keşif",

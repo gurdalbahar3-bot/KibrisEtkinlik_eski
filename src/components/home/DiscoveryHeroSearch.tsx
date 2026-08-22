@@ -56,9 +56,9 @@ export function DiscoveryHeroSearch() {
   ];
 
   return (
-    <div className="mt-6 w-full max-w-xl sm:mt-7">
+    <div className="hero-search-panel mt-6 sm:mt-8">
       <div
-        className="mb-3 flex flex-wrap gap-2"
+        className="mb-3 flex flex-wrap gap-1.5 rounded-xl bg-slate-100/90 p-1"
         role="radiogroup"
         aria-label={t("scopeLabel")}
       >
@@ -71,10 +71,10 @@ export function DiscoveryHeroSearch() {
               role="radio"
               aria-checked={active}
               onClick={() => setScope(id)}
-              className={`min-h-9 rounded-full px-3.5 text-xs font-semibold transition sm:text-sm ${
+              className={`min-h-10 flex-1 rounded-lg px-3 text-xs font-semibold transition sm:min-h-11 sm:text-sm ${
                 active
-                  ? "bg-accent-500 text-white shadow-sm"
-                  : "border border-white/20 bg-white/10 text-white/90 hover:bg-white/15"
+                  ? "bg-white text-platform-navy shadow-sm ring-1 ring-slate-200/80"
+                  : "text-slate-600 hover:text-platform-navy"
               }`}
             >
               {label}
@@ -85,7 +85,7 @@ export function DiscoveryHeroSearch() {
 
       <form
         role="search"
-        className="flex flex-col gap-2 sm:flex-row sm:items-center"
+        className="flex flex-col gap-2 sm:flex-row sm:items-stretch"
         onSubmit={onSubmit}
       >
         <label htmlFor="discovery-hero-search" className="sr-only">
@@ -98,18 +98,22 @@ export function DiscoveryHeroSearch() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t("searchPlaceholder")}
-          className="min-h-11 flex-1 rounded-xl border-0 bg-white px-4 text-base text-slate-900 shadow-lg placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-accent-400 sm:min-h-12"
+          className="min-h-11 flex-1 rounded-xl border border-slate-200 bg-white px-4 text-base text-slate-900 placeholder:text-slate-400 focus:border-accent-400 focus:outline-none focus:ring-2 focus:ring-accent-400/30 sm:min-h-12"
           autoComplete="off"
         />
         <button
           type="submit"
-          className="min-h-11 rounded-xl bg-accent-500 px-5 text-sm font-semibold text-white shadow-lg transition hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-accent-300 sm:min-h-12 sm:px-6"
+          className="min-h-11 shrink-0 rounded-xl bg-accent-500 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-accent-400/40 sm:min-h-12"
         >
           {t("searchButton")}
         </button>
       </form>
 
-      <div className="mt-4 -mx-1 flex snap-x snap-mandatory gap-2 overflow-x-auto px-1 pb-1 scrollbar-hide sm:mx-0 sm:flex-wrap sm:overflow-visible">
+      <div
+        className="mt-3 flex snap-x snap-mandatory gap-2 overflow-x-auto pb-0.5 scrollbar-hide sm:flex-wrap sm:overflow-visible"
+        role="group"
+        aria-label={t("quickDatesLabel")}
+      >
         {(
           [
             ["today", t("filterToday")],
@@ -121,13 +125,13 @@ export function DiscoveryHeroSearch() {
             key={key}
             type="button"
             onClick={() => goDate(key)}
-            className="shrink-0 snap-start rounded-full border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:border-accent-300/80 hover:bg-accent-500/90"
+            className="shrink-0 snap-start rounded-full border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-accent-300 hover:bg-accent-50 hover:text-accent-700"
           >
             {label}
           </button>
         ))}
 
-        <label className="relative shrink-0 snap-start cursor-pointer rounded-full border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:border-accent-300/80 hover:bg-accent-500/90">
+        <label className="relative shrink-0 snap-start cursor-pointer rounded-full border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-accent-300 hover:bg-accent-50 hover:text-accent-700">
           {t("filterDate")}
           <input
             id={datePickerId}

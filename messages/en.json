@@ -34,7 +34,9 @@
     "scopeLabel": "Search type",
     "scopeEvent": "Event",
     "scopeArtist": "Artist",
-    "scopeVenue": "Venue"
+    "scopeVenue": "Venue",
+    "spotlightCta": "View event",
+    "quickDatesLabel": "Quick date filters"
   },
   "quickDiscover": {
     "title": "Quick Discover",
