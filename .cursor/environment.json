@@ -1,0 +1,10 @@
+{
+  "name": "Kıbrıs Etkinlik",
+  "install": "npm ci",
+  "terminals": [
+    {
+      "name": "dev-server",
+      "command": "npm run dev -- --port 3000"
+    }
+  ]
+}
