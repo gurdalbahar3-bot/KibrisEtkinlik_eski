@@ -22,7 +22,12 @@ export interface DiscoveryEvent {
   id: string;
   title: string;
   slug: string;
+  /** Display URL — may be a category/generic placeholder when no real cover exists. */
   poster: string;
+  /** Real Supabase `cover_image_url` only. Never a UI placeholder. */
+  coverImageUrl?: string;
+  /** True only when `coverImageUrl` is present (real cover). */
+  hasRealCover?: boolean;
   date: string;
   startTime: string;
   venue: string;

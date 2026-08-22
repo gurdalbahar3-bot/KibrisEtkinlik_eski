@@ -36,8 +36,10 @@ export interface HomepageDiscoveryData {
   };
 }
 
-function hasCoverImage(event: DiscoveryEvent): boolean {
-  return Boolean(event.poster?.trim());
+/** Featured/hero covers: real `cover_image_url` only — never UI placeholders. */
+function hasRealCover(event: DiscoveryEvent): boolean {
+  if (typeof event.hasRealCover === "boolean") return event.hasRealCover;
+  return Boolean(event.coverImageUrl?.trim());
 }
 
 function sortByDateThenTime(a: DiscoveryEvent, b: DiscoveryEvent): number {
@@ -67,13 +69,13 @@ export async function loadHomepageDiscoveryData(): Promise<HomepageDiscoveryData
     .filter((event) => event.date >= weekendRange.from && event.date <= weekendRange.to)
     .sort(sortByDateThenTime);
 
-  const withCover = allEvents.filter(hasCoverImage).sort(sortByDateThenTime);
+  const withCover = allEvents.filter(hasRealCover).sort(sortByDateThenTime);
   const popularWithCover = withCover.filter((event) => event.isPopular);
 
   const heroEvent =
     popularWithCover.find((e) => e.date >= today) ??
     withCover.find((e) => e.date >= today) ??
-    todayEvents.find(hasCoverImage) ??
+    todayEvents.find(hasRealCover) ??
     todayEvents[0] ??
     null;
 

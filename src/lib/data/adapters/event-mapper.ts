@@ -1,7 +1,7 @@
 import { CATEGORY_KEYS } from "@/lib/data/categories";
 import { buildDeterministicSlug, buildVenueSlug } from "@/lib/data/adapters/slug";
 import { resolveEventDistrict } from "@/lib/data/adapters/district-resolve";
-import { CYPRUS_TIMEZONE } from "@/lib/discovery/cyprus-date";
+import { formatCyprusDateFromIso, CYPRUS_TIMEZONE } from "@/lib/discovery/cyprus-date";
 import { getEventImage } from "@/lib/ui/event-image";
 import type { DbEventRow } from "@/types/supabase/database";
 import type { DiscoveryEvent, EventCategory } from "@/types/event";
@@ -42,15 +42,6 @@ export function normalizeEventCategory(raw: string | null | undefined): EventCat
   return "other";
 }
 
-function formatCyprusDate(iso: string): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: CYPRUS_TIMEZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(iso));
-}
-
 function formatCyprusTime(iso: string): string {
   return new Intl.DateTimeFormat("en-GB", {
     timeZone: CYPRUS_TIMEZONE,
@@ -82,12 +73,17 @@ export function mapEventRowToDiscoveryEvent(row: DbEventRow): DiscoveryEvent {
   const venueId = venue?.id ?? row.venue_id;
   const district = resolveEventDistrict(venue, row.event_locations);
 
+  const coverImageUrl = row.cover_image_url?.trim() || undefined;
+  const hasRealCover = Boolean(coverImageUrl);
+
   const draft: DiscoveryEvent = {
     id: row.id,
     title: row.title.trim(),
     slug: buildDeterministicSlug(row.title, row.id),
-    poster: row.cover_image_url?.trim() ?? "",
-    date: formatCyprusDate(row.starts_at),
+    poster: coverImageUrl ?? "",
+    coverImageUrl,
+    hasRealCover,
+    date: formatCyprusDateFromIso(row.starts_at),
     startTime: formatCyprusTime(row.starts_at),
     venue: venueName,
     venueSlug: buildVenueSlug(venueName, venueId),
@@ -99,6 +95,7 @@ export function mapEventRowToDiscoveryEvent(row: DbEventRow): DiscoveryEvent {
     officialTicketUrl: undefined,
   };
 
+  // Display-only placeholder — must never set hasRealCover / coverImageUrl.
   if (!draft.poster) {
     draft.poster = getEventImage(draft);
   }

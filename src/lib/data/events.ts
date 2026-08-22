@@ -15,7 +15,8 @@ import type {
 } from "@/types/event";
 
 function findEventBySlug(slug: string): DiscoveryEvent | undefined {
-  return MOCK_EVENTS.find((e) => e.slug === slug);
+  const event = MOCK_EVENTS.find((e) => e.slug === slug);
+  return event ? withMockCoverFlags(event) : undefined;
 }
 
 /** Fail fast if mock data violates reserved district slug rules. */
@@ -28,10 +29,20 @@ for (const event of MOCK_EVENTS) {
   }
 }
 
+/** Mark catalog posters as real covers for local mock/UI lab (not Supabase placeholders). */
+function withMockCoverFlags(event: DiscoveryEvent): DiscoveryEvent {
+  const coverImageUrl = event.coverImageUrl ?? (event.poster?.trim() || undefined);
+  return {
+    ...event,
+    coverImageUrl,
+    hasRealCover: event.hasRealCover ?? Boolean(coverImageUrl),
+  };
+}
+
 /** Repository facade — swap mock for Supabase without changing components. */
 export const eventsRepository = {
   getAll(): DiscoveryEvent[] {
-    return MOCK_EVENTS;
+    return MOCK_EVENTS.map(withMockCoverFlags);
   },
 
   getAllEventSlugs(): string[] {
