@@ -1,6 +1,5 @@
 import { buildVenueSlug } from "@/lib/data/adapters/slug";
 import { resolveVenueDistrict } from "@/lib/data/adapters/district-resolve";
-import { getVenueImage } from "@/lib/ui/venue-image";
 import type { DbVenueRow } from "@/types/supabase/database";
 import type { DiscoveryVenue } from "@/types/event";
 
@@ -26,19 +25,23 @@ function parseCoordinate(value: number | null | undefined): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
+/**
+ * Map venue rows for discovery.
+ * Venues have no dedicated cover/photo column yet — do not misuse `floor_plan_url`
+ * or invent Unsplash placeholders here. UI may show a gradient when `photo` is empty.
+ */
 export function mapVenueRowToDiscoveryVenue(
   row: DbVenueRow,
   upcomingEventCount = 0
 ): DiscoveryVenue {
   const district = resolveVenueDistrict(row);
   const venueType = mapDbVenueCategory(row.venue_category);
-  const photoSource = row.floor_plan_url?.trim() ?? "";
 
   const venue: DiscoveryVenue = {
     id: row.id,
     name: row.name.trim(),
     slug: buildVenueSlug(row.name, row.id),
-    photo: photoSource,
+    photo: "",
     district,
     venueType,
     upcomingEventCount,
@@ -48,10 +51,6 @@ export function mapVenueRowToDiscoveryVenue(
   const lng = parseCoordinate(row.longitude);
   if (lat !== undefined && lng !== undefined) {
     venue.location = { latitude: lat, longitude: lng };
-  }
-
-  if (!venue.photo) {
-    venue.photo = getVenueImage(venue);
   }
 
   return venue;

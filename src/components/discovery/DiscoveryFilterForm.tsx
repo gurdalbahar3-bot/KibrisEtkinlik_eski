@@ -91,6 +91,13 @@ export async function DiscoveryFilterForm({ locale, filters }: DiscoveryFilterFo
         </select>
       </div>
 
+      {/* Preserve hero/listing params that this form does not edit. */}
+      {filters.scope && filters.scope !== "event" ? (
+        <input type="hidden" name="scope" value={filters.scope} />
+      ) : null}
+      {filters.from ? <input type="hidden" name="from" value={filters.from} /> : null}
+      {filters.to ? <input type="hidden" name="to" value={filters.to} /> : null}
+
       <button
         type="submit"
         className="min-h-[42px] rounded-xl bg-brand-600 px-6 text-sm font-semibold text-white transition hover:bg-brand-700"

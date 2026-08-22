@@ -14,8 +14,11 @@ export async function PlatformVenueCard({ venue, variant = "standard" }: Platfor
   const tDist = await getTranslations("districts");
   const tVenueType = await getTranslations("venueTypes");
   const isFeatured = variant === "featured";
-  const imageSrc = getVenueImage(venue);
-  const fallbackSources = getVenueImageSources(venue).filter((url) => url !== imageSrc);
+  // No invented Unsplash when photo is empty — PosterImage falls back to gradient.
+  const imageSrc = venue.photo?.trim() ? getVenueImage(venue) : "";
+  const fallbackSources = venue.photo?.trim()
+    ? getVenueImageSources(venue).filter((url) => url !== imageSrc)
+    : [];
 
   return (
     <Link
