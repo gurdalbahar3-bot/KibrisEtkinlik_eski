@@ -1,23 +1,24 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { EventGrid } from "@/components/events/EventGrid";
+import { PosterImage } from "@/components/ui/PosterImage";
 import { Link } from "@/lib/i18n/navigation";
-import { eventsRepository, venuesRepository } from "@/lib/data/events";
-import { MOCK_VENUES } from "@/lib/data/mock-events";
+import {
+  discoveryEventsRepository,
+  discoveryVenuesRepository,
+} from "@/lib/data/discovery-repository";
+import { getVenueImage, getVenueImageSources } from "@/lib/ui/venue-image";
+
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
 };
 
-export function generateStaticParams() {
-  return MOCK_VENUES.map((v) => ({ slug: v.slug }));
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
-  const venue = venuesRepository.getBySlug(slug);
+  const venue = await discoveryVenuesRepository.getBySlug(slug);
   if (!venue) return {};
   return {
     title: `${venue.name} | Global Event Discovery`,
@@ -31,13 +32,18 @@ export default async function VenueDetailPage({ params }: Props) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
 
-  const venue = venuesRepository.getBySlug(slug);
+  const venue = await discoveryVenuesRepository.getBySlug(slug);
   if (!venue) notFound();
 
   const t = await getTranslations("venuesPage");
   const tDist = await getTranslations("districts");
   const tVenueType = await getTranslations("venueTypes");
-  const events = eventsRepository.getByVenueSlug(slug);
+  const events = await discoveryEventsRepository.getByVenueSlug(slug);
+
+  const imageSrc = venue.photo?.trim() ? getVenueImage(venue) : "";
+  const fallbackSources = venue.photo?.trim()
+    ? getVenueImageSources(venue).filter((url) => url !== imageSrc)
+    : [];
 
   return (
     <section className="section-container py-10 sm:py-12">
@@ -47,7 +53,13 @@ export default async function VenueDetailPage({ params }: Props) {
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_1.2fr]">
         <div className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-card">
-          <Image src={venue.photo} alt={venue.name} fill className="object-cover" priority />
+          <PosterImage
+            src={imageSrc}
+            fallbackSources={fallbackSources}
+            alt={venue.name}
+            className="object-cover"
+            priority
+          />
         </div>
         <div>
           <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">{venue.name}</h1>

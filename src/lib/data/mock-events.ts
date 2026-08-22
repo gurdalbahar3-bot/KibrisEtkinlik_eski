@@ -201,6 +201,7 @@ export const MOCK_VENUES: DiscoveryVenue[] = [
     district: "girne",
     venueType: "outdoor",
     upcomingEventCount: 4,
+    location: { latitude: 35.3075, longitude: 33.3444 },
   },
   {
     id: "v2",
@@ -210,6 +211,7 @@ export const MOCK_VENUES: DiscoveryVenue[] = [
     district: "lefkosa",
     venueType: "culture",
     upcomingEventCount: 6,
+    location: { latitude: 35.1753, longitude: 33.3642 },
   },
   {
     id: "v3",

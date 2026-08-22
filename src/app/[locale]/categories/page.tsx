@@ -2,6 +2,13 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { CategoryGrid } from "@/components/home/CategoryGrid";
 import { Link } from "@/lib/i18n/navigation";
+import {
+  computeCategoryEventCounts,
+  discoveryEventsRepository,
+} from "@/lib/data/discovery-repository";
+import { CATEGORY_KEYS } from "@/lib/data/categories";
+
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -20,6 +27,8 @@ export default async function CategoriesIndexPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("categoriesPage");
+  const events = await discoveryEventsRepository.getAll();
+  const categoryCounts = computeCategoryEventCounts(events, CATEGORY_KEYS);
 
   return (
     <section className="section-container py-10 sm:py-12">
@@ -30,7 +39,7 @@ export default async function CategoriesIndexPage({ params }: Props) {
         <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">{t("title")}</h1>
         <p className="mt-2 text-slate-600">{t("subtitle")}</p>
       </header>
-      <CategoryGrid showHeader={false} />
+      <CategoryGrid showHeader={false} variant="full" categoryCounts={categoryCounts} />
     </section>
   );
 }

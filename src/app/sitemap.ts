@@ -5,6 +5,11 @@ import { MOCK_EVENTS, MOCK_VENUES } from "@/lib/data/mock-events";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://globaleventdiscovery.com";
 
+/**
+ * Follow-up: switch event/venue URL generation to discoveryEventsRepository /
+ * discoveryVenuesRepository when SUPABASE_DATA_SOURCE=supabase (async sitemap).
+ * Kept on mock catalog for this PR to avoid build-time Supabase coupling.
+ */
 export default function sitemap(): MetadataRoute.Sitemap {
   const locales = ["tr", "en"] as const;
   const entries: MetadataRoute.Sitemap = [];

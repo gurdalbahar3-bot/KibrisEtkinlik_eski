@@ -24,9 +24,17 @@
     "filterTomorrow": "Yarın",
     "filterWeekend": "Bu hafta sonu",
     "filterThisWeek": "Bu hafta",
-    "filterDate": "Tarih seç",
+    "filterDate": "Tarih Seç",
     "filterDistrict": "İlçe",
-    "filterCategory": "Kategori"
+    "filterCategory": "Kategori",
+    "discoveryLabel": "Etkinlik keşfi",
+    "spotlightLabel": "Öne çıkan",
+    "ctaEvents": "Etkinlikleri keşfet",
+    "ctaVenues": "Mekanları gör",
+    "scopeLabel": "Arama türü",
+    "scopeEvent": "Etkinlik",
+    "scopeArtist": "Sanatçı",
+    "scopeVenue": "Mekan"
   },
   "quickDiscover": {
     "title": "Hızlı Keşif",
@@ -49,13 +57,18 @@
   },
   "categoriesSection": {
     "title": "Kategoriler",
-    "subtitle": "İlgi alanına göre keşfet"
+    "subtitle": "İlgi alanına göre keşfet",
+    "viewAll": "Tüm kategorileri keşfet",
+    "eventCount": "{count} etkinlik"
   },
   "districtsSection": {
     "title": "İlçelere Göre Keşfet",
     "subtitle": "KKTC'nin 6 ilçesinde etkinlikleri keşfet",
     "eventCount": "{count} etkinlik",
-    "explore": "Etkinlikleri keşfet"
+    "explore": "Etkinlikleri keşfet",
+    "titleFull": "KKTC ilçeleri",
+    "subtitleFull": "KKTC'nin 6 ilçesinde etkinlikleri keşfet",
+    "viewAll": "Tüm ilçeleri gör"
   },
   "upcomingSection": {
     "title": "Yaklaşan Etkinlikler",
@@ -70,7 +83,8 @@
     "title": "Popüler Mekanlar",
     "subtitle": "En çok etkinliğe ev sahipliği yapan mekanlar",
     "upcoming": "{count} yaklaşan etkinlik",
-    "viewVenue": "Mekanı gör"
+    "viewVenue": "Mekanı gör",
+    "viewAll": "Tüm mekanları gör"
   },
   "eventCard": {
     "free": "Ücretsiz",
@@ -176,7 +190,10 @@
     "backHome": "Ana sayfa",
     "backVenues": "Mekanlar",
     "eventsAtVenue": "Bu mekandaki etkinlikler",
-    "noEvents": "Şu an listelenen etkinlik yok."
+    "noEvents": "Şu an listelenen etkinlik yok.",
+    "emptyTitle": "Mekan bulunamadı",
+    "emptyHint": "Farklı bir arama deneyin veya tüm mekanlara dönün.",
+    "searchResults": "\"{query}\" için {count} mekan"
   },
   "districtsPage": {
     "title": "İlçelere Göre Keşfet",
@@ -184,5 +201,18 @@
     "metaTitle": "İlçelere Göre Etkinlikler | Global Event Discovery",
     "metaDescription": "Lefkoşa, Girne, Gazimağusa, Güzelyurt, Lefke ve İskele etkinlikleri.",
     "backHome": "Ana sayfa"
+  },
+  "featuredSection": {
+    "badge": "Editoryal",
+    "title": "Öne Çıkan Etkinlikler",
+    "subtitle": "Görsel öncelikli seçki — yayınlanmış etkinlikler.",
+    "cta": "Etkinliği keşfet"
+  },
+  "weekendSection": {
+    "title": "Bu Hafta Sonu",
+    "subtitle": "Cumartesi ve Pazar etkinlikleri",
+    "viewAll": "Tümünü gör",
+    "emptyTitle": "Bu hafta sonu etkinlik yok",
+    "emptyHint": "Yaklaşan etkinliklere göz atın."
   }
 }

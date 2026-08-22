@@ -8,17 +8,17 @@ export function SeoContent() {
   const [open, setOpen] = useState(false);
 
   return (
-    <section className="border-t border-slate-200 py-10 sm:py-14" aria-labelledby="seo-content-title">
+    <section className="border-t border-slate-200 bg-white py-10 sm:py-12" aria-labelledby="seo-content-title">
       <div className="section-container max-w-3xl">
         <button
           type="button"
           id="seo-content-title"
-          className="flex w-full items-center justify-between gap-4 text-left"
+          className="flex w-full min-h-11 items-center justify-between gap-4 text-left"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
         >
           <span className="text-xl font-bold text-slate-900 sm:text-2xl">{t("title")}</span>
-          <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+          <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600">
             {open ? t("collapse") : t("expand")}
           </span>
         </button>

@@ -3,8 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --background: #fafafa;
-  --foreground: #0f172a;
+  --background: #f4f5fa;
+  --foreground: #1a1040;
+  --platform-accent: #ec4899;
 }
 
 html {
@@ -28,11 +29,79 @@ body {
   }
 
   .section-title {
-    @apply text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl;
+    @apply text-2xl font-bold tracking-tight text-platform-navy sm:text-3xl;
   }
 
   .section-subtitle {
     @apply mt-1 text-base text-slate-600;
+  }
+
+  .section-surface-light {
+    @apply bg-platform-surface;
+  }
+
+  .section-surface-white {
+    @apply bg-white;
+  }
+
+  .section-surface-dark {
+    @apply bg-platform-navy text-white;
+  }
+
+  .section-surface-brand {
+    @apply bg-brand-950 text-white;
+  }
+
+  .section-padding {
+    @apply py-10 sm:py-12;
+  }
+
+  .section-header-gap {
+    @apply mb-7 sm:mb-8;
+  }
+
+  .platform-card {
+    @apply overflow-hidden rounded-2xl bg-white shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-card-hover;
+  }
+
+  .discovery-card {
+    @apply overflow-hidden rounded-2xl shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-card-hover;
+  }
+
+  .discovery-overlay {
+    @apply absolute inset-0 bg-gradient-to-t from-platform-navy/95 via-platform-navy/45 to-platform-navy/10;
+  }
+
+  .btn-primary {
+    @apply inline-flex min-h-11 items-center justify-center rounded-full bg-accent-500 px-6 text-sm font-semibold text-white shadow-glow transition hover:bg-accent-600;
+  }
+
+  .btn-secondary {
+    @apply inline-flex min-h-11 items-center justify-center rounded-full border border-white/25 bg-white/10 px-6 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/20;
+  }
+
+  .category-chip {
+    @apply flex flex-col items-center justify-center gap-2 rounded-2xl p-4 text-center shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-card;
+  }
+
+  .category-chip-premium {
+    @apply border border-slate-200/80 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-brand-200/60 hover:shadow-card;
+  }
+
+  .category-card-home {
+    @apply flex min-h-[148px] flex-col items-center justify-center gap-2.5 rounded-3xl border border-slate-200/80 p-5 text-center shadow-sm transition duration-200 hover:-translate-y-1 hover:border-brand-200/50 hover:shadow-card;
+  }
+
+  .category-card-home-icon {
+    @apply flex h-12 w-12 items-center justify-center rounded-2xl bg-white/90 text-2xl shadow-sm ring-1 ring-white/70;
+  }
+
+  .category-card-home-name {
+    @apply text-sm font-bold leading-snug text-platform-navy;
+  }
+
+  .category-card-home-count {
+    @apply text-xs font-medium text-slate-500;
   }
 
   .scrollbar-hide {

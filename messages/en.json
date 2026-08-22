@@ -26,7 +26,15 @@
     "filterThisWeek": "This week",
     "filterDate": "Pick date",
     "filterDistrict": "District",
-    "filterCategory": "Category"
+    "filterCategory": "Category",
+    "discoveryLabel": "Event discovery",
+    "spotlightLabel": "Spotlight",
+    "ctaEvents": "Discover events",
+    "ctaVenues": "See venues",
+    "scopeLabel": "Search type",
+    "scopeEvent": "Event",
+    "scopeArtist": "Artist",
+    "scopeVenue": "Venue"
   },
   "quickDiscover": {
     "title": "Quick Discover",
@@ -49,13 +57,18 @@
   },
   "categoriesSection": {
     "title": "Categories",
-    "subtitle": "Explore by interest"
+    "subtitle": "Explore by interest",
+    "viewAll": "Explore all categories",
+    "eventCount": "{count} events"
   },
   "districtsSection": {
     "title": "Explore by District",
     "subtitle": "Discover events across all 6 districts of Northern Cyprus",
     "eventCount": "{count} events",
-    "explore": "Explore events"
+    "explore": "Explore events",
+    "titleFull": "Northern Cyprus districts",
+    "subtitleFull": "Discover events across all 6 districts of Northern Cyprus",
+    "viewAll": "See all districts"
   },
   "upcomingSection": {
     "title": "Upcoming Events",
@@ -70,7 +83,8 @@
     "title": "Popular Venues",
     "subtitle": "Venues hosting the most events",
     "upcoming": "{count} upcoming events",
-    "viewVenue": "View venue"
+    "viewVenue": "View venue",
+    "viewAll": "See all venues"
   },
   "eventCard": {
     "free": "Free",
@@ -176,7 +190,10 @@
     "backHome": "Home",
     "backVenues": "Venues",
     "eventsAtVenue": "Events at this venue",
-    "noEvents": "No events listed right now."
+    "noEvents": "No events listed right now.",
+    "emptyTitle": "No venues found",
+    "emptyHint": "Try a different search or browse all venues.",
+    "searchResults": "{count} venues for \"{query}\""
   },
   "districtsPage": {
     "title": "Explore by District",
@@ -184,5 +201,18 @@
     "metaTitle": "Events by District | Global Event Discovery",
     "metaDescription": "Events in Nicosia, Kyrenia, Famagusta, Güzelyurt, Lefke and İskele.",
     "backHome": "Home"
+  },
+  "featuredSection": {
+    "badge": "Editorial",
+    "title": "Featured events",
+    "subtitle": "Visual-first picks from published events.",
+    "cta": "Discover event"
+  },
+  "weekendSection": {
+    "title": "This Weekend",
+    "subtitle": "Events on Saturday and Sunday",
+    "viewAll": "View all",
+    "emptyTitle": "No events this weekend",
+    "emptyHint": "Check upcoming events."
   }
 }

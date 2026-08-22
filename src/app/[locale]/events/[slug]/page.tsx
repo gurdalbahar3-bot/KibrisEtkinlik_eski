@@ -1,25 +1,27 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { EventGrid } from "@/components/events/EventGrid";
+import { PosterImage } from "@/components/ui/PosterImage";
 import { Link } from "@/lib/i18n/navigation";
-import { eventsRepository } from "@/lib/data/events";
-import { MOCK_EVENTS } from "@/lib/data/mock-events";
 import { DISTRICT_SLUGS } from "@/lib/data/categories";
+import { discoveryEventsRepository } from "@/lib/data/discovery-repository";
+import { getEventImage, getEventImageSources } from "@/lib/ui/event-image";
 import { eventToJsonLd, formatEventDate } from "@/lib/seo/jsonld";
 import type { DistrictSlug } from "@/types/event";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://globaleventdiscovery.com";
+
+/** Runtime discovery fetch — slug list comes from Supabase, not mock static params. */
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
 };
 
 export function generateStaticParams() {
-  const eventParams = MOCK_EVENTS.map((e) => ({ slug: e.slug }));
-  const districtParams = DISTRICT_SLUGS.map((slug) => ({ slug }));
-  return [...eventParams, ...districtParams];
+  // District hub routes only; event slugs resolve at request time via discovery repo.
+  return DISTRICT_SLUGS.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -37,10 +39,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const event = eventsRepository.getBySlug(slug);
+  const event = await discoveryEventsRepository.getBySlug(slug);
   if (!event) return {};
 
   const path = locale === "tr" ? `/tr/etkinlikler/${slug}` : `/en/events/${slug}`;
+  const image = getEventImage(event);
 
   return {
     title: `${event.title} | Global Event Discovery`,
@@ -49,7 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: event.title,
       description: event.description,
-      images: [{ url: event.poster }],
+      images: image ? [{ url: image }] : undefined,
       type: "website",
     },
   };
@@ -62,7 +65,7 @@ export default async function EventOrDistrictPage({ params }: Props) {
   if (DISTRICT_SLUGS.includes(slug as DistrictSlug)) {
     const tDist = await getTranslations("districts");
     const tSection = await getTranslations("districtsSection");
-    const events = eventsRepository.getByDistrict(slug as DistrictSlug);
+    const events = await discoveryEventsRepository.getByDistrict(slug as DistrictSlug);
 
     return (
       <section className="section-container py-12">
@@ -78,13 +81,15 @@ export default async function EventOrDistrictPage({ params }: Props) {
     );
   }
 
-  const event = eventsRepository.getBySlug(slug);
+  const event = await discoveryEventsRepository.getBySlug(slug);
   if (!event) notFound();
 
   const t = await getTranslations("eventDetail");
   const tCat = await getTranslations("categories");
   const tDist = await getTranslations("districts");
   const { day, month, weekday } = formatEventDate(event.date, locale as "tr" | "en");
+  const imageSrc = getEventImage(event);
+  const fallbackSources = getEventImageSources(event).filter((url) => url !== imageSrc);
 
   const jsonLd = eventToJsonLd(event, locale as "tr" | "en", SITE_URL);
 
@@ -103,7 +108,13 @@ export default async function EventOrDistrictPage({ params }: Props) {
 
       <div className="mt-6 grid gap-8 lg:grid-cols-2">
         <div className="relative aspect-[4/5] overflow-hidden rounded-2xl shadow-card">
-          <Image src={event.poster} alt={event.title} fill className="object-cover" priority />
+          <PosterImage
+            src={imageSrc}
+            fallbackSources={fallbackSources}
+            alt={event.title}
+            className="object-cover"
+            priority
+          />
         </div>
 
         <div>
