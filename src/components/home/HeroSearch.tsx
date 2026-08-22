@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/lib/i18n/navigation";
 import { CATEGORY_KEYS, DISTRICT_SLUGS } from "@/lib/data/categories";
@@ -16,6 +16,7 @@ export function HeroSearch({ initialQuery = "" }: HeroSearchProps) {
   const tDist = useTranslations("districts");
   const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
+  const dateInputRef = useRef<HTMLInputElement>(null);
 
   function navigate(params: DiscoverySearchParams) {
     router.push({
@@ -33,6 +34,12 @@ export function HeroSearch({ initialQuery = "" }: HeroSearchProps) {
     e.preventDefault();
     navigate({ q: query.trim() || undefined });
   }
+
+  const quickDates: { key: "filterToday" | "filterTomorrow" | "filterWeekend"; date: DiscoverySearchParams["date"] }[] = [
+    { key: "filterToday", date: "today" },
+    { key: "filterTomorrow", date: "tomorrow" },
+    { key: "filterWeekend", date: "weekend" },
+  ];
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-brand-950 via-brand-900 to-slate-900 text-white">
@@ -77,6 +84,38 @@ export function HeroSearch({ initialQuery = "" }: HeroSearchProps) {
               {t("searchButton")}
             </button>
           </form>
+
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            {quickDates.map(({ key, date }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => navigate({ date: date! })}
+                className="rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur transition hover:border-accent-400 hover:bg-accent-500/90"
+              >
+                {t(key)}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => dateInputRef.current?.showPicker?.() ?? dateInputRef.current?.click()}
+              className="rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur transition hover:border-accent-400 hover:bg-accent-500/90"
+            >
+              {t("filterDate")}
+            </button>
+            <input
+              ref={dateInputRef}
+              type="date"
+              className="sr-only"
+              aria-hidden
+              tabIndex={-1}
+              onChange={(e) => {
+                if (e.target.value) {
+                  router.push({ pathname: "/events", query: { date: "today" } });
+                }
+              }}
+            />
+          </div>
 
           <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-4 sm:flex sm:justify-center sm:gap-3">
             <label className="sr-only" htmlFor="hero-district">

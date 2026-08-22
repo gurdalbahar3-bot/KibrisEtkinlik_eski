@@ -55,7 +55,7 @@ export function UpcomingEvents({ events }: UpcomingEventsProps) {
           ))}
         </div>
 
-        <EventGrid events={events} />
+        <EventGrid events={events} emptyNamespace="upcomingSection" />
       </div>
     </section>
   );

@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { DistrictGrid } from "@/components/home/DistrictGrid";
 import { Link } from "@/lib/i18n/navigation";
+import { districtsRepository } from "@/lib/data/events";
+
+export const revalidate = 300;
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -17,6 +20,7 @@ export default async function DistrictsIndexPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("districtsPage");
+  const districts = await districtsRepository.getAll();
 
   return (
     <section className="section-container py-10 sm:py-12">
@@ -27,7 +31,7 @@ export default async function DistrictsIndexPage({ params }: Props) {
         <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">{t("title")}</h1>
         <p className="mt-2 text-slate-600">{t("subtitle")}</p>
       </header>
-      <DistrictGrid showHeader={false} />
+      <DistrictGrid districts={districts} showHeader={false} />
     </section>
   );
 }

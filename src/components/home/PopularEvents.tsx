@@ -8,14 +8,14 @@ interface PopularEventsProps {
 }
 
 export function PopularEvents({ events }: PopularEventsProps) {
-  const t = useTranslations("popularSection");
+  const t = useTranslations("featuredSection");
 
   return (
-    <section className="bg-slate-50 py-12 sm:py-16" aria-labelledby="popular-title">
+    <section className="bg-slate-50 py-12 sm:py-16" aria-labelledby="featured-title">
       <div className="section-container">
         <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 id="popular-title" className="section-title">
+            <h2 id="featured-title" className="section-title">
               {t("title")}
             </h2>
             <p className="section-subtitle">{t("subtitle")}</p>
@@ -24,7 +24,7 @@ export function PopularEvents({ events }: PopularEventsProps) {
             {t("viewAll")} →
           </Link>
         </header>
-        <EventGrid events={events} />
+        <EventGrid events={events} emptyNamespace="featuredSection" />
       </div>
     </section>
   );

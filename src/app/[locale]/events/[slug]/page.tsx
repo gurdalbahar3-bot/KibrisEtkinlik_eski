@@ -5,10 +5,12 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { EventGrid } from "@/components/events/EventGrid";
 import { Link } from "@/lib/i18n/navigation";
 import { eventsRepository } from "@/lib/data/events";
-import { MOCK_EVENTS } from "@/lib/data/mock-events";
 import { DISTRICT_SLUGS } from "@/lib/data/categories";
+import { queryEventSlugs } from "@/lib/supabase/queries/discovery";
 import { eventToJsonLd, formatEventDate } from "@/lib/seo/jsonld";
 import type { DistrictSlug } from "@/types/event";
+
+export const revalidate = 300;
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://globaleventdiscovery.com";
 
@@ -16,10 +18,15 @@ type Props = {
   params: Promise<{ locale: string; slug: string }>;
 };
 
-export function generateStaticParams() {
-  const eventParams = MOCK_EVENTS.map((e) => ({ slug: e.slug }));
+export async function generateStaticParams() {
   const districtParams = DISTRICT_SLUGS.map((slug) => ({ slug }));
-  return [...eventParams, ...districtParams];
+  try {
+    const eventSlugs = await queryEventSlugs();
+    const eventParams = eventSlugs.map((slug) => ({ slug }));
+    return [...districtParams, ...eventParams];
+  } catch {
+    return districtParams;
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -37,7 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const event = eventsRepository.getBySlug(slug);
+  const event = await eventsRepository.getBySlug(slug);
   if (!event) return {};
 
   const path = locale === "tr" ? `/tr/etkinlikler/${slug}` : `/en/events/${slug}`;
@@ -62,7 +69,7 @@ export default async function EventOrDistrictPage({ params }: Props) {
   if (DISTRICT_SLUGS.includes(slug as DistrictSlug)) {
     const tDist = await getTranslations("districts");
     const tSection = await getTranslations("districtsSection");
-    const events = eventsRepository.getByDistrict(slug as DistrictSlug);
+    const events = await eventsRepository.getByDistrict(slug as DistrictSlug);
 
     return (
       <section className="section-container py-12">
@@ -78,7 +85,7 @@ export default async function EventOrDistrictPage({ params }: Props) {
     );
   }
 
-  const event = eventsRepository.getBySlug(slug);
+  const event = await eventsRepository.getBySlug(slug);
   if (!event) notFound();
 
   const t = await getTranslations("eventDetail");

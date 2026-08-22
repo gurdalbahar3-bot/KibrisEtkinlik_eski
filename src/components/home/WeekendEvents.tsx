@@ -3,38 +3,35 @@ import { Link } from "@/lib/i18n/navigation";
 import { EventGrid } from "@/components/events/EventGrid";
 import type { DiscoveryEvent } from "@/types/event";
 
-interface TodayEventsProps {
+interface WeekendEventsProps {
   events: DiscoveryEvent[];
 }
 
-export function TodayEvents({ events }: TodayEventsProps) {
-  const t = useTranslations("todaySection");
+export function WeekendEvents({ events }: WeekendEventsProps) {
+  const t = useTranslations("weekendSection");
 
   return (
     <section
-      id="bugun-kibrista"
-      className="border-t-4 border-accent-500 py-10 sm:py-14"
-      aria-labelledby="today-title"
+      id="bu-hafta-sonu"
+      className="bg-white py-12 sm:py-16"
+      aria-labelledby="weekend-title"
     >
       <div className="section-container">
         <header className="mb-6 flex flex-wrap items-end justify-between gap-4 sm:mb-8">
           <div>
-            <p className="mb-1 text-xs font-bold uppercase tracking-widest text-accent-600">
-              {t("badge")}
-            </p>
-            <h2 id="today-title" className="section-title">
+            <h2 id="weekend-title" className="section-title">
               {t("title")}
             </h2>
             <p className="section-subtitle">{t("subtitle")}</p>
           </div>
           <Link
-            href={{ pathname: "/events", query: { date: "today" } }}
+            href={{ pathname: "/events", query: { date: "weekend" } }}
             className="text-sm font-semibold text-brand-700 hover:underline"
           >
             {t("viewAll")} →
           </Link>
         </header>
-        <EventGrid events={events} priorityFirst={4} emptyNamespace="todaySection" />
+        <EventGrid events={events} emptyNamespace="weekendSection" />
       </div>
     </section>
   );

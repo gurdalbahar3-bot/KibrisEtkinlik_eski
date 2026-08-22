@@ -6,6 +6,8 @@ import { eventsRepository } from "@/lib/data/events";
 import { parseDiscoverySearchParams } from "@/lib/discovery/search-params";
 import { buildItemListJsonLd } from "@/lib/seo/jsonld";
 
+export const revalidate = 300;
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://globaleventdiscovery.com";
 
 type Props = {
@@ -36,7 +38,7 @@ export default async function EventsListingPage({ params, searchParams }: Props)
   setRequestLocale(locale);
 
   const filters = parseDiscoverySearchParams(await searchParams);
-  const events = eventsRepository.search(filters);
+  const events = await eventsRepository.search(filters);
   const t = await getTranslations("listing");
 
   const itemListJsonLd = buildItemListJsonLd(

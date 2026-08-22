@@ -11,7 +11,11 @@ export function CategoryGrid({ showHeader = true }: CategoryGridProps) {
   const tCat = useTranslations("categories");
 
   return (
-    <section id="kategoriler" className={showHeader ? "py-12 sm:py-16" : ""} aria-labelledby={showHeader ? "categories-title" : undefined}>
+    <section
+      id="kategoriler"
+      className={showHeader ? "py-12 sm:py-16" : ""}
+      aria-labelledby={showHeader ? "categories-title" : undefined}
+    >
       <div className={showHeader ? "section-container" : ""}>
         {showHeader && (
           <header className="mb-8">
@@ -22,17 +26,17 @@ export function CategoryGrid({ showHeader = true }: CategoryGridProps) {
           </header>
         )}
 
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4">
           {CATEGORY_KEYS.map((key) => (
             <li key={key}>
               <Link
                 href={{ pathname: "/categories/[category]", params: { category: key } }}
-                className={`flex min-h-[120px] flex-col justify-between rounded-2xl bg-gradient-to-br ${CATEGORY_COLORS[key]} p-4 text-white shadow-card transition hover:-translate-y-0.5 hover:shadow-card-hover`}
+                className={`group flex min-h-[128px] flex-col justify-between rounded-2xl bg-gradient-to-br ${CATEGORY_COLORS[key]} p-4 text-white shadow-card ring-1 ring-white/20 transition hover:-translate-y-1 hover:shadow-card-hover sm:min-h-[140px] sm:p-5`}
               >
-                <span className="text-2xl" aria-hidden>
+                <span className="text-3xl transition group-hover:scale-110" aria-hidden>
                   {CATEGORY_ICONS[key]}
                 </span>
-                <span className="text-sm font-semibold leading-tight">{tCat(key)}</span>
+                <span className="text-sm font-semibold leading-tight sm:text-base">{tCat(key)}</span>
               </Link>
             </li>
           ))}

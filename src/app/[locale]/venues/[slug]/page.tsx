@@ -5,19 +5,26 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { EventGrid } from "@/components/events/EventGrid";
 import { Link } from "@/lib/i18n/navigation";
 import { eventsRepository, venuesRepository } from "@/lib/data/events";
-import { MOCK_VENUES } from "@/lib/data/mock-events";
+import { queryVenueSlugs } from "@/lib/supabase/queries/discovery";
+
+export const revalidate = 300;
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
 };
 
-export function generateStaticParams() {
-  return MOCK_VENUES.map((v) => ({ slug: v.slug }));
+export async function generateStaticParams() {
+  try {
+    const slugs = await queryVenueSlugs();
+    return slugs.map((slug) => ({ slug }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
-  const venue = venuesRepository.getBySlug(slug);
+  const venue = await venuesRepository.getBySlug(slug);
   if (!venue) return {};
   return {
     title: `${venue.name} | Global Event Discovery`,
@@ -31,13 +38,13 @@ export default async function VenueDetailPage({ params }: Props) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
 
-  const venue = venuesRepository.getBySlug(slug);
+  const venue = await venuesRepository.getBySlug(slug);
   if (!venue) notFound();
 
   const t = await getTranslations("venuesPage");
   const tDist = await getTranslations("districts");
   const tVenueType = await getTranslations("venueTypes");
-  const events = eventsRepository.getByVenueSlug(slug);
+  const events = await eventsRepository.getByVenueSlug(slug);
 
   return (
     <section className="section-container py-10 sm:py-12">

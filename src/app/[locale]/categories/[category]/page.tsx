@@ -7,6 +7,8 @@ import { CATEGORY_KEYS } from "@/lib/data/categories";
 import { eventsRepository } from "@/lib/data/events";
 import type { EventCategory } from "@/types/event";
 
+export const revalidate = 300;
+
 type Props = {
   params: Promise<{ locale: string; category: string }>;
 };
@@ -38,7 +40,7 @@ export default async function CategoryEventsPage({ params }: Props) {
 
   const tCat = await getTranslations("categories");
   const t = await getTranslations("categoriesPage");
-  const events = eventsRepository.getByCategory(category as EventCategory);
+  const events = await eventsRepository.getByCategory(category as EventCategory);
 
   return (
     <section className="section-container py-10 sm:py-12">

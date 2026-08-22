@@ -40,7 +40,23 @@
     "badge": "Live",
     "title": "Today in Cyprus",
     "subtitle": "Events happening today",
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "emptyTitle": "No events today",
+    "emptyHint": "Browse upcoming events or try a different date."
+  },
+  "weekendSection": {
+    "title": "This Weekend",
+    "subtitle": "Events on Saturday and Sunday",
+    "viewAll": "View all",
+    "emptyTitle": "No events this weekend",
+    "emptyHint": "Check upcoming events or try a different date range."
+  },
+  "featuredSection": {
+    "title": "Featured Events",
+    "subtitle": "Must-see events you shouldn't miss",
+    "viewAll": "View all",
+    "emptyTitle": "No featured events yet",
+    "emptyHint": "Featured events will appear here as they are published."
   },
   "popularSection": {
     "title": "Popular Events",
@@ -49,28 +65,31 @@
   },
   "categoriesSection": {
     "title": "Categories",
-    "subtitle": "Explore by interest"
+    "subtitle": "10 categories — explore by interest"
   },
   "districtsSection": {
-    "title": "Explore by District",
-    "subtitle": "Discover events across all 6 districts of Northern Cyprus",
+    "title": "Explore Cyprus Regions",
+    "subtitle": "Girne, Lefkoşa, İskele, Famagusta, Güzelyurt and Lefke",
     "eventCount": "{count} events",
     "explore": "Explore events"
   },
   "upcomingSection": {
     "title": "Upcoming Events",
-    "subtitle": "More events coming up",
+    "subtitle": "Events in the coming days",
     "filterDate": "This week",
     "filterDistrict": "District",
     "filterCategory": "Category",
     "all": "All",
-    "viewAll": "All events"
+    "viewAll": "All events",
+    "emptyTitle": "No upcoming events",
+    "emptyHint": "New events will be listed here as they are published."
   },
   "venuesSection": {
-    "title": "Popular Venues",
-    "subtitle": "Venues hosting the most events",
+    "title": "Discover Cyprus Venues",
+    "subtitle": "Explore venues and their upcoming programmes",
     "upcoming": "{count} upcoming events",
-    "viewVenue": "View venue"
+    "viewVenue": "View venue",
+    "emptyHint": "No venues listed yet. Coming soon."
   },
   "eventCard": {
     "free": "Free",

@@ -4,7 +4,7 @@
     "siteNameShort": "Event Discovery",
     "homeTitle": "Kıbrıs Etkinlikleri — Konser, Festival, Tiyatro | Global Event Discovery",
     "homeDescription": "Kıbrıs'ta ne var? Konserlerden festivallere, tiyatrodan gece hayatına kadar KKTC'deki tüm etkinlikleri keşfedin. Lefkoşa, Girne, Gazimağusa, Güzelyurt, Lefke ve İskele.",
-    "homeKeywords": "Kıbrıs etkinlikleri, KKTC konser, Girne festival, Lefkoşa tiyatro, İskele etkinlik"
+    "homeKeywords": "Kıbrıs etkinlikleri, Kıbrıs'ta bugün ne var, Kıbrıs konserleri, Kıbrıs partileri, Girne etkinlikleri, Lefkoşa etkinlikleri, İskele etkinlikleri, Gazimağusa etkinlikleri, Güzelyurt etkinlikleri, Lefke etkinlikleri"
   },
   "nav": {
     "events": "Etkinlikler",
@@ -40,7 +40,23 @@
     "badge": "Canlı",
     "title": "Bugün Kıbrıs'ta",
     "subtitle": "Bugün gerçekleşen etkinlikler",
-    "viewAll": "Tümünü gör"
+    "viewAll": "Tümünü gör",
+    "emptyTitle": "Bugün için etkinlik yok",
+    "emptyHint": "Yaklaşan etkinliklere göz atın veya farklı bir tarih seçin."
+  },
+  "weekendSection": {
+    "title": "Bu Hafta Sonu",
+    "subtitle": "Cumartesi ve pazar gerçekleşecek etkinlikler",
+    "viewAll": "Tümünü gör",
+    "emptyTitle": "Bu hafta sonu için etkinlik yok",
+    "emptyHint": "Yaklaşan etkinliklere göz atın veya farklı bir tarih aralığı deneyin."
+  },
+  "featuredSection": {
+    "title": "Öne Çıkan Etkinlikler",
+    "subtitle": "Kaçırılmaması gereken etkinlikler",
+    "viewAll": "Tümünü gör",
+    "emptyTitle": "Öne çıkan etkinlik bulunamadı",
+    "emptyHint": "Yakında yeni etkinlikler eklendiğinde burada görünecek."
   },
   "popularSection": {
     "title": "Popüler Etkinlikler",
@@ -49,28 +65,31 @@
   },
   "categoriesSection": {
     "title": "Kategoriler",
-    "subtitle": "İlgi alanına göre keşfet"
+    "subtitle": "10 kategori — ilgi alanına göre keşfet"
   },
   "districtsSection": {
-    "title": "İlçelere Göre Keşfet",
-    "subtitle": "KKTC'nin 6 ilçesinde etkinlikleri keşfet",
+    "title": "Kıbrıs'ın Bölgelerinde Keşfet",
+    "subtitle": "Girne, Lefkoşa, İskele, Gazimağusa, Güzelyurt ve Lefke",
     "eventCount": "{count} etkinlik",
     "explore": "Etkinlikleri keşfet"
   },
   "upcomingSection": {
     "title": "Yaklaşan Etkinlikler",
-    "subtitle": "Diğer yaklaşan etkinlikler",
+    "subtitle": "Gelecek günlerdeki etkinlikler",
     "filterDate": "Bu hafta",
     "filterDistrict": "İlçe",
     "filterCategory": "Kategori",
     "all": "Tümü",
-    "viewAll": "Tüm etkinlikler"
+    "viewAll": "Tüm etkinlikler",
+    "emptyTitle": "Yaklaşan etkinlik bulunamadı",
+    "emptyHint": "Yeni etkinlikler eklendiğinde burada listelenecek."
   },
   "venuesSection": {
-    "title": "Popüler Mekanlar",
-    "subtitle": "En çok etkinliğe ev sahipliği yapan mekanlar",
+    "title": "Kıbrıs'ın Mekanlarını Keşfet",
+    "subtitle": "Etkinlik mekanlarını ve yaklaşan programları keşfet",
     "upcoming": "{count} yaklaşan etkinlik",
-    "viewVenue": "Mekanı gör"
+    "viewVenue": "Mekanı gör",
+    "emptyHint": "Henüz listelenen mekan yok. Yakında eklenecek."
   },
   "eventCard": {
     "free": "Ücretsiz",

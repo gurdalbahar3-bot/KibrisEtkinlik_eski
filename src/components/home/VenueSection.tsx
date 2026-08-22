@@ -1,13 +1,35 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/lib/i18n/navigation";
 import { PosterImage } from "@/components/ui/PosterImage";
-import { venuesRepository } from "@/lib/data/events";
-export function VenueSection() {
+import type { DiscoveryVenue } from "@/types/event";
+
+interface VenueSectionProps {
+  venues: DiscoveryVenue[];
+}
+
+export function VenueSection({ venues }: VenueSectionProps) {
   const t = useTranslations("venuesSection");
   const tDist = useTranslations("districts");
   const tVenueType = useTranslations("venueTypes");
   const tPage = useTranslations("venuesPage");
-  const venues = venuesRepository.getAll();
+
+  if (venues.length === 0) {
+    return (
+      <section id="populer-mekanlar" className="bg-slate-50 py-12 sm:py-16" aria-labelledby="venues-title">
+        <div className="section-container">
+          <header className="mb-8">
+            <h2 id="venues-title" className="section-title">
+              {t("title")}
+            </h2>
+            <p className="section-subtitle">{t("subtitle")}</p>
+          </header>
+          <p className="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center text-sm text-slate-500">
+            {t("emptyHint")}
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="populer-mekanlar" className="bg-slate-50 py-12 sm:py-16" aria-labelledby="venues-title">
@@ -40,11 +62,13 @@ export function VenueSection() {
                     alt={venue.name}
                     sizes="(max-width: 640px) 85vw, 25vw"
                     className="object-cover transition duration-500 group-hover:scale-105"
-                  />                </div>
+                  />
+                </div>
                 <div className="p-4">
                   <h3 className="font-bold text-slate-900 group-hover:text-brand-700">{venue.name}</h3>
                   <p className="mt-1 text-sm text-slate-600">
-                    {tDist(venue.district)} · {tVenueType(venue.venueType as "outdoor" | "culture" | "arena" | "beach")}
+                    {tDist(venue.district)} ·{" "}
+                    {tVenueType(venue.venueType as "outdoor" | "culture" | "arena" | "beach")}
                   </p>
                   <p className="mt-2 text-xs font-medium text-brand-700">
                     {t("upcoming", { count: venue.upcomingEventCount })}

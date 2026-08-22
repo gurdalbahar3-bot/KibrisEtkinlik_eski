@@ -4,6 +4,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/lib/i18n/navigation";
 import { venuesRepository } from "@/lib/data/events";
 
+export const revalidate = 300;
+
 type Props = {
   params: Promise<{ locale: string }>;
 };
@@ -20,7 +22,7 @@ export default async function VenuesListingPage({ params }: Props) {
   const t = await getTranslations("venuesPage");
   const tDist = await getTranslations("districts");
   const tVenueType = await getTranslations("venueTypes");
-  const venues = venuesRepository.getAll();
+  const venues = await venuesRepository.getAll();
 
   return (
     <section className="section-container py-10 sm:py-12">
@@ -32,35 +34,41 @@ export default async function VenuesListingPage({ params }: Props) {
         <p className="mt-2 text-slate-600">{t("subtitle")}</p>
       </header>
 
-      <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {venues.map((venue) => (
-          <li key={venue.id}>
-            <Link
-              href={{ pathname: "/venues/[slug]", params: { slug: venue.slug } }}
-              className="group block overflow-hidden rounded-2xl bg-white shadow-card transition hover:-translate-y-0.5 hover:shadow-card-hover"
-            >
-              <div className="relative aspect-[16/10]">
-                <Image
-                  src={venue.photo}
-                  alt={venue.name}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-cover transition duration-500 group-hover:scale-105"
-                />
-              </div>
-              <div className="p-4">
-                <h2 className="font-bold text-slate-900 group-hover:text-brand-700">{venue.name}</h2>
-                <p className="mt-1 text-sm text-slate-600">
-                  {tDist(venue.district)} · {tVenueType(venue.venueType as "outdoor" | "culture" | "arena" | "beach")}
-                </p>
-                <p className="mt-2 text-xs font-medium text-brand-700">
-                  {t("upcoming", { count: venue.upcomingEventCount })}
-                </p>
-              </div>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      {venues.length === 0 ? (
+        <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-16 text-center text-slate-500">
+          {t("noEvents")}
+        </p>
+      ) : (
+        <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {venues.map((venue) => (
+            <li key={venue.id}>
+              <Link
+                href={{ pathname: "/venues/[slug]", params: { slug: venue.slug } }}
+                className="group block overflow-hidden rounded-2xl bg-white shadow-card transition hover:-translate-y-0.5 hover:shadow-card-hover"
+              >
+                <div className="relative aspect-[16/10]">
+                  <Image
+                    src={venue.photo}
+                    alt={venue.name}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover transition duration-500 group-hover:scale-105"
+                  />
+                </div>
+                <div className="p-4">
+                  <h2 className="font-bold text-slate-900 group-hover:text-brand-700">{venue.name}</h2>
+                  <p className="mt-1 text-sm text-slate-600">
+                    {tDist(venue.district)} · {tVenueType(venue.venueType as "outdoor" | "culture" | "arena" | "beach")}
+                  </p>
+                  <p className="mt-2 text-xs font-medium text-brand-700">
+                    {t("upcoming", { count: venue.upcomingEventCount })}
+                  </p>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

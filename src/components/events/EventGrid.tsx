@@ -1,14 +1,20 @@
 import { EventCard } from "@/components/events/EventCard";
+import { EmptyState } from "@/components/ui/EmptyState";
 import type { DiscoveryEvent } from "@/types/event";
 
 interface EventGridProps {
   events: DiscoveryEvent[];
   priorityFirst?: number;
+  emptyNamespace?: "todaySection" | "featuredSection" | "weekendSection" | "upcomingSection";
 }
 
-export function EventGrid({ events, priorityFirst = 0 }: EventGridProps) {
+export function EventGrid({
+  events,
+  priorityFirst = 0,
+  emptyNamespace = "todaySection",
+}: EventGridProps) {
   if (events.length === 0) {
-    return null;
+    return <EmptyState namespace={emptyNamespace} />;
   }
 
   return (

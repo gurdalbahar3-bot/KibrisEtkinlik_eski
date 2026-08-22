@@ -1,13 +1,17 @@
 import type { MetadataRoute } from "next";
-import { CATEGORY_KEYS } from "@/lib/data/categories";
-import { DISTRICT_SLUGS } from "@/lib/data/categories";
-import { MOCK_EVENTS, MOCK_VENUES } from "@/lib/data/mock-events";
+import { CATEGORY_KEYS, DISTRICT_SLUGS } from "@/lib/data/categories";
+import { queryEventSlugs, queryVenueSlugs } from "@/lib/supabase/queries/discovery";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://globaleventdiscovery.com";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const locales = ["tr", "en"] as const;
   const entries: MetadataRoute.Sitemap = [];
+
+  const [eventSlugs, venueSlugs] = await Promise.all([
+    queryEventSlugs().catch(() => [] as string[]),
+    queryVenueSlugs().catch(() => [] as string[]),
+  ]);
 
   for (const locale of locales) {
     const prefix = `${SITE_URL}/${locale}`;
@@ -24,9 +28,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       { url: `${prefix}/${districtsPath}`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 }
     );
 
-    for (const event of MOCK_EVENTS) {
+    for (const slug of eventSlugs) {
       entries.push({
-        url: `${prefix}/${eventsPath}/${event.slug}`,
+        url: `${prefix}/${eventsPath}/${slug}`,
         lastModified: new Date(),
         changeFrequency: "weekly",
         priority: 0.7,
@@ -51,9 +55,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       });
     }
 
-    for (const venue of MOCK_VENUES) {
+    for (const slug of venueSlugs) {
       entries.push({
-        url: `${prefix}/${venuesPath}/${venue.slug}`,
+        url: `${prefix}/${venuesPath}/${slug}`,
         lastModified: new Date(),
         changeFrequency: "weekly",
         priority: 0.65,
