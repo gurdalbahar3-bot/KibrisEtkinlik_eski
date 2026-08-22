@@ -1,7 +1,11 @@
+import { DISTRICT_SLUGS } from "@/lib/data/categories";
 import { getCyprusDateString } from "@/lib/discovery/cyprus-date";
 import { filterEvents, getDateRange } from "@/lib/discovery/filter-events";
+import { findRelatedEvents } from "@/lib/discovery/related-events";
+import { resolveSlug, validateEventSlug } from "@/lib/discovery/resolve-slug";
 import type { DiscoverySearchParams } from "@/lib/discovery/search-params";
 import { MOCK_DISTRICTS, MOCK_EVENTS, MOCK_VENUES } from "@/lib/data/mock-events";
+import type { SearchOptions } from "@/types/discovery";
 import type {
   DiscoveryEvent,
   DiscoveryVenue,
@@ -10,18 +14,62 @@ import type {
   EventCategory,
 } from "@/types/event";
 
+function findEventBySlug(slug: string): DiscoveryEvent | undefined {
+  return MOCK_EVENTS.find((e) => e.slug === slug);
+}
+
+/** Fail fast if mock data violates reserved district slug rules. */
+for (const event of MOCK_EVENTS) {
+  const validation = validateEventSlug(event.slug);
+  if (!validation.valid) {
+    throw new Error(
+      `Invalid mock event slug "${event.slug}": conflicts with reserved district slug`
+    );
+  }
+}
+
 /** Repository facade — swap mock for Supabase without changing components. */
 export const eventsRepository = {
   getAll(): DiscoveryEvent[] {
     return MOCK_EVENTS;
   },
 
-  getBySlug(slug: string): DiscoveryEvent | undefined {
-    return MOCK_EVENTS.find((e) => e.slug === slug);
+  getAllEventSlugs(): string[] {
+    return MOCK_EVENTS.map((e) => e.slug);
   },
 
-  search(params: DiscoverySearchParams = {}): DiscoveryEvent[] {
-    return filterEvents(MOCK_EVENTS, params);
+  getDistrictSlugs(): DistrictSlug[] {
+    return [...DISTRICT_SLUGS];
+  },
+
+  validateEventSlug(slug: string) {
+    return validateEventSlug(slug);
+  },
+
+  resolveSlug(slug: string) {
+    return resolveSlug(slug, findEventBySlug);
+  },
+
+  getBySlug(slug: string): DiscoveryEvent | undefined {
+    return findEventBySlug(slug);
+  },
+
+  search(params: DiscoverySearchParams = {}, options: SearchOptions = {}): DiscoveryEvent[] {
+    const { limit, offset, sort } = options;
+    const mergedParams: DiscoverySearchParams = {
+      ...params,
+      ...(sort !== undefined ? { sort } : {}),
+    };
+    let result = filterEvents(MOCK_EVENTS, mergedParams);
+
+    if (offset !== undefined && offset > 0) {
+      result = result.slice(offset);
+    }
+    if (limit !== undefined && limit >= 0) {
+      result = result.slice(0, limit);
+    }
+
+    return result;
   },
 
   getToday(): DiscoveryEvent[] {
@@ -70,6 +118,10 @@ export const eventsRepository = {
 
   getByVenueSlug(venueSlug: string): DiscoveryEvent[] {
     return MOCK_EVENTS.filter((e) => e.venueSlug === venueSlug);
+  },
+
+  getRelatedEvents(event: DiscoveryEvent, limit = 4): DiscoveryEvent[] {
+    return findRelatedEvents(event, MOCK_EVENTS, limit);
   },
 };
 

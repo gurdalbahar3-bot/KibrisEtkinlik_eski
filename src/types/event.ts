@@ -44,6 +44,11 @@ export interface DiscoveryVenue {
   district: DistrictSlug;
   venueType: string;
   upcomingEventCount: number;
+  /** Optional coordinates for map navigation; search fallback uses name + district. */
+  location?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 export interface DistrictInfo {

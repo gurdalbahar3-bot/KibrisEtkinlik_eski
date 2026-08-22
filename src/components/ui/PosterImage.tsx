@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
-import { MEDIA } from "@/lib/data/media-urls";
+import { useMemo, useState } from "react";
+import { getGenericFallback } from "@/lib/ui/media-registry";
 
 interface PosterImageProps {
   src: string;
@@ -11,6 +11,8 @@ interface PosterImageProps {
   sizes?: string;
   className?: string;
   priority?: boolean;
+  /** District-safe ordered fallbacks — tried on load error. */
+  fallbackSources?: string[];
 }
 
 export function PosterImage({
@@ -20,11 +22,25 @@ export function PosterImage({
   sizes,
   className = "object-cover",
   priority = false,
+  fallbackSources,
 }: PosterImageProps) {
-  const [imgSrc, setImgSrc] = useState(src);
-  const [failed, setFailed] = useState(false);
+  const chain = useMemo(() => {
+    const ordered = fallbackSources?.length ? fallbackSources : [getGenericFallback()];
+    const unique: string[] = [];
+    const seen = new Set<string>();
+    for (const url of [src, ...ordered]) {
+      if (!url || seen.has(url)) continue;
+      seen.add(url);
+      unique.push(url);
+    }
+    return unique;
+  }, [src, fallbackSources]);
 
-  if (failed) {
+  const [index, setIndex] = useState(0);
+  const [exhausted, setExhausted] = useState(false);
+  const imgSrc = chain[index] ?? src;
+
+  if (exhausted || !imgSrc) {
     return (
       <div
         className={`absolute inset-0 bg-gradient-to-br from-brand-800 via-brand-900 to-slate-900 ${className}`}
@@ -43,10 +59,10 @@ export function PosterImage({
       className={className}
       priority={priority}
       onError={() => {
-        if (imgSrc !== MEDIA.posters.fallback) {
-          setImgSrc(MEDIA.posters.fallback);
+        if (index < chain.length - 1) {
+          setIndex((i) => i + 1);
         } else {
-          setFailed(true);
+          setExhausted(true);
         }
       }}
     />
