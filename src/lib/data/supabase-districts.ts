@@ -1,10 +1,11 @@
 import { mapDistrictRowsToDistrictInfo } from "@/lib/data/adapters/district-mapper";
 import { mapEventRowsToDiscoveryEvents } from "@/lib/data/adapters/event-mapper";
 import {
+  DISCOVERY_LIST_STATUSES,
   DISTRICT_DISCOVERY_SELECT,
   EVENT_DISCOVERY_SELECT,
-  PUBLIC_EVENT_STATUSES,
 } from "@/lib/data/supabase/queries";
+import { getCyprusDateString } from "@/lib/discovery/cyprus-date";
 import { createSupabaseAnonClient } from "@/lib/supabase/anon-client";
 import type { DbEventRow, DbKktcDistrictRow } from "@/types/supabase/database";
 import type { DistrictInfo, DistrictSlug } from "@/types/event";
@@ -24,12 +25,13 @@ async function fetchDistrictRows(): Promise<DbKktcDistrictRow[]> {
   return (data ?? []) as unknown as DbKktcDistrictRow[];
 }
 
-async function fetchPublishedEventRows(): Promise<DbEventRow[]> {
+/** District event counts mirror the discovery list pool (upcoming only). */
+async function fetchDiscoveryListEventRows(): Promise<DbEventRow[]> {
   const supabase = createSupabaseAnonClient();
   const { data, error } = await supabase
     .from("events")
     .select(EVENT_DISCOVERY_SELECT)
-    .in("status", [...PUBLIC_EVENT_STATUSES]);
+    .in("status", [...DISCOVERY_LIST_STATUSES]);
 
   if (error) {
     throw new Error(`Supabase events fetch for district counts failed: ${error.message}`);
@@ -39,8 +41,9 @@ async function fetchPublishedEventRows(): Promise<DbEventRow[]> {
 }
 
 function buildDistrictEventCounts(): Promise<Partial<Record<DistrictSlug, number>>> {
-  return fetchPublishedEventRows().then((rows) => {
-    const events = mapEventRowsToDiscoveryEvents(rows);
+  const today = getCyprusDateString();
+  return fetchDiscoveryListEventRows().then((rows) => {
+    const events = mapEventRowsToDiscoveryEvents(rows).filter((e) => e.date >= today);
     const counts: Partial<Record<DistrictSlug, number>> = {};
     for (const event of events) {
       counts[event.district] = (counts[event.district] ?? 0) + 1;

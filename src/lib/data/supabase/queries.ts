@@ -61,4 +61,12 @@ export const DISTRICT_DISCOVERY_SELECT = `
   is_active
 `.trim();
 
+/** Public statuses visible on event detail (includes past `completed`). */
 export const PUBLIC_EVENT_STATUSES = ["published", "postponed", "completed"] as const;
+
+/**
+ * Homepage / listing / search discovery pool.
+ * Excludes `completed` — past events must not inflate discovery lists.
+ * Callers still apply Cyprus-timezone date >= today for upcoming-only surfaces.
+ */
+export const DISCOVERY_LIST_STATUSES = ["published", "postponed"] as const;

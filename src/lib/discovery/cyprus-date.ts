@@ -11,6 +11,11 @@ export function getCyprusDateString(date: Date = new Date()): string {
   }).format(date);
 }
 
+/** Calendar date (YYYY-MM-DD) for an ISO timestamp in Europe/Nicosia. */
+export function formatCyprusDateFromIso(iso: string): string {
+  return getCyprusDateString(new Date(iso));
+}
+
 /** Add calendar days to a YYYY-MM-DD string (timezone-neutral date math). */
 export function addCalendarDays(dateStr: string, days: number): string {
   const [y, m, d] = dateStr.split("-").map(Number);

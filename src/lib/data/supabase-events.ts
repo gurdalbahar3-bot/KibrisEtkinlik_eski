@@ -3,7 +3,11 @@ import {
   mapEventRowToDiscoveryEvent,
   mapEventRowsToDiscoveryEvents,
 } from "@/lib/data/adapters/event-mapper";
-import { EVENT_DISCOVERY_SELECT, PUBLIC_EVENT_STATUSES } from "@/lib/data/supabase/queries";
+import {
+  DISCOVERY_LIST_STATUSES,
+  EVENT_DISCOVERY_SELECT,
+  PUBLIC_EVENT_STATUSES,
+} from "@/lib/data/supabase/queries";
 import { getCyprusDateString } from "@/lib/discovery/cyprus-date";
 import { filterEvents, getDateRange } from "@/lib/discovery/filter-events";
 import { findRelatedEvents } from "@/lib/discovery/related-events";
@@ -14,7 +18,27 @@ import type { SearchOptions } from "@/types/discovery";
 import type { DbEventRow } from "@/types/supabase/database";
 import type { DiscoveryEvent, DistrictSlug, EventCategory } from "@/types/event";
 
-async function fetchPublishedEventRows(): Promise<DbEventRow[]> {
+/**
+ * Homepage / listing / search pool: published|postponed, Cyprus date >= today.
+ * Past and `completed` events are excluded here — use detail fetch for deep links.
+ */
+async function fetchDiscoveryListEventRows(): Promise<DbEventRow[]> {
+  const supabase = createSupabaseAnonClient();
+  const { data, error } = await supabase
+    .from("events")
+    .select(EVENT_DISCOVERY_SELECT)
+    .in("status", [...DISCOVERY_LIST_STATUSES])
+    .order("starts_at", { ascending: true });
+
+  if (error) {
+    throw new Error(`Supabase discovery events fetch failed: ${error.message}`);
+  }
+
+  return (data ?? []) as DbEventRow[];
+}
+
+/** Detail / deep-link pool: includes past + completed (still RLS-public). */
+async function fetchPublicDetailEventRows(): Promise<DbEventRow[]> {
   const supabase = createSupabaseAnonClient();
   const { data, error } = await supabase
     .from("events")
@@ -23,14 +47,24 @@ async function fetchPublishedEventRows(): Promise<DbEventRow[]> {
     .order("starts_at", { ascending: true });
 
   if (error) {
-    throw new Error(`Supabase events fetch failed: ${error.message}`);
+    throw new Error(`Supabase event detail fetch failed: ${error.message}`);
   }
 
   return (data ?? []) as DbEventRow[];
 }
 
-async function fetchAllDiscoveryEvents(): Promise<DiscoveryEvent[]> {
-  const rows = await fetchPublishedEventRows();
+function filterUpcomingCyprus(events: DiscoveryEvent[]): DiscoveryEvent[] {
+  const today = getCyprusDateString();
+  return events.filter((event) => event.date >= today);
+}
+
+async function fetchDiscoveryListEvents(): Promise<DiscoveryEvent[]> {
+  const rows = await fetchDiscoveryListEventRows();
+  return filterUpcomingCyprus(mapEventRowsToDiscoveryEvents(rows));
+}
+
+async function fetchPublicDetailEvents(): Promise<DiscoveryEvent[]> {
+  const rows = await fetchPublicDetailEventRows();
   return mapEventRowsToDiscoveryEvents(rows);
 }
 
@@ -39,16 +73,22 @@ function findEventBySlug(events: DiscoveryEvent[], slug: string): DiscoveryEvent
 }
 
 /**
- * Async Supabase READ repository — parallel to mock `eventsRepository`.
- * Not wired into pages yet; enable via SUPABASE_DATA_SOURCE=supabase in a later phase.
+ * Supabase READ repository for public discovery.
+ * Canonical page access goes through `discoveryEventsRepository` (this is the supabase backend).
  */
 export const supabaseEventsRepository = {
+  /** Upcoming discovery pool for homepage, listings, and search. */
   async getAll(): Promise<DiscoveryEvent[]> {
-    return fetchAllDiscoveryEvents();
+    return fetchDiscoveryListEvents();
+  },
+
+  /** Includes past/completed — for detail pages and slug resolution only. */
+  async getAllForDetail(): Promise<DiscoveryEvent[]> {
+    return fetchPublicDetailEvents();
   },
 
   async getAllEventSlugs(): Promise<string[]> {
-    const events = await fetchAllDiscoveryEvents();
+    const events = await fetchDiscoveryListEvents();
     return events.map((event) => event.slug);
   },
 
@@ -61,12 +101,12 @@ export const supabaseEventsRepository = {
   },
 
   async resolveSlug(slug: string) {
-    const events = await fetchAllDiscoveryEvents();
+    const events = await fetchPublicDetailEvents();
     return resolveSlug(slug, (s) => findEventBySlug(events, s));
   },
 
   async getBySlug(slug: string): Promise<DiscoveryEvent | undefined> {
-    const events = await fetchAllDiscoveryEvents();
+    const events = await fetchPublicDetailEvents();
     return findEventBySlug(events, slug);
   },
 
@@ -80,7 +120,7 @@ export const supabaseEventsRepository = {
       ...(sort !== undefined ? { sort } : {}),
     };
 
-    const all = await fetchAllDiscoveryEvents();
+    const all = await fetchDiscoveryListEvents();
     let result = filterEvents(all, mergedParams);
 
     if (offset !== undefined && offset > 0) {
@@ -95,12 +135,12 @@ export const supabaseEventsRepository = {
 
   async getToday(): Promise<DiscoveryEvent[]> {
     const { from, to } = getDateRange("today");
-    const all = await fetchAllDiscoveryEvents();
+    const all = await fetchDiscoveryListEvents();
     return all.filter((event) => event.date >= from && event.date <= to);
   },
 
   async getPopular(): Promise<DiscoveryEvent[]> {
-    const all = await fetchAllDiscoveryEvents();
+    const all = await fetchDiscoveryListEvents();
     return all.filter((event) => event.isPopular);
   },
 
@@ -109,7 +149,7 @@ export const supabaseEventsRepository = {
     limit = 6
   ): Promise<DiscoveryEvent[]> {
     const today = getCyprusDateString();
-    const all = await fetchAllDiscoveryEvents();
+    const all = await fetchDiscoveryListEvents();
     return all
       .filter(
         (event) => event.isPopular && event.date > today && !excludeIds.includes(event.id)
@@ -120,7 +160,7 @@ export const supabaseEventsRepository = {
 
   async getUpcoming(limit = 8): Promise<DiscoveryEvent[]> {
     const today = getCyprusDateString();
-    const all = await fetchAllDiscoveryEvents();
+    const all = await fetchDiscoveryListEvents();
     return all
       .filter((event) => event.date >= today)
       .sort((a, b) => a.date.localeCompare(b.date))
@@ -132,7 +172,7 @@ export const supabaseEventsRepository = {
     limit = 6
   ): Promise<DiscoveryEvent[]> {
     const today = getCyprusDateString();
-    const all = await fetchAllDiscoveryEvents();
+    const all = await fetchDiscoveryListEvents();
     return all
       .filter((event) => event.date > today && !excludeIds.includes(event.id))
       .sort((a, b) => a.date.localeCompare(b.date))
@@ -140,22 +180,22 @@ export const supabaseEventsRepository = {
   },
 
   async getByDistrict(district: DistrictSlug): Promise<DiscoveryEvent[]> {
-    const all = await fetchAllDiscoveryEvents();
+    const all = await fetchDiscoveryListEvents();
     return all.filter((event) => event.district === district);
   },
 
   async getByCategory(category: EventCategory): Promise<DiscoveryEvent[]> {
-    const all = await fetchAllDiscoveryEvents();
+    const all = await fetchDiscoveryListEvents();
     return all.filter((event) => event.category === category);
   },
 
   async getByVenueSlug(venueSlug: string): Promise<DiscoveryEvent[]> {
-    const all = await fetchAllDiscoveryEvents();
+    const all = await fetchDiscoveryListEvents();
     return all.filter((event) => event.venueSlug === venueSlug);
   },
 
   async getRelatedEvents(event: DiscoveryEvent, limit = 4): Promise<DiscoveryEvent[]> {
-    const all = await fetchAllDiscoveryEvents();
+    const all = await fetchDiscoveryListEvents();
     return findRelatedEvents(event, all, limit);
   },
 
