@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { DiscoveryFilterForm } from "@/components/discovery/DiscoveryFilterForm";
 import { EventGrid } from "@/components/events/EventGrid";
-import { eventsRepository } from "@/lib/data/events";
+import { discoveryEventsRepository } from "@/lib/data/discovery-repository";
 import { parseDiscoverySearchParams } from "@/lib/discovery/search-params";
 import { buildItemListJsonLd } from "@/lib/seo/jsonld";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://globaleventdiscovery.com";
+
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -36,7 +38,10 @@ export default async function EventsListingPage({ params, searchParams }: Props)
   setRequestLocale(locale);
 
   const filters = parseDiscoverySearchParams(await searchParams);
-  const events = eventsRepository.search(filters);
+  // Venue scope is handled on /venues — ignore here if somehow present.
+  const eventFilters =
+    filters.scope === "venue" ? { ...filters, scope: undefined as undefined } : filters;
+  const events = await discoveryEventsRepository.search(eventFilters);
   const t = await getTranslations("listing");
 
   const itemListJsonLd = buildItemListJsonLd(
