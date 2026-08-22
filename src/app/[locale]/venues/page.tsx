@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { PosterImage } from "@/components/ui/PosterImage";
 import { Link } from "@/lib/i18n/navigation";
 import { discoveryVenuesRepository } from "@/lib/data/discovery-repository";
+import { getVenueImage, getVenueImageSources } from "@/lib/ui/venue-image";
 
 export const dynamic = "force-dynamic";
 
@@ -52,34 +53,40 @@ export default async function VenuesListingPage({ params, searchParams }: Props)
         </div>
       ) : (
         <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {venues.map((venue) => (
-            <li key={venue.id}>
-              <Link
-                href={{ pathname: "/venues/[slug]", params: { slug: venue.slug } }}
-                className="group block overflow-hidden rounded-2xl bg-white shadow-card transition hover:-translate-y-0.5 hover:shadow-card-hover"
-              >
-                <div className="relative aspect-[16/10]">
-                  <Image
-                    src={venue.photo}
-                    alt={venue.name}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover transition duration-500 group-hover:scale-105"
-                  />
-                </div>
-                <div className="p-4">
-                  <h2 className="font-bold text-slate-900 group-hover:text-brand-700">{venue.name}</h2>
-                  <p className="mt-1 text-sm text-slate-600">
-                    {tDist(venue.district)} ·{" "}
-                    {tVenueType(venue.venueType as "outdoor" | "culture" | "arena" | "beach")}
-                  </p>
-                  <p className="mt-2 text-xs font-medium text-brand-700">
-                    {t("upcoming", { count: venue.upcomingEventCount })}
-                  </p>
-                </div>
-              </Link>
-            </li>
-          ))}
+          {venues.map((venue) => {
+            const imageSrc = venue.photo?.trim() ? getVenueImage(venue) : "";
+            const fallbackSources = venue.photo?.trim()
+              ? getVenueImageSources(venue).filter((url) => url !== imageSrc)
+              : [];
+            return (
+              <li key={venue.id}>
+                <Link
+                  href={{ pathname: "/venues/[slug]", params: { slug: venue.slug } }}
+                  className="group block overflow-hidden rounded-2xl bg-white shadow-card transition hover:-translate-y-0.5 hover:shadow-card-hover"
+                >
+                  <div className="relative aspect-[16/10]">
+                    <PosterImage
+                      src={imageSrc}
+                      fallbackSources={fallbackSources}
+                      alt={venue.name}
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="object-cover transition duration-500 group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <h2 className="font-bold text-slate-900 group-hover:text-brand-700">{venue.name}</h2>
+                    <p className="mt-1 text-sm text-slate-600">
+                      {tDist(venue.district)} ·{" "}
+                      {tVenueType(venue.venueType as "outdoor" | "culture" | "arena" | "beach")}
+                    </p>
+                    <p className="mt-2 text-xs font-medium text-brand-700">
+                      {t("upcoming", { count: venue.upcomingEventCount })}
+                    </p>
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>

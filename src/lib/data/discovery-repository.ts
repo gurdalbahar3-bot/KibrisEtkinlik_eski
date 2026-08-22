@@ -27,8 +27,9 @@ import type {
 } from "@/types/event";
 
 /**
- * One events fetch per request — shared across listing, detail, category, venue pages.
- * Supabase mode: fail loud (no silent mock fallback).
+ * One events fetch per request — shared across listing, category, venue pages.
+ * Canonical facade for pages: `discoveryEventsRepository`.
+ * Supabase mode: fail loud (no silent mock fallback). List pool = upcoming only.
  */
 const loadDiscoveryEvents = cache(async (): Promise<DiscoveryEvent[]> => {
   if (isSupabaseDataSource()) {
@@ -59,10 +60,12 @@ function findEventBySlug(events: DiscoveryEvent[], slug: string): DiscoveryEvent
 }
 
 /**
- * Unified async discovery repository — routes to mock or Supabase via SUPABASE_DATA_SOURCE.
- * Mock only when explicitly SUPABASE_DATA_SOURCE=mock (or unset default).
+ * Canonical public discovery facade for pages.
+ * Supabase backend: `supabaseEventsRepository` (list = upcoming; detail = includes past).
+ * Mock only when SUPABASE_DATA_SOURCE=mock (or unset default).
  */
 export const discoveryEventsRepository = {
+  /** Upcoming discovery pool — homepage, listings, search, category/district grids. */
   getAll: loadDiscoveryEvents,
 
   async getAllEventSlugs(): Promise<string[]> {
@@ -74,14 +77,22 @@ export const discoveryEventsRepository = {
     return [...DISTRICT_SLUGS];
   },
 
+  /** Detail/deep-link resolution — may include past/completed events. */
   async resolveSlug(slug: string) {
-    const events = await loadDiscoveryEvents();
-    return resolveSlug(slug, (s) => findEventBySlug(events, s));
+    if (isSupabaseDataSource()) {
+      assertSupabaseDataSourceReady();
+      return supabaseEventsRepository.resolveSlug(slug);
+    }
+    return resolveSlug(slug, (s) => findEventBySlug(mockEventsRepository.getAll(), s));
   },
 
+  /** Detail pages — past events remain reachable by slug. */
   async getBySlug(slug: string): Promise<DiscoveryEvent | undefined> {
-    const events = await loadDiscoveryEvents();
-    return findEventBySlug(events, slug);
+    if (isSupabaseDataSource()) {
+      assertSupabaseDataSourceReady();
+      return supabaseEventsRepository.getBySlug(slug);
+    }
+    return findEventBySlug(mockEventsRepository.getAll(), slug);
   },
 
   async search(
