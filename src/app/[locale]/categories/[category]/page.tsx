@@ -4,8 +4,10 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { EventGrid } from "@/components/events/EventGrid";
 import { Link } from "@/lib/i18n/navigation";
 import { CATEGORY_KEYS } from "@/lib/data/categories";
-import { eventsRepository } from "@/lib/data/events";
+import { discoveryEventsRepository } from "@/lib/data/discovery-repository";
 import type { EventCategory } from "@/types/event";
+
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ locale: string; category: string }>;
@@ -38,7 +40,7 @@ export default async function CategoryEventsPage({ params }: Props) {
 
   const tCat = await getTranslations("categories");
   const t = await getTranslations("categoriesPage");
-  const events = eventsRepository.getByCategory(category as EventCategory);
+  const events = await discoveryEventsRepository.getByCategory(category as EventCategory);
 
   return (
     <section className="section-container py-10 sm:py-12">
