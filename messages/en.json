@@ -149,7 +149,6 @@
     "freeEntry": "Free entry",
     "officialTickets": "Official Tickets / Reservation",
     "comingSoon": "Coming soon",
-    "directions": "Directions",
     "ticketsTitle": "Tickets",
     "fromPrice": "From {price}",
     "remaining": "{count} left",
@@ -205,8 +204,15 @@
     "noEvents": "No events listed right now.",
     "emptyTitle": "No venues found",
     "emptyHint": "Try a different search or browse all venues.",
-    "searchResults": "{count} venues for \"{query}\"",
-    "directions": "Directions"
+    "searchResults": "{count} venues for \"{query}\""
+  },
+  "mapsDirections": {
+    "cta": "Get Directions",
+    "chooserTitle": "Choose a maps app",
+    "chooserHint": "Open directions in the app you prefer.",
+    "google": "Google Maps",
+    "apple": "Apple Maps",
+    "close": "Close"
   },
   "districtsPage": {
     "title": "Explore by District",
