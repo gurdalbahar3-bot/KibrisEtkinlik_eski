@@ -1,4 +1,7 @@
-import { countIndependentPublishers, uniquePublisherIds } from "@/lib/orumcek/publisher";
+import {
+  countIndependentPublishers,
+  independentPublisherIds,
+} from "@/lib/orumcek/publisher";
 import {
   INDEPENDENT_PUBLISHER_THRESHOLD,
   type CorroborationDecision,
@@ -12,7 +15,7 @@ export function evaluateCorroboration(input: {
   hasContradiction: boolean;
   unsure: boolean;
 }): CorroborationDecision {
-  const publisherIds = uniquePublisherIds(input.publisherIds);
+  const publisherIds = [...new Set([...input.publisherIds].map((id) => id.trim()).filter(Boolean))];
   const independentPublisherCount = publisherIds.length;
   const met = independentPublisherCount >= INDEPENDENT_PUBLISHER_THRESHOLD;
 
@@ -30,7 +33,7 @@ export function evaluateCorroborationFromObservations(
   flags: { hasContradiction: boolean; unsure: boolean }
 ): CorroborationDecision {
   return evaluateCorroboration({
-    publisherIds: observations.map((item) => item.publisherId),
+    publisherIds: independentPublisherIds(observations),
     hasContradiction: flags.hasContradiction,
     unsure: flags.unsure,
   });

@@ -22,6 +22,8 @@ export {
   createPublisher,
   createPublisherChannel,
   createSourceSeed,
+  independentPublisherIds,
+  isTicketPublisherSource,
   uniquePublisherIds,
 } from "@/lib/orumcek/publisher";
 
@@ -41,10 +43,12 @@ export {
 export { evaluateMotorDraft } from "@/lib/orumcek/evaluate";
 
 export {
+  FROZEN_ADMIN_STATUSES,
   MOTOR_TRANSITIONS,
   assertNotPublicCatalog,
   canTransitionMotor,
   destinationFromGate,
+  isFrozenHumanStatus,
   mapMotorStatusToAdmin,
   transitionMotor,
 } from "@/lib/orumcek/state-machine";
@@ -60,5 +64,5 @@ export {
 } from "@/lib/orumcek/jobs";
 export { applyMotorToIntake, mapMotorToAIReview } from "@/lib/orumcek/mapper";
 export { createRawObservation, observationToRawEvent } from "@/lib/orumcek/observation";
-export { OrumcekDiscoveryEngine, createOrumcekEngine } from "@/lib/orumcek/engine";
+export { FrozenIntakeError, OrumcekDiscoveryEngine, createOrumcekEngine } from "@/lib/orumcek/engine";
 export { resetOrumcekStore } from "@/lib/orumcek/store";

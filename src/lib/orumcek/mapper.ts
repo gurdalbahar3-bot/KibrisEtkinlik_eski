@@ -1,6 +1,6 @@
 import type { AIReviewFlag, AIReviewResult } from "@/types/admin/ai-review";
 import type { DiscoveredEventIntake, IntakeCorroboration } from "@/types/admin/intake";
-import { assertNotPublicCatalog, mapMotorStatusToAdmin } from "@/lib/orumcek/state-machine";
+import { assertNotPublicCatalog } from "@/lib/orumcek/state-machine";
 import type { MotorRecord } from "@/lib/orumcek/types";
 
 export function mapMotorToCorroboration(record: MotorRecord): IntakeCorroboration | undefined {
@@ -46,19 +46,20 @@ export function mapMotorToAIReview(record: MotorRecord): AIReviewResult | undefi
 }
 
 /**
- * Maps the motor DTO onto the existing admin intake / review/ai shape.
- * Does not redesign the admin UI — extra fields are optional.
+ * Maps motor draft/corroboration onto the existing admin intake DTO.
+ * Does not change lifecycle status — that must go through transition().
  */
 export function applyMotorToIntake(
   intake: DiscoveredEventIntake,
   record: MotorRecord
 ): DiscoveredEventIntake {
-  const status = mapMotorStatusToAdmin(record.status);
-  assertNotPublicCatalog(status);
+  assertNotPublicCatalog(intake.status);
+  if (intake.status === "APPROVED" || intake.status === "PUBLISHED") {
+    throw new Error("Örümcek motor must not overwrite APPROVED or PUBLISHED intake.");
+  }
 
   return {
     ...intake,
-    status,
     source: "SPIDER",
     rawTitle: record.draft?.title ?? intake.rawTitle,
     rawDescription: record.draft?.description ?? intake.rawDescription,

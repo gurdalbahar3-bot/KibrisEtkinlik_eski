@@ -62,6 +62,7 @@ export interface RawObservation {
   publisherId: string;
   channelId: string;
   channelKind: SpiderChannelKind;
+  publisherRole?: PublisherRole;
   sourceUrl: string;
   raw: RawSpiderEvent;
   capturedAt: string;
@@ -144,7 +145,7 @@ export interface MotorEvaluation {
   confidence: ConfidenceReport;
   corroboration: CorroborationDecision;
   motorStatus: Extract<SpiderMotorStatus, "PENDING_APPROVAL" | "REVIEW">;
-  adminStatus: Extract<IntakeStatus, "PENDING_APPROVAL" | "AI_REVIEW">;
+  adminStatus: Extract<IntakeStatus, "AI_REVIEW">;
   autoEligible: boolean;
 }
 

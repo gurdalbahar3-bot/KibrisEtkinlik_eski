@@ -1,13 +1,23 @@
+import { tryResolveSpiderDistrict } from "@/lib/admin/intake/district";
+import { normalizeCategorySlug } from "@/lib/admin/intake/normalize";
 import {
   normalizeIdentityDate,
-  normalizeIdentityDistrict,
   normalizeIdentityTitle,
   normalizeIdentityVenue,
 } from "@/lib/orumcek/identity";
 import type { AIDraft, ConfidenceReport, ContradictionField, FieldContradiction, RawObservation } from "@/lib/orumcek/types";
-import { normalizeCategorySlug } from "@/lib/admin/intake/normalize";
 
-const UNSURE_SCORE_THRESHOLD = 0.7;
+export const UNSURE_SCORE_THRESHOLD = 0.7;
+
+const EXPECTED_FIELDS: readonly ContradictionField[] = [
+  "title",
+  "date",
+  "venue",
+  "district",
+  "category",
+];
+
+const REQUIRED_FIELDS: readonly ContradictionField[] = ["title", "date", "district"];
 
 function uniqueNormalized(values: Array<string | undefined>): string[] {
   const seen = new Set<string>();
@@ -23,25 +33,34 @@ function observationDate(observation: RawObservation): string | undefined {
   return normalizeIdentityDate(observation.raw.rawDate);
 }
 
-function collectContradictions(observations: RawObservation[]): FieldContradiction[] {
-  const groups: Record<ContradictionField, string[]> = {
-    title: uniqueNormalized(observations.map((item) => normalizeIdentityTitle(item.raw.rawTitle))),
-    date: uniqueNormalized(observations.map((item) => observationDate(item))),
-    venue: uniqueNormalized(observations.map((item) => normalizeIdentityVenue(item.raw.rawVenue))),
-    district: uniqueNormalized(
-      observations.map((item) =>
-        item.raw.rawDistrict ? normalizeIdentityDistrict(item.raw.rawDistrict) : undefined
-      )
-    ),
-    category: uniqueNormalized(
-      observations.map((item) =>
-        item.raw.rawCategory ? normalizeCategorySlug(item.raw.rawCategory) : undefined
-      )
-    ),
-  };
+function fieldValues(
+  observations: RawObservation[],
+  field: ContradictionField
+): string[] {
+  switch (field) {
+    case "title":
+      return uniqueNormalized(observations.map((item) => normalizeIdentityTitle(item.raw.rawTitle)));
+    case "date":
+      return uniqueNormalized(observations.map((item) => observationDate(item)));
+    case "venue":
+      return uniqueNormalized(observations.map((item) => normalizeIdentityVenue(item.raw.rawVenue)));
+    case "district":
+      return uniqueNormalized(
+        observations.map((item) => tryResolveSpiderDistrict(item.raw.rawDistrict))
+      );
+    case "category":
+      return uniqueNormalized(
+        observations.map((item) =>
+          item.raw.rawCategory ? normalizeCategorySlug(item.raw.rawCategory) : undefined
+        )
+      );
+  }
+}
 
+function collectContradictions(observations: RawObservation[]): FieldContradiction[] {
   const contradictions: FieldContradiction[] = [];
-  for (const [field, values] of Object.entries(groups) as Array<[ContradictionField, string[]]>) {
+  for (const field of EXPECTED_FIELDS) {
+    const values = fieldValues(observations, field);
     if (values.length > 1) {
       contradictions.push({ field, values });
     }
@@ -54,39 +73,51 @@ export function evaluateConfidence(
   draft?: AIDraft
 ): ConfidenceReport {
   const contradictions = collectContradictions(observations);
-  const comparedFieldCount = 5;
-  const agreed = comparedFieldCount - contradictions.length;
-  const score = observations.length === 0 ? 0 : agreed / comparedFieldCount;
+  const contradicted = new Set(contradictions.map((item) => item.field));
+  let agreed = 0;
+  const missingRequired: ContradictionField[] = [];
+
+  for (const field of EXPECTED_FIELDS) {
+    const values = fieldValues(observations, field);
+    if (values.length === 1 && !contradicted.has(field)) {
+      agreed += 1;
+    }
+    if (REQUIRED_FIELDS.includes(field) && values.length === 0) {
+      missingRequired.push(field);
+    }
+  }
+
+  const score = observations.length === 0 ? 0 : agreed / EXPECTED_FIELDS.length;
+  const missingDate =
+    !draft?.startsAt &&
+    observations.every((item) => !normalizeIdentityDate(item.raw.rawDate));
+  const hasMissingRequired = missingRequired.length > 0 || missingDate;
+  const hasUnsureFields = (draft?.unsureFields.length ?? 0) > 0;
+  const belowThreshold = score < UNSURE_SCORE_THRESHOLD;
 
   const reasons: string[] = [];
-  const missingDate =
-    !draft?.startsAt && observations.every((item) => !normalizeIdentityDate(item.raw.rawDate));
-
   if (contradictions.length > 0) {
-    reasons.push(
-      `Contradictions on ${contradictions.map((item) => item.field).join(", ")}.`
-    );
+    reasons.push(`Contradictions on ${contradictions.map((item) => item.field).join(", ")}.`);
   }
-  if (missingDate) {
+  if (missingDate || missingRequired.includes("date")) {
     reasons.push("Date is missing.");
   }
-  if (draft?.unsureFields.length) {
-    reasons.push(`Draft is unsure about ${draft.unsureFields.join(", ")}.`);
+  if (missingRequired.filter((field) => field !== "date").length > 0) {
+    reasons.push(
+      `Required fields missing: ${missingRequired.filter((field) => field !== "date").join(", ")}.`
+    );
   }
-  if (score < UNSURE_SCORE_THRESHOLD && contradictions.length === 0 && !missingDate) {
-    reasons.push("Agreement score is below the unsure threshold.");
+  if (hasUnsureFields) {
+    reasons.push(`Draft is unsure about ${draft?.unsureFields.join(", ")}.`);
   }
-
-  const hasContradiction = contradictions.length > 0;
-  const unsure =
-    missingDate ||
-    (draft?.unsureFields.length ?? 0) > 0 ||
-    (score < UNSURE_SCORE_THRESHOLD && !hasContradiction);
+  if (belowThreshold) {
+    reasons.push(`Agreement score ${score.toFixed(2)} is below ${UNSURE_SCORE_THRESHOLD}.`);
+  }
 
   return {
     score,
-    unsure,
-    hasContradiction,
+    unsure: hasMissingRequired || hasUnsureFields || belowThreshold,
+    hasContradiction: contradictions.length > 0,
     contradictions,
     reasons,
   };

@@ -2,11 +2,13 @@ import { mockSpiderIntakeAdapter } from "@/lib/admin/adapters/mock/mock-spider-i
 import type { AdminIntakeRepository } from "@/lib/admin/repositories/admin-intake-repository";
 import { mockAdminIntakeRepository } from "@/lib/admin/repositories/mock-admin-intake-repository";
 import type { SpiderIntakePort } from "@/lib/admin/ports/SpiderIntakePort";
+import type { DiscoveredEventIntake } from "@/types/admin/intake";
+import type { IntakeStatus } from "@/types/admin/lifecycle";
 import { stubAIDraftAdapter } from "@/lib/orumcek/ai-draft";
 import { evaluateMotorDraft } from "@/lib/orumcek/evaluate";
 import { applyMotorToIntake } from "@/lib/orumcek/mapper";
 import { observationToRawEvent } from "@/lib/orumcek/observation";
-import { canTransitionMotor } from "@/lib/orumcek/state-machine";
+import { canTransitionMotor, isFrozenHumanStatus } from "@/lib/orumcek/state-machine";
 import {
   addObservation,
   attachObservationToMotor,
@@ -19,15 +21,37 @@ import {
 } from "@/lib/orumcek/store";
 import type { AIDraftPort, MotorRecord, RawObservation } from "@/lib/orumcek/types";
 
+const MOTOR_ACTOR = { type: "SYSTEM" as const, id: "orumcek-motor" };
+
+export class FrozenIntakeError extends Error {
+  readonly status: IntakeStatus;
+
+  constructor(status: IntakeStatus) {
+    super(`Örümcek motor refuses to re-process ${status} intake.`);
+    this.name = "FrozenIntakeError";
+    this.status = status;
+  }
+}
+
 export interface OrumcekEngineDeps {
   spiderIntake: SpiderIntakePort;
   intakeRepo: AdminIntakeRepository;
   aiDraft: AIDraftPort;
 }
 
+function appendEvidence(
+  intake: DiscoveredEventIntake,
+  observation: RawObservation
+): DiscoveredEventIntake {
+  return {
+    ...intake,
+    evidence: [...intake.evidence, ...observation.raw.evidence],
+  };
+}
+
 /**
  * Domain/application motor. Calls SpiderIntakePort so ingest lands as
- * source SPIDER / DISCOVERED. Never writes the public catalog.
+ * source SPIDER / DISCOVERED. Status changes go through intakeRepo.transition().
  */
 export class OrumcekDiscoveryEngine {
   constructor(private readonly deps: OrumcekEngineDeps) {}
@@ -56,11 +80,8 @@ export class OrumcekDiscoveryEngine {
     const attached = attachObservationToMotor(identity.id, observation);
     if (attached.intakeId) {
       const intake = this.deps.intakeRepo.getById(attached.intakeId);
-      if (intake) {
-        this.deps.intakeRepo.update({
-          ...intake,
-          evidence: [...intake.evidence, ...observation.raw.evidence],
-        });
+      if (intake && !isFrozenHumanStatus(intake.status)) {
+        this.deps.intakeRepo.update(appendEvidence(intake, observation));
       }
     }
     return attached;
@@ -70,6 +91,13 @@ export class OrumcekDiscoveryEngine {
     const current = getMotorByIdentityId(identityId);
     if (!current) {
       throw new Error(`Motor record not found for identity ${identityId}.`);
+    }
+
+    if (current.intakeId) {
+      const intake = this.deps.intakeRepo.getById(current.intakeId);
+      if (intake && isFrozenHumanStatus(intake.status)) {
+        throw new FrozenIntakeError(intake.status);
+      }
     }
 
     if (current.status === "DISCOVERED") {
@@ -98,10 +126,7 @@ export class OrumcekDiscoveryEngine {
     });
 
     if (updated.intakeId) {
-      const intake = this.deps.intakeRepo.getById(updated.intakeId);
-      if (intake) {
-        this.deps.intakeRepo.update(applyMotorToIntake(intake, updated));
-      }
+      this.syncAdminIntake(updated.intakeId, updated);
     }
 
     return updated;
@@ -110,6 +135,35 @@ export class OrumcekDiscoveryEngine {
   async ingestAndProcess(observation: RawObservation): Promise<MotorRecord> {
     const ingested = await this.ingest(observation);
     return this.process(ingested.identity.id);
+  }
+
+  private syncAdminIntake(intakeId: string, record: MotorRecord): void {
+    const intake = this.deps.intakeRepo.getById(intakeId);
+    if (!intake) {
+      return;
+    }
+    if (isFrozenHumanStatus(intake.status)) {
+      throw new FrozenIntakeError(intake.status);
+    }
+
+    let current = intake;
+    if (current.status === "DISCOVERED") {
+      const { intake: transitioned, result } = this.deps.intakeRepo.transition(
+        intakeId,
+        "AI_REVIEW",
+        { actor: MOTOR_ACTOR }
+      );
+      if (!result.ok) {
+        throw new Error(result.message);
+      }
+      current = transitioned;
+    }
+
+    const mapped = applyMotorToIntake(current, record);
+    if (mapped.status !== current.status) {
+      throw new Error("Örümcek motor must not change admin status via update().");
+    }
+    this.deps.intakeRepo.update(mapped);
   }
 }
 

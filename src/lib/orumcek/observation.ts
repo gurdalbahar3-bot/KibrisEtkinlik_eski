@@ -1,5 +1,5 @@
 import { createEvidence } from "@/lib/admin/intake/evidence";
-import type { RawObservation } from "@/lib/orumcek/types";
+import type { PublisherRole, RawObservation } from "@/lib/orumcek/types";
 import type { RawSpiderEvent, SpiderChannelKind } from "@/types/admin/raw-spider-event";
 
 function newId(prefix: string): string {
@@ -20,6 +20,7 @@ export function createRawObservation(input: {
   publisherId: string;
   channelId: string;
   channelKind: SpiderChannelKind;
+  publisherRole?: PublisherRole;
   sourceUrl: string;
   raw: Omit<RawSpiderEvent, "sourceUrl" | "capturedAt" | "evidence"> &
     Partial<Pick<RawSpiderEvent, "sourceUrl" | "capturedAt" | "evidence">>;
@@ -54,6 +55,7 @@ export function createRawObservation(input: {
     publisherId: input.publisherId,
     channelId: input.channelId,
     channelKind: input.channelKind,
+    publisherRole: input.publisherRole,
     sourceUrl,
     raw,
     capturedAt,

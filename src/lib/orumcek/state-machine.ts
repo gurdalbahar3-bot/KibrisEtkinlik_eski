@@ -33,16 +33,26 @@ export function destinationFromGate(
   return decision.autoEligible ? "PENDING_APPROVAL" : "REVIEW";
 }
 
+export const FROZEN_ADMIN_STATUSES: readonly IntakeStatus[] = [
+  "APPROVED",
+  "REJECTED",
+  "PUBLISHED",
+];
+
+/** Only legal SYSTEM landing from DISCOVERED. Never skip IMAGE_REVIEW. */
 export function mapMotorStatusToAdmin(status: SpiderMotorStatus): IntakeStatus {
   switch (status) {
     case "DISCOVERED":
       return "DISCOVERED";
     case "AI_DRAFT":
     case "REVIEW":
-      return "AI_REVIEW";
     case "PENDING_APPROVAL":
-      return "PENDING_APPROVAL";
+      return "AI_REVIEW";
   }
+}
+
+export function isFrozenHumanStatus(status: IntakeStatus): boolean {
+  return FROZEN_ADMIN_STATUSES.includes(status);
 }
 
 export function assertNotPublicCatalog(status: IntakeStatus): void {
