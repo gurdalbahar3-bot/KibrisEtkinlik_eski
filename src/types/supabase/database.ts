@@ -106,9 +106,12 @@ export type RpcResultJson = {
   venue_id?: string;
 };
 
+export type DbVenueStatus = "draft" | "in_review" | "active" | "hidden" | "archived";
+
 export interface DbVenueRow {
   id: string;
   owner_id?: string;
+  created_by?: string;
   name: string;
   venue_category: string | null;
   address: string | null;
@@ -118,7 +121,7 @@ export interface DbVenueRow {
   longitude: number | null;
   floor_plan_url: string | null;
   capacity: number | null;
-  status: string;
+  status: DbVenueStatus | string;
   district_id: string | null;
   organization_id?: string | null;
   layout_canvas_width?: number | null;
@@ -434,19 +437,26 @@ export interface Database {
         };
         Returns: Json;
       };
+      can_manage_venue: {
+        Args: {
+          p_venue_id: string;
+        };
+        Returns: boolean;
+      };
       create_venue_atomic: {
         Args: {
           p_name: string;
+          p_owner_id?: string | null;
           p_venue_category?: string | null;
           p_address?: string | null;
           p_city?: string | null;
           p_region?: string | null;
-          p_district_id?: string | null;
           p_latitude?: number | null;
           p_longitude?: number | null;
           p_capacity?: number | null;
-          p_floor_plan_url?: string | null;
+          p_district_id?: string | null;
           p_organization_id?: string | null;
+          p_floor_plan_url?: string | null;
         };
         Returns: Json;
       };
@@ -464,6 +474,36 @@ export interface Database {
           p_capacity?: number | null;
           p_floor_plan_url?: string | null;
           p_organization_id?: string | null;
+        };
+        Returns: Json;
+      };
+      submit_venue_for_review: {
+        Args: {
+          p_venue_id: string;
+        };
+        Returns: Json;
+      };
+      approve_venue: {
+        Args: {
+          p_venue_id: string;
+        };
+        Returns: Json;
+      };
+      hide_venue: {
+        Args: {
+          p_venue_id: string;
+        };
+        Returns: Json;
+      };
+      unhide_venue: {
+        Args: {
+          p_venue_id: string;
+        };
+        Returns: Json;
+      };
+      archive_venue: {
+        Args: {
+          p_venue_id: string;
         };
         Returns: Json;
       };
