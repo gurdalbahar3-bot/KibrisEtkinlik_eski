@@ -1,16 +1,23 @@
 import type { MetadataRoute } from "next";
 import { CATEGORY_KEYS } from "@/lib/data/categories";
 import { DISTRICT_SLUGS } from "@/lib/data/categories";
-import { MOCK_EVENTS, MOCK_VENUES } from "@/lib/data/mock-events";
+import {
+  discoveryEventsRepository,
+  discoveryVenuesRepository,
+} from "@/lib/data/discovery-repository";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://globaleventdiscovery.com";
 
 /**
- * Follow-up: switch event/venue URL generation to discoveryEventsRepository /
- * discoveryVenuesRepository when SUPABASE_DATA_SOURCE=supabase (async sitemap).
- * Kept on mock catalog for this PR to avoid build-time Supabase coupling.
+ * Async sitemap via the discovery facade.
+ * Mock by default; live slugs when SUPABASE_DATA_SOURCE=supabase.
  */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const [events, venues] = await Promise.all([
+    discoveryEventsRepository.getAll(),
+    discoveryVenuesRepository.getAll(),
+  ]);
+
   const locales = ["tr", "en"] as const;
   const entries: MetadataRoute.Sitemap = [];
 
@@ -29,7 +36,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       { url: `${prefix}/${districtsPath}`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 }
     );
 
-    for (const event of MOCK_EVENTS) {
+    for (const event of events) {
       entries.push({
         url: `${prefix}/${eventsPath}/${event.slug}`,
         lastModified: new Date(),
@@ -56,7 +63,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       });
     }
 
-    for (const venue of MOCK_VENUES) {
+    for (const venue of venues) {
       entries.push({
         url: `${prefix}/${venuesPath}/${venue.slug}`,
         lastModified: new Date(),

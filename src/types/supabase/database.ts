@@ -206,6 +206,32 @@ export interface DbEventRow {
   event_artists: DbEventArtistRow[] | null;
 }
 
+export interface DbEventTicketZoneRow {
+  id: string;
+  event_id: string;
+  name: string;
+  zone_type: string;
+  sale_mode: string;
+  capacity: number;
+  reserved_count: number;
+  sold_count: number;
+  description: string | null;
+  sort_order: number | null;
+  is_active: boolean;
+}
+
+export interface DbEventTicketTypeRow {
+  id: string;
+  event_id: string;
+  zone_id: string;
+  name: string;
+  price: number | string;
+  description: string | null;
+  max_per_order: number | null;
+  is_active: boolean;
+  event_ticket_zones: DbEventTicketZoneRow | DbEventTicketZoneRow[] | null;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -346,6 +372,18 @@ export interface Database {
           applicant_id: string;
           type: DbApplicationType;
         };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      event_ticket_zones: {
+        Row: DbEventTicketZoneRow;
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      event_ticket_types: {
+        Row: Omit<DbEventTicketTypeRow, "event_ticket_zones">;
+        Insert: Record<string, never>;
         Update: Record<string, never>;
         Relationships: [];
       };

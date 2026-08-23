@@ -1,5 +1,5 @@
 import type { Locale } from "@/lib/i18n/routing";
-import type { DiscoveryEvent } from "@/types/event";
+import type { DiscoveryEvent, DiscoveryTicketOffer, DiscoveryVenue } from "@/types/event";
 
 const TR_MONTHS = [
   "OCAK",
@@ -52,8 +52,45 @@ export function formatEventDate(dateStr: string, locale: Locale) {
   return { day, month, weekday };
 }
 
-export function eventToJsonLd(event: DiscoveryEvent, locale: Locale, siteUrl: string) {
+export function eventToJsonLd(
+  event: DiscoveryEvent,
+  locale: Locale,
+  siteUrl: string,
+  options: {
+    venue?: DiscoveryVenue | null;
+    ticketOffers?: DiscoveryTicketOffer[];
+  } = {}
+) {
   const path = locale === "tr" ? `/tr/etkinlikler/${event.slug}` : `/en/events/${event.slug}`;
+  const { venue, ticketOffers = [] } = options;
+
+  const geo = venue?.location
+    ? {
+        "@type": "GeoCoordinates",
+        latitude: venue.location.latitude,
+        longitude: venue.location.longitude,
+      }
+    : undefined;
+
+  const offers = event.isFree
+    ? {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "TRY",
+        availability: "https://schema.org/InStock",
+      }
+    : ticketOffers.length > 0
+      ? ticketOffers.map((offer) => ({
+          "@type": "Offer",
+          name: offer.name,
+          price: String(offer.price),
+          priceCurrency: "TRY",
+          availability: offer.isSoldOut
+            ? "https://schema.org/SoldOut"
+            : "https://schema.org/InStock",
+        }))
+      : undefined;
+
   return {
     "@type": "Event",
     name: event.title,
@@ -62,24 +99,22 @@ export function eventToJsonLd(event: DiscoveryEvent, locale: Locale, siteUrl: st
     eventStatus: "https://schema.org/EventScheduled",
     location: {
       "@type": "Place",
-      name: event.venue,
+      name: venue?.name ?? event.venue,
       address: {
         "@type": "PostalAddress",
+        streetAddress: venue?.address,
         addressLocality: event.district,
         addressCountry: "CY",
       },
+      geo,
     },
+    performer: event.artist
+      ? { "@type": "PerformingGroup", name: event.artist }
+      : undefined,
     image: event.poster,
     description: event.description,
     url: `${siteUrl}${path}`,
-    offers: event.isFree
-      ? {
-          "@type": "Offer",
-          price: "0",
-          priceCurrency: "TRY",
-          availability: "https://schema.org/InStock",
-        }
-      : undefined,
+    offers,
   };
 }
 

@@ -144,8 +144,20 @@
     "venue": "Mekan",
     "district": "İlçe",
     "category": "Kategori",
+    "artist": "Sanatçı",
+    "free": "Ücretsiz",
+    "freeEntry": "Ücretsiz giriş",
     "officialTickets": "Resmi Bilet / Rezervasyon",
-    "comingSoon": "Yakında"
+    "comingSoon": "Yakında",
+    "directions": "Yol tarifi",
+    "ticketsTitle": "Biletler",
+    "fromPrice": "{price} itibarıyla",
+    "remaining": "{count} koltuk kaldı",
+    "soldOut": "Tükendi",
+    "catalogEmpty": "Bu etkinlik için henüz bilet türü yayınlanmadı.",
+    "noCheckoutHint": "Bilet türleri yayınlandı. Platform içi ödeme henüz açık değil.",
+    "relatedTitle": "Benzer etkinlikler",
+    "relatedSubtitle": "Aynı kategori veya ilçeden diğer etkinlikler"
   },
   "listing": {
     "title": "Etkinlikleri Keşfet",
@@ -193,7 +205,8 @@
     "noEvents": "Şu an listelenen etkinlik yok.",
     "emptyTitle": "Mekan bulunamadı",
     "emptyHint": "Farklı bir arama deneyin veya tüm mekanlara dönün.",
-    "searchResults": "\"{query}\" için {count} mekan"
+    "searchResults": "\"{query}\" için {count} mekan",
+    "directions": "Yol tarifi"
   },
   "districtsPage": {
     "title": "İlçelere Göre Keşfet",

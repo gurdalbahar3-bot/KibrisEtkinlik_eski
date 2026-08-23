@@ -8,6 +8,7 @@ import {
   discoveryEventsRepository,
   discoveryVenuesRepository,
 } from "@/lib/data/discovery-repository";
+import { buildVenueDirectionsUrl } from "@/lib/discovery/venue-directions";
 import { getVenueImage, getVenueImageSources } from "@/lib/ui/venue-image";
 
 export const dynamic = "force-dynamic";
@@ -64,11 +65,27 @@ export default async function VenueDetailPage({ params }: Props) {
         <div>
           <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">{venue.name}</h1>
           <p className="mt-3 text-slate-600">
-            {tDist(venue.district)} · {tVenueType(venue.venueType as "outdoor" | "culture" | "arena" | "beach")}
+            <Link
+              href={{ pathname: "/events/[slug]", params: { slug: venue.district } }}
+              className="text-brand-700 hover:underline"
+            >
+              {tDist(venue.district)}
+            </Link>
+            {" · "}
+            {tVenueType(venue.venueType as "outdoor" | "culture" | "arena" | "beach")}
           </p>
+          {venue.address && <p className="mt-2 text-sm text-slate-500">{venue.address}</p>}
           <p className="mt-2 text-sm font-medium text-brand-700">
             {t("upcoming", { count: venue.upcomingEventCount })}
           </p>
+          <a
+            href={buildVenueDirectionsUrl(venue)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-5 inline-flex min-h-11 items-center rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-brand-700 shadow-sm transition hover:border-accent-300 hover:text-accent-600"
+          >
+            {t("directions")} →
+          </a>
         </div>
       </div>
 

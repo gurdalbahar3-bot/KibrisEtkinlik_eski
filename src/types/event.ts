@@ -41,6 +41,22 @@ export interface DiscoveryEvent {
   officialTicketUrl?: string;
 }
 
+export type TicketSaleMode = "ticket_based" | "seat_based";
+
+/** Public, read-only catalog row from `event_ticket_types` + zone (014). */
+export interface DiscoveryTicketOffer {
+  id: string;
+  name: string;
+  zoneName: string;
+  zoneType: string;
+  saleMode: TicketSaleMode;
+  price: number;
+  description?: string;
+  /** Remaining capacity when `sale_mode = ticket_based`. */
+  remaining?: number;
+  isSoldOut: boolean;
+}
+
 export interface DiscoveryVenue {
   id: string;
   name: string;
@@ -49,6 +65,8 @@ export interface DiscoveryVenue {
   district: DistrictSlug;
   venueType: string;
   upcomingEventCount: number;
+  /** Optional street/city line from `venues.address` / city / region. */
+  address?: string;
   /** Optional coordinates for map navigation; search fallback uses name + district. */
   location?: {
     latitude: number;
