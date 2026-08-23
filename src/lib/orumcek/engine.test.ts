@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { resetMockAdminIntakeStore } from "@/lib/admin/repositories/mock-admin-intake-repository";
 import { mockAdminIntakeRepository } from "@/lib/admin/repositories/mock-admin-intake-repository";
 import { createOrumcekEngine, FrozenIntakeError } from "@/lib/orumcek/engine";
+import { countIndependentPublishers } from "@/lib/orumcek/publisher";
 import { resetOrumcekStore } from "@/lib/orumcek/store";
 import { fourIndependentObservations, observation } from "@/lib/orumcek/test-helpers";
 import type { IntakeStatus } from "@/types/admin/lifecycle";
@@ -170,6 +171,118 @@ describe("OrumcekDiscoveryEngine ingest", () => {
     expect(intake?.autoEligible).toBe(false);
     expect(intake?.aiReview?.flags).toContain("CONTRADICTION");
     expect(intake?.aiReview?.recommendation).toBe("NEEDS_HUMAN");
+  });
+
+  it("treats a second ingest of the same observation.id as a no-op", async () => {
+    const engine = createOrumcekEngine();
+    const firstObs = observation({
+      id: "obs-idem-a",
+      publisherId: "venue-lefke",
+      title: "Orumcek Idempotency Konseri",
+    });
+
+    const first = await engine.ingest(firstObs);
+    const intakeAfterFirst = mockAdminIntakeRepository.getById(first.intakeId!);
+    const evidenceLength = intakeAfterFirst?.evidence.length;
+    const publisherCount = countIndependentPublishers(first.observations);
+    const snapshot = {
+      updatedAt: first.updatedAt,
+      observationCount: first.observations.length,
+      autoEligible: first.autoEligible,
+      corroboration: first.corroboration,
+      status: first.status,
+    };
+
+    const retry = await engine.ingest(firstObs);
+    const intakeAfterRetry = mockAdminIntakeRepository.getById(retry.intakeId!);
+
+    expect(retry.identity.id).toBe(first.identity.id);
+    expect(retry.intakeId).toBe(first.intakeId);
+    expect(retry.updatedAt).toBe(snapshot.updatedAt);
+    expect(retry.observations).toHaveLength(snapshot.observationCount);
+    expect(retry.autoEligible).toBe(snapshot.autoEligible);
+    expect(retry.corroboration).toEqual(snapshot.corroboration);
+    expect(retry.status).toBe(snapshot.status);
+    expect(intakeAfterRetry?.evidence).toHaveLength(evidenceLength ?? 0);
+    expect(countIndependentPublishers(retry.observations)).toBe(publisherCount);
+    expect(publisherCount).toBe(1);
+  });
+
+  it("keeps one publisher when a new observation.id belongs to the same publisher", async () => {
+    const engine = createOrumcekEngine();
+    const first = await engine.ingest(
+      observation({
+        id: "obs-same-pub-web",
+        publisherId: "venue-lefke",
+        channelKind: "WEBSITE",
+        title: "Orumcek Same Publisher",
+      })
+    );
+    const evidenceAfterFirst =
+      mockAdminIntakeRepository.getById(first.intakeId!)?.evidence.length ?? 0;
+
+    const second = await engine.ingest(
+      observation({
+        id: "obs-same-pub-ig",
+        publisherId: "venue-lefke",
+        channelKind: "INSTAGRAM",
+        title: "Orumcek Same Publisher",
+      })
+    );
+
+    expect(second.identity.id).toBe(first.identity.id);
+    expect(second.observations).toHaveLength(2);
+    expect(countIndependentPublishers(second.observations)).toBe(1);
+    expect(mockAdminIntakeRepository.getById(second.intakeId!)?.evidence.length).toBeGreaterThan(
+      evidenceAfterFirst
+    );
+  });
+
+  it("increases publisher count when a new observation.id belongs to a different publisher", async () => {
+    const engine = createOrumcekEngine();
+    const first = await engine.ingest(
+      observation({
+        id: "obs-pub-a",
+        publisherId: "venue-lefke",
+        title: "Orumcek Publisher Increment",
+      })
+    );
+    expect(countIndependentPublishers(first.observations)).toBe(1);
+
+    const second = await engine.ingest(
+      observation({
+        id: "obs-pub-b",
+        publisherId: "gazete-kibris",
+        title: "Orumcek Publisher Increment",
+      })
+    );
+
+    expect(second.identity.id).toBe(first.identity.id);
+    expect(countIndependentPublishers(second.observations)).toBe(2);
+    expect(second.observations).toHaveLength(2);
+  });
+
+  it("leaves autoEligible unchanged after a duplicate observation retry", async () => {
+    const engine = createOrumcekEngine();
+    const observations = fourIndependentObservations({
+      title: "Orumcek Retry Eligible",
+    });
+    const ingested = await engine.ingest(observations[0]);
+    for (const item of observations.slice(1)) {
+      await engine.ingest(item);
+    }
+    const processed = await engine.process(ingested.identity.id);
+    expect(processed.autoEligible).toBe(true);
+    const corroboration = structuredClone(processed.corroboration);
+
+    const retried = await engine.ingest(observations[0]);
+    expect(retried.autoEligible).toBe(true);
+    expect(retried.corroboration).toEqual(corroboration);
+    expect(countIndependentPublishers(retried.observations)).toBe(4);
+
+    const processedAgain = await engine.process(ingested.identity.id);
+    expect(processedAgain.autoEligible).toBe(true);
+    expect(processedAgain.corroboration).toEqual(corroboration);
   });
 
   it.each(["REJECTED", "APPROVED", "PUBLISHED"] as const)(

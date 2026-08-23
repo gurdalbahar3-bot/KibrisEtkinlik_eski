@@ -118,6 +118,24 @@ describe("4-publisher corroboration gate", () => {
     expect(evaluation.motorStatus).toBe("REVIEW");
   });
 
+  it("keeps 4 publishers with a missing venue autoEligible under current policy", async () => {
+    // Current policy: venue is NOT required for autoEligible.
+    // REQUIRED_FIELDS are title, date, district. Missing venue scores 4/5 = 0.8,
+    // which is above UNSURE_SCORE_THRESHOLD (0.7), so 4 agreeing publishers stay autoEligible.
+    const observations = fourIndependentObservations({
+      title: "Orumcek Missing Venue",
+      venue: "",
+    });
+    const draft = await stubAIDraftAdapter.draft(observations);
+    const evaluation = evaluateMotorDraft(observations, draft);
+
+    expect(evaluation.confidence.score).toBe(0.8);
+    expect(evaluation.confidence.unsure).toBe(false);
+    expect(evaluation.corroboration.independentPublisherCount).toBe(4);
+    expect(evaluation.autoEligible).toBe(true);
+    expect(evaluation.motorStatus).toBe("PENDING_APPROVAL");
+  });
+
   it("treats a 0.7 score from missing expected fields as unsure", () => {
     const observations = fourIndependentObservations({
       venue: "",
