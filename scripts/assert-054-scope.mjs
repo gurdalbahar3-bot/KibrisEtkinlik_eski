@@ -121,7 +121,7 @@ test("054 implements event lifecycle without forbidden features", () => {
   assert.match(sql054, /CREATE TABLE public\.event_change_requests/);
   assert.match(sql054, /change_type IN \('postpone', 'reschedule'\)/);
   assert.match(sql054, /status IN \('pending', 'accepted', 'rejected'\)/);
-  assert.match(sql054, /CREATE POLICY event_change_requests_insert_owner/);
+  assert.doesNotMatch(sql054, /CREATE POLICY event_change_requests_insert_owner/);
   assert.match(sql054, /CREATE POLICY event_change_requests_select_own/);
   assert.doesNotMatch(sql054, /CREATE POLICY event_change_requests_\w*update/i);
   assert.doesNotMatch(sql054, /CREATE POLICY event_change_requests_\w*delete/i);

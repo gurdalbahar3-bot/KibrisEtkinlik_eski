@@ -62,13 +62,12 @@ ALTER TABLE public.event_change_requests ENABLE ROW LEVEL SECURITY;
 
 REVOKE ALL ON TABLE public.event_change_requests FROM PUBLIC;
 REVOKE INSERT, UPDATE, DELETE ON TABLE public.event_change_requests
-  FROM anon, authenticated;
+  FROM anon, authenticated, PUBLIC;
+REVOKE INSERT (
+  event_id, requester_id, change_type, proposed_start, proposed_end, reason
+) ON TABLE public.event_change_requests FROM PUBLIC, anon, authenticated;
 
 GRANT SELECT ON TABLE public.event_change_requests TO authenticated;
-
-GRANT INSERT (
-  event_id, requester_id, change_type, proposed_start, proposed_end, reason
-) ON TABLE public.event_change_requests TO authenticated;
 
 CREATE POLICY event_change_requests_select_own ON public.event_change_requests
   FOR SELECT TO authenticated
@@ -77,15 +76,9 @@ CREATE POLICY event_change_requests_select_own ON public.event_change_requests
     OR public.is_super_admin()
   );
 
-CREATE POLICY event_change_requests_insert_owner ON public.event_change_requests
-  FOR INSERT TO authenticated
-  WITH CHECK (
-    requester_id = auth.uid()
-    AND public.owns_event(event_id)
-    AND status = 'pending'
-  );
+DROP POLICY IF EXISTS event_change_requests_insert_owner ON public.event_change_requests;
 
--- No UPDATE / DELETE policies. Status is decided only via RPC.
+-- No INSERT / UPDATE / DELETE client policies. Writes only via RPC.
 
 -- ============================================================
 -- §2 Status guard — CREATE OR REPLACE in 054 only (do not edit 033)

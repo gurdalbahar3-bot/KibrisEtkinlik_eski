@@ -435,14 +435,7 @@ export interface Database {
       };
       event_change_requests: {
         Row: DbEventChangeRequestRow;
-        Insert: {
-          event_id: string;
-          requester_id: string;
-          change_type: DbEventChangeRequestType;
-          proposed_start?: string | null;
-          proposed_end?: string | null;
-          reason?: string | null;
-        };
+        Insert: Record<string, never>;
         Update: Record<string, never>;
         Relationships: [];
       };
