@@ -1,6 +1,8 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { lowestOfferPrice } from "@/lib/data/adapters/ticket-offer-mapper";
+import { isHttpUrl, sanitizePublicOfficialTicketUrl } from "@/lib/discovery/official-ticket-url";
 import { formatTicketPrice } from "@/lib/discovery/format-price";
+import { isExplicitMockDataSource } from "@/lib/supabase/config";
 import type { DiscoveryTicketOffer } from "@/types/event";
 
 interface EventTicketOffersProps {
@@ -17,6 +19,11 @@ export async function EventTicketOffers({
   const t = await getTranslations("eventDetail");
   const locale = (await getLocale()) as "tr" | "en";
   const fromPrice = lowestOfferPrice(offers);
+  const buyUrl = isExplicitMockDataSource()
+    ? isHttpUrl(officialTicketUrl)
+      ? officialTicketUrl.trim()
+      : undefined
+    : sanitizePublicOfficialTicketUrl(officialTicketUrl);
 
   return (
     <section className="mt-8 rounded-2xl border border-slate-100 bg-white p-6 shadow-card" aria-labelledby="ticket-offers-title">
@@ -43,19 +50,8 @@ export async function EventTicketOffers({
                   {offer.zoneName}
                   {offer.description ? ` · ${offer.description}` : ""}
                 </p>
-                {offer.remaining !== undefined && (
-                  <p className="mt-0.5 text-xs text-slate-400">
-                    {offer.isSoldOut
-                      ? t("soldOut")
-                      : t("remaining", { count: offer.remaining })}
-                  </p>
-                )}
               </div>
-              <p
-                className={`text-sm font-semibold ${
-                  offer.isSoldOut ? "text-slate-400 line-through" : "text-slate-900"
-                }`}
-              >
+              <p className="text-sm font-semibold text-slate-900">
                 {formatTicketPrice(offer.price, locale)}
               </p>
             </li>
@@ -67,22 +63,16 @@ export async function EventTicketOffers({
         <p className="mt-4 text-sm text-slate-500">{t("catalogEmpty")}</p>
       )}
 
-      {officialTicketUrl ? (
+      {buyUrl ? (
         <a
-          href={officialTicketUrl}
+          href={buyUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="btn-primary mt-6 w-full sm:w-auto"
         >
-          {t("officialTickets")} →
+          {t("buyTickets")}
         </a>
-      ) : offers.length > 0 ? (
-        <p className="mt-6 text-sm text-slate-500">{t("noCheckoutHint")}</p>
-      ) : isFree ? null : (
-        <p className="mt-6 text-sm text-slate-500">
-          {t("officialTickets")}: {t("comingSoon")}
-        </p>
-      )}
+      ) : null}
     </section>
   );
 }

@@ -17,10 +17,15 @@ function normalizeSaleMode(raw: string | null | undefined): TicketSaleMode {
   return raw === "seat_based" ? "seat_based" : "ticket_based";
 }
 
-function remainingForZone(zone: DbEventTicketZoneRow): number | undefined {
-  if (normalizeSaleMode(zone.sale_mode) !== "ticket_based") return undefined;
-  const remaining = zone.capacity - zone.sold_count - zone.reserved_count;
-  return Number.isFinite(remaining) ? Math.max(0, remaining) : undefined;
+/** Public discovery must not present remaining/sold/stock as live sales. */
+export function stripPublicLiveSalesSignals(
+  offers: DiscoveryTicketOffer[]
+): DiscoveryTicketOffer[] {
+  return offers.map((offer) => ({
+    ...offer,
+    remaining: undefined,
+    isSoldOut: false,
+  }));
 }
 
 export function mapTicketTypeRowToOffer(
@@ -34,7 +39,6 @@ export function mapTicketTypeRowToOffer(
   const price = parsePrice(row.price);
   if (price === null || price < 0) return null;
 
-  const remaining = remainingForZone(zone);
   const saleMode = normalizeSaleMode(zone.sale_mode);
 
   return {
@@ -45,8 +49,8 @@ export function mapTicketTypeRowToOffer(
     saleMode,
     price,
     description: row.description?.trim() || undefined,
-    remaining,
-    isSoldOut: remaining === 0,
+    remaining: undefined,
+    isSoldOut: false,
   };
 }
 
@@ -66,7 +70,6 @@ export function mapTicketTypeRowsToOffers(
 }
 
 export function lowestOfferPrice(offers: DiscoveryTicketOffer[]): number | undefined {
-  const available = offers.filter((offer) => !offer.isSoldOut);
-  if (available.length === 0) return undefined;
-  return Math.min(...available.map((offer) => offer.price));
+  if (offers.length === 0) return undefined;
+  return Math.min(...offers.map((offer) => offer.price));
 }
