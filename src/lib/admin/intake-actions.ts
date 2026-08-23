@@ -13,6 +13,11 @@ import type { DistrictSlug, EventCategory } from "@/types/event";
 import { DISTRICT_SLUGS, CATEGORY_KEYS } from "@/lib/data/categories";
 import { mockPublishingAdapter } from "@/lib/admin/adapters/mock/mock-publishing";
 import { canHumanApprove } from "@/lib/admin/publishing/publish-checklist";
+import { callPublishEvent } from "@/lib/admin/data/admin-event-lifecycle-rpc";
+import {
+  messageForLifecycleError,
+  resolveIntakePublishEventId,
+} from "@/lib/admin/data/admin-event-lifecycle";
 import {
   canTransitionIntakeToPendingApproval,
   getEventContext,
@@ -173,18 +178,64 @@ export async function approveIntakeAction(id: string): Promise<IntakeActionResul
   return { ok: true };
 }
 
-export async function publishIntakeFormAction(formData: FormData): Promise<void> {
-  const intakeId = String(formData.get("intakeId") ?? "");
-  const session = await getSuperAdminActor();
-  await mockPublishingAdapter.publish(intakeId, {
-    type: "SUPER_ADMIN",
-    id: session.id,
-  });
+export async function publishIntakeAction(intakeId: string): Promise<IntakeActionResult> {
+  await getSuperAdminActor();
+
+  const intake = mockAdminIntakeRepository.getById(intakeId);
+  if (!intake) {
+    return { ok: false, message: messageForLifecycleError("INTAKE_NOT_FOUND") };
+  }
+  if (intake.status !== "APPROVED") {
+    return { ok: false, message: messageForLifecycleError("INTAKE_NOT_APPROVED") };
+  }
+
+  const eventId = resolveIntakePublishEventId(intake.platformEventId);
+  if (!eventId) {
+    return { ok: false, message: messageForLifecycleError("INTAKE_NOT_LINKED_TO_EVENT") };
+  }
+
+  const result = await callPublishEvent(eventId);
+  if (!result.ok) {
+    return { ok: false, message: result.message };
+  }
+
+  try {
+    const session = await getSuperAdminActor();
+    await mockPublishingAdapter.publish(intakeId, {
+      type: "SUPER_ADMIN",
+      id: session.id,
+    });
+  } catch {
+    // Mock intake bookkeeping must not hide a successful events.status write.
+  }
 
   revalidatePath("/admin");
   revalidatePath("/admin/publishing");
   revalidatePath(`/admin/publishing/${intakeId}`);
   revalidatePath("/admin/review/approval");
+  revalidatePath("/admin/events");
+  revalidatePath(`/admin/events/${eventId}`);
+  revalidatePath("/", "layout");
+
+  return { ok: true };
+}
+
+export async function publishIntakeFormAction(formData: FormData): Promise<void> {
+  const intakeId = String(formData.get("intakeId") ?? "");
+  const returnTo = String(formData.get("returnTo") ?? `/admin/publishing/${intakeId}`);
+  const result = await publishIntakeAction(intakeId);
+  if (!result.ok) {
+    const separator = returnTo.includes("?") ? "&" : "?";
+    redirect(`${returnTo}${separator}error=${encodeURIComponent("INTAKE_PUBLISH_FAILED")}&detail=${encodeURIComponent(result.message)}`);
+  }
+
+  const intake = mockAdminIntakeRepository.getById(intakeId);
+  const eventId = resolveIntakePublishEventId(intake?.platformEventId);
+  if (eventId) {
+    redirect(`/admin/events/${eventId}?published=1`);
+  }
+
+  redirect("/admin/publishing?published=1");
 }
 
 export async function rejectIntakeAction(

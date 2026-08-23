@@ -12,17 +12,23 @@ interface PublishingQueueProps {
   intakes: DiscoveredEventIntake[];
   locale: "tr" | "en";
   t: (key: keyof AdminMessages) => string;
+  errorMessage?: string;
 }
 
-export function PublishingQueue({ intakes, locale, t }: PublishingQueueProps) {
+export function PublishingQueue({ intakes, locale, t, errorMessage }: PublishingQueueProps) {
   if (intakes.length === 0) {
     return <p className="text-sm text-slate-500">{t("noPublishingQueue")}</p>;
   }
 
   return (
     <div className="space-y-4">
+      {errorMessage ? (
+        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
+          {errorMessage}
+        </p>
+      ) : null}
       <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm font-medium text-amber-900">
-        {t("mockPublishingBadge")}
+        {t("intakePublishRequiresExistingEvent")}
       </p>
       {intakes.map((intake) => {
         const validation = mockPublishingAdapter.validatePublish(intake);
@@ -81,6 +87,7 @@ export function PublishingQueue({ intakes, locale, t }: PublishingQueueProps) {
 
                 <form action={publishIntakeFormAction} className="mt-4">
                   <input type="hidden" name="intakeId" value={intake.id} />
+                  <input type="hidden" name="returnTo" value="/admin/publishing" />
                   <button
                     type="submit"
                     disabled={!validation.ok}

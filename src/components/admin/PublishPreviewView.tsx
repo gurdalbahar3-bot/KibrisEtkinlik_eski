@@ -12,9 +12,10 @@ interface PublishPreviewViewProps {
   intake: DiscoveredEventIntake;
   locale: "tr" | "en";
   t: (key: keyof AdminMessages) => string;
+  errorMessage?: string;
 }
 
-export function PublishPreviewView({ intake, locale, t }: PublishPreviewViewProps) {
+export function PublishPreviewView({ intake, locale, t, errorMessage }: PublishPreviewViewProps) {
   const validation = mockPublishingAdapter.validatePublish(intake);
   const preview = mockPublishingAdapter.getPublishPreview(intake, locale);
 
@@ -28,7 +29,7 @@ export function PublishPreviewView({ intake, locale, t }: PublishPreviewViewProp
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <IntakeStatusBadge status={intake.status} t={t} />
           <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-900">
-            {t("mockPublishingBadge")}
+            {t("intakePublishRequiresExistingEvent")}
           </span>
         </div>
       </header>
@@ -108,8 +109,14 @@ export function PublishPreviewView({ intake, locale, t }: PublishPreviewViewProp
         <div className="mt-3">
           <PublishChecklist items={validation.checklist} t={t} />
         </div>
+        {errorMessage ? (
+          <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
+            {errorMessage}
+          </p>
+        ) : null}
         <form action={publishIntakeFormAction} className="mt-4">
           <input type="hidden" name="intakeId" value={intake.id} />
+          <input type="hidden" name="returnTo" value={`/admin/publishing/${intake.id}`} />
           <button
             type="submit"
             disabled={!validation.ok || intake.status !== "APPROVED"}
