@@ -219,6 +219,7 @@ export interface DbAdminAuditLogRow {
 export interface DbEventRow {
   id: string;
   owner_id: string;
+  created_by?: string;
   title: string;
   description: string | null;
   category: string;
@@ -457,6 +458,22 @@ export interface Database {
           p_district_id?: string | null;
           p_organization_id?: string | null;
           p_floor_plan_url?: string | null;
+        };
+        Returns: Json;
+      };
+      create_event_atomic: {
+        Args: {
+          p_title: string;
+          p_venue_id: string;
+          p_category: string;
+          p_starts_at: string;
+          p_description?: string | null;
+          p_ends_at?: string | null;
+          p_cover?: string | null;
+          p_is_free?: boolean | null;
+          p_is_wedding?: boolean | null;
+          p_owner_id?: string | null;
+          p_organization_id?: string | null;
         };
         Returns: Json;
       };

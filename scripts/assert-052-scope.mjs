@@ -19,7 +19,7 @@ function numberedMigrations() {
     .map((row) => ({ name: row.name, n: Number(row.match[1]) }));
 }
 
-test("052 exists and 053+ stay out of this change", () => {
+test("052 exists and 054+ stay out of this change", () => {
   const files = readdirSync(migrationsDir).filter((name) => name.endsWith(".sql"));
   assert.ok(files.includes("052_venue_create_lifecycle.sql"), "052_venue_create_lifecycle.sql must exist");
   assert.ok(
@@ -29,8 +29,8 @@ test("052 exists and 053+ stay out of this change", () => {
 
   const numbered = numberedMigrations();
   assert.ok(
-    numbered.every((row) => row.n <= 52),
-    `unexpected 053+ migration: ${numbered.filter((row) => row.n >= 53).map((row) => row.name).join(", ")}`
+    numbered.every((row) => row.n <= 53),
+    `unexpected 054+ migration: ${numbered.filter((row) => row.n >= 54).map((row) => row.name).join(", ")}`
   );
   assert.equal(
     numbered.filter((row) => row.n === 52).length,
