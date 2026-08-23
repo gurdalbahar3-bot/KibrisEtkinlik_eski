@@ -1,11 +1,12 @@
 import { createRawObservation } from "@/lib/orumcek/observation";
-import type { RawObservation } from "@/lib/orumcek/types";
+import type { PublisherRole, RawObservation } from "@/lib/orumcek/types";
 import type { SpiderChannelKind } from "@/types/admin/raw-spider-event";
 
 export function observation(input: {
   publisherId: string;
   channelId?: string;
   channelKind?: SpiderChannelKind;
+  publisherRole?: PublisherRole;
   sourceUrl?: string;
   title?: string;
   district?: string;
@@ -26,6 +27,7 @@ export function observation(input: {
     publisherId: input.publisherId,
     channelId: input.channelId ?? `${input.publisherId}-${channelKind.toLowerCase()}`,
     channelKind,
+    publisherRole: input.publisherRole,
     sourceUrl,
     raw: {
       rawTitle: input.title ?? "Lefke Akustik Gece",

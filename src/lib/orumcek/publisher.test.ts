@@ -45,4 +45,30 @@ describe("publisher independence", () => {
 
     expect(countIndependentPublishers(observations)).toBe(1);
   });
+
+  it("treats website + Instagram + Facebook as one publisher", () => {
+    const observations = [
+      observation({ publisherId: "venue-lefke", channelKind: "WEBSITE" }),
+      observation({ publisherId: "venue-lefke", channelKind: "INSTAGRAM" }),
+      observation({ publisherId: "venue-lefke", channelKind: "FACEBOOK" }),
+    ];
+
+    expect(countIndependentPublishers(observations)).toBe(1);
+  });
+
+  it("does not let a ticket aggregator increment the independent count", () => {
+    const observations = [
+      observation({ publisherId: "venue-lefke", channelKind: "WEBSITE" }),
+      observation({ publisherId: "gazete-kibris", channelKind: "WEBSITE" }),
+      observation({ publisherId: "radyo-guzelyurt", channelKind: "WEBSITE" }),
+      observation({
+        publisherId: "biletix",
+        channelKind: "TICKET",
+        publisherRole: "TICKET_AGGREGATOR",
+        sourceUrl: "https://biletix.com/lefke-akustik-biletler",
+      }),
+    ];
+
+    expect(countIndependentPublishers(observations)).toBe(3);
+  });
 });

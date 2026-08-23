@@ -16,16 +16,21 @@ describe("orumcek motor state machine", () => {
     expect(canTransitionMotor("DISCOVERED", "APPROVED" as never)).toBe(false);
   });
 
-  it("maps onto admin statuses without APPROVED or PUBLISHED", () => {
+  it("forbids DISCOVERED → REVIEW", () => {
+    expect(canTransitionMotor("DISCOVERED", "REVIEW")).toBe(false);
+    expect(transitionMotor("DISCOVERED", "REVIEW").ok).toBe(false);
+  });
+
+  it("maps onto legal admin statuses without APPROVED, PUBLISHED, or skipped IMAGE_REVIEW", () => {
     expect(mapMotorStatusToAdmin("DISCOVERED")).toBe("DISCOVERED");
     expect(mapMotorStatusToAdmin("AI_DRAFT")).toBe("AI_REVIEW");
     expect(mapMotorStatusToAdmin("REVIEW")).toBe("AI_REVIEW");
-    expect(mapMotorStatusToAdmin("PENDING_APPROVAL")).toBe("PENDING_APPROVAL");
+    expect(mapMotorStatusToAdmin("PENDING_APPROVAL")).toBe("AI_REVIEW");
     expect(destinationFromGate({ autoEligible: true })).toBe("PENDING_APPROVAL");
     expect(destinationFromGate({ autoEligible: false })).toBe("REVIEW");
 
     expect(() => assertNotPublicCatalog("APPROVED")).toThrow(/must not land/);
     expect(() => assertNotPublicCatalog("PUBLISHED")).toThrow(/must not land/);
-    expect(() => assertNotPublicCatalog("PENDING_APPROVAL")).not.toThrow();
+    expect(() => assertNotPublicCatalog("AI_REVIEW")).not.toThrow();
   });
 });
