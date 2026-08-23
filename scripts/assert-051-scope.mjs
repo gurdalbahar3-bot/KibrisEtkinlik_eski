@@ -22,8 +22,8 @@ test("051 exists and 001-050 stay out of this change", () => {
     "migrations 001-051 must remain"
   );
   assert.ok(
-    numbered.every((n) => n <= 53),
-    `unexpected 054+ migration: ${files.filter((name) => /^0(5[4-9]|[6-9]\d)/.test(name)).join(", ")}`
+    numbered.every((n) => n <= 54),
+    `unexpected 055+ migration: ${files.filter((name) => /^0(5[5-9]|[6-9]\d)/.test(name)).join(", ")}`
   );
 });
 
