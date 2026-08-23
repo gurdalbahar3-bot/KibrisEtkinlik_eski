@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { MapsDirectionsChooser } from "@/components/discovery/MapsDirectionsChooser";
 import { EventGrid } from "@/components/events/EventGrid";
 import { PosterImage } from "@/components/ui/PosterImage";
 import { Link } from "@/lib/i18n/navigation";
@@ -8,7 +9,7 @@ import {
   discoveryEventsRepository,
   discoveryVenuesRepository,
 } from "@/lib/data/discovery-repository";
-import { buildVenueDirectionsUrl } from "@/lib/discovery/venue-directions";
+import { buildVenueMapsDestination } from "@/lib/discovery/venue-directions";
 import { getVenueImage, getVenueImageSources } from "@/lib/ui/venue-image";
 
 export const dynamic = "force-dynamic";
@@ -45,6 +46,7 @@ export default async function VenueDetailPage({ params }: Props) {
   const fallbackSources = venue.photo?.trim()
     ? getVenueImageSources(venue).filter((url) => url !== imageSrc)
     : [];
+  const mapsDestination = buildVenueMapsDestination(venue);
 
   return (
     <section className="section-container py-10 sm:py-12">
@@ -78,14 +80,9 @@ export default async function VenueDetailPage({ params }: Props) {
           <p className="mt-2 text-sm font-medium text-brand-700">
             {t("upcoming", { count: venue.upcomingEventCount })}
           </p>
-          <a
-            href={buildVenueDirectionsUrl(venue)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-5 inline-flex min-h-11 items-center rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-brand-700 shadow-sm transition hover:border-accent-300 hover:text-accent-600"
-          >
-            {t("directions")} →
-          </a>
+          {mapsDestination && (
+            <MapsDirectionsChooser destination={mapsDestination} className="mt-5" />
+          )}
         </div>
       </div>
 

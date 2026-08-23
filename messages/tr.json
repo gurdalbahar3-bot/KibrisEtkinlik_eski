@@ -149,7 +149,6 @@
     "freeEntry": "Ücretsiz giriş",
     "officialTickets": "Resmi Bilet / Rezervasyon",
     "comingSoon": "Yakında",
-    "directions": "Yol tarifi",
     "ticketsTitle": "Biletler",
     "fromPrice": "{price} itibarıyla",
     "remaining": "{count} bilet kaldı",
@@ -205,8 +204,15 @@
     "noEvents": "Şu an listelenen etkinlik yok.",
     "emptyTitle": "Mekan bulunamadı",
     "emptyHint": "Farklı bir arama deneyin veya tüm mekanlara dönün.",
-    "searchResults": "\"{query}\" için {count} mekan",
-    "directions": "Yol tarifi"
+    "searchResults": "\"{query}\" için {count} mekan"
+  },
+  "mapsDirections": {
+    "cta": "Yol Tarifi Al",
+    "chooserTitle": "Harita uygulaması seç",
+    "chooserHint": "Yol tarifini hangi uygulamada açmak istediğinizi seçin.",
+    "google": "Google Maps",
+    "apple": "Apple Maps",
+    "close": "Kapat"
   },
   "districtsPage": {
     "title": "İlçelere Göre Keşfet",

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { MapsDirectionsChooser } from "@/components/discovery/MapsDirectionsChooser";
 import { EventGrid } from "@/components/events/EventGrid";
 import { EventTicketOffers } from "@/components/events/EventTicketOffers";
 import { SectionHeader } from "@/components/home/SectionHeader";
@@ -11,7 +12,7 @@ import {
   discoveryEventsRepository,
   discoveryVenuesRepository,
 } from "@/lib/data/discovery-repository";
-import { buildEventDirectionsUrl } from "@/lib/discovery/venue-directions";
+import { buildEventMapsDestination } from "@/lib/discovery/venue-directions";
 import { getEventImage, getEventImageSources } from "@/lib/ui/event-image";
 import { eventToJsonLd, formatEventDate } from "@/lib/seo/jsonld";
 import type { DistrictSlug } from "@/types/event";
@@ -102,7 +103,7 @@ export default async function EventOrDistrictPage({ params }: Props) {
   const { day, month, weekday } = formatEventDate(event.date, locale as "tr" | "en");
   const imageSrc = getEventImage(event);
   const fallbackSources = getEventImageSources(event).filter((url) => url !== imageSrc);
-  const directionsUrl = buildEventDirectionsUrl(event, venue);
+  const mapsDestination = buildEventMapsDestination(event, venue);
 
   const jsonLd = eventToJsonLd(event, locale as "tr" | "en", SITE_URL, {
     venue,
@@ -208,16 +209,11 @@ export default async function EventOrDistrictPage({ params }: Props) {
             </div>
           </dl>
 
-          <div className="mt-6 flex flex-wrap gap-3">
-            <a
-              href={directionsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-brand-700 shadow-sm transition hover:border-accent-300 hover:text-accent-600"
-            >
-              {t("directions")} →
-            </a>
-          </div>
+          {mapsDestination && (
+            <div className="mt-6 flex flex-wrap gap-3">
+              <MapsDirectionsChooser destination={mapsDestination} />
+            </div>
+          )}
 
           <EventTicketOffers
             offers={ticketOffers}
