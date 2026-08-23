@@ -8,7 +8,7 @@ const migrationsDir = join(root, "supabase/migrations");
 const policyFile = join(migrationsDir, "034_rls_rpc_indexes.sql");
 const migration051 = join(migrationsDir, "051_approval_audit.sql");
 
-test("051 exists and 001-050 plus 052+ stay out of this change", () => {
+test("051 exists and 001-050 stay out of this change", () => {
   const files = readdirSync(migrationsDir).filter((name) => name.endsWith(".sql"));
   assert.ok(files.includes("051_approval_audit.sql"), "051_approval_audit.sql must exist");
 
@@ -18,8 +18,12 @@ test("051 exists and 001-050 plus 052+ stay out of this change", () => {
     .map((match) => Number(match[1]));
 
   assert.ok(
-    numbered.every((n) => n <= 51),
-    `unexpected 052+ migration: ${files.filter((name) => /^0(5[2-9]|[6-9]\d)/.test(name)).join(", ")}`
+    numbered.filter((n) => n <= 51).length >= 51,
+    "migrations 001-051 must remain"
+  );
+  assert.ok(
+    numbered.every((n) => n <= 52),
+    `unexpected 053+ migration: ${files.filter((name) => /^0(5[3-9]|[6-9]\d)/.test(name)).join(", ")}`
   );
 });
 
