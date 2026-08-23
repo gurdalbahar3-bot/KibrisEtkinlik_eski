@@ -1,4 +1,4 @@
-import { normalizeSearchText } from "@/lib/admin/intake/normalize";
+import { buildCanonicalEventIdentityKey } from "@/lib/admin/intake/canonical-identity";
 
 export interface IntakeFingerprintInput {
   title: string;
@@ -7,13 +7,10 @@ export interface IntakeFingerprintInput {
   startsAt?: string;
 }
 
-/** Deterministic fingerprint for duplicate preparation — not an AI duplicate system. */
+/**
+ * Canonical event identity: title + district only.
+ * Date/venue are ignored so variants stay on the same record.
+ */
 export function createIntakeFingerprint(input: IntakeFingerprintInput): string {
-  const parts = [
-    normalizeSearchText(input.title),
-    input.district.trim().toLowerCase(),
-    input.venue ? normalizeSearchText(input.venue) : "",
-    input.startsAt?.trim() ?? "",
-  ];
-  return parts.join("|");
+  return buildCanonicalEventIdentityKey(input.title, input.district);
 }

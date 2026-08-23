@@ -1,44 +1,12 @@
 import { createIntakeFingerprint } from "@/lib/admin/intake/fingerprint";
-import {
-  normalizeCategorySlug,
-  normalizeDistrictSlug,
-  normalizeEventTitle,
-  normalizeVenueName,
-} from "@/lib/admin/intake/normalize";
+import { resolveSpiderDistrict } from "@/lib/admin/intake/district";
+import { normalizeCategorySlug, normalizeVenueName } from "@/lib/admin/intake/normalize";
 import { CATEGORY_KEYS } from "@/lib/data/categories";
-import { DISTRICT_SLUGS } from "@/lib/data/categories";
 import type { CreateIntakeInput } from "@/types/admin/intake";
 import type { RawSpiderEvent } from "@/types/admin/raw-spider-event";
-import type { DistrictSlug, EventCategory } from "@/types/event";
+import type { EventCategory } from "@/types/event";
 
-const DISTRICT_ALIASES: Record<string, DistrictSlug> = {
-  lefkosa: "lefkosa",
-  nicosia: "lefkosa",
-  girne: "girne",
-  kyrenia: "girne",
-  gazimagusa: "gazimagusa",
-  famagusta: "gazimagusa",
-  magosa: "gazimagusa",
-  guzelyurt: "guzelyurt",
-  morphou: "guzelyurt",
-  lefke: "lefke",
-  iskele: "iskele",
-};
-
-export function resolveSpiderDistrict(rawDistrict?: string): DistrictSlug {
-  if (!rawDistrict?.trim()) {
-    throw new Error("Spider intake requires rawDistrict.");
-  }
-  const slug = normalizeDistrictSlug(rawDistrict);
-  if (DISTRICT_SLUGS.includes(slug as DistrictSlug)) {
-    return slug as DistrictSlug;
-  }
-  const alias = DISTRICT_ALIASES[slug];
-  if (alias) {
-    return alias;
-  }
-  throw new Error(`Unsupported spider district: ${rawDistrict}`);
-}
+export { resolveSpiderDistrict } from "@/lib/admin/intake/district";
 
 export function resolveSpiderCategory(rawCategory?: string): EventCategory | undefined {
   if (!rawCategory?.trim()) {
@@ -87,13 +55,10 @@ export function mapRawSpiderEventToIntake(raw: RawSpiderEvent): CreateIntakeInpu
   const district = resolveSpiderDistrict(raw.rawDistrict);
   const suggestedStartsAt = combineDateTime(raw.rawDate, raw.rawTime);
   const suggestedVenueId = slugifyVenue(raw.rawVenue);
-  const normalizedTitle = normalizeEventTitle(raw.rawTitle);
 
   const fingerprint = createIntakeFingerprint({
-    title: normalizedTitle,
+    title: raw.rawTitle,
     district,
-    venue: suggestedVenueId,
-    startsAt: suggestedStartsAt,
   });
 
   return {

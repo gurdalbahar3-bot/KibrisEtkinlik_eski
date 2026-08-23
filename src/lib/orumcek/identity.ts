@@ -1,21 +1,17 @@
-import { normalizeDistrictSlug, normalizeEventTitle, normalizeVenueName } from "@/lib/admin/intake/normalize";
+import {
+  buildCanonicalEventIdentityKey,
+  canonicalizeEventDistrict,
+  canonicalizeEventTitle,
+} from "@/lib/admin/intake/canonical-identity";
+import { normalizeVenueName } from "@/lib/admin/intake/normalize";
 import type { EventIdentity, RawObservation } from "@/lib/orumcek/types";
 
-const TICKET_NOISE =
-  /\b(tickets?|biletleri?|bilet|buy tickets|satin al|satın al|passo|biletix|eventbrite)\b/g;
-const SEPARATORS = /[-–—:|/]+/g;
-
-/** Ticket-site wording is noise — those listings are sources, not new events. */
 export function normalizeIdentityTitle(title: string): string {
-  return normalizeEventTitle(title)
-    .replace(TICKET_NOISE, " ")
-    .replace(SEPARATORS, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  return canonicalizeEventTitle(title);
 }
 
 export function normalizeIdentityDistrict(district: string): string {
-  return normalizeDistrictSlug(district);
+  return canonicalizeEventDistrict(district);
 }
 
 export function normalizeIdentityVenue(venue?: string): string | undefined {
@@ -35,11 +31,11 @@ export function normalizeIdentityDate(rawDate?: string, startsAt?: string): stri
 }
 
 /**
- * Same real event = one record. Key is title + district so ticket listings
- * and date disagreements still collapse onto one identity.
+ * Same real event = one record. Key is canonical title + district.
+ * Date/venue differences stay on this identity as contradiction/evidence.
  */
 export function buildIdentityKey(title: string, district: string): string {
-  return `${normalizeIdentityTitle(title)}|${normalizeIdentityDistrict(district)}`;
+  return buildCanonicalEventIdentityKey(title, district);
 }
 
 export function identityKeyFromObservation(observation: RawObservation): string {
@@ -55,12 +51,11 @@ export function createEventIdentity(
   observation: RawObservation,
   intakeId?: string
 ): EventIdentity {
-  const district = normalizeIdentityDistrict(observation.raw.rawDistrict ?? "");
   return {
     id,
     identityKey: identityKeyFromObservation(observation),
     titleNormalized: normalizeIdentityTitle(observation.raw.rawTitle),
-    district,
+    district: normalizeIdentityDistrict(observation.raw.rawDistrict ?? ""),
     intakeId,
     observationIds: [observation.id],
   };
