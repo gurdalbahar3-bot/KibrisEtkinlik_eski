@@ -6,6 +6,7 @@ export const EVENT_DISCOVERY_SELECT = `
   description,
   category,
   is_free,
+  official_ticket_url,
   starts_at,
   ends_at,
   cover_image_url,

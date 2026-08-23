@@ -78,11 +78,7 @@ export async function EventTicketOffers({
         </a>
       ) : offers.length > 0 ? (
         <p className="mt-6 text-sm text-slate-500">{t("noCheckoutHint")}</p>
-      ) : isFree ? null : (
-        <p className="mt-6 text-sm text-slate-500">
-          {t("officialTickets")}: {t("comingSoon")}
-        </p>
-      )}
+      ) : null}
     </section>
   );
 }

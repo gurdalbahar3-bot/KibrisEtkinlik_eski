@@ -37,7 +37,10 @@ export interface DiscoveryEvent {
   description: string;
   isFree: boolean;
   isPopular?: boolean;
+  /** Primary / first artist — list cards keep this single field. */
   artist?: string;
+  /** All linked artists, already sorted by `event_artists.sort_order`. */
+  artists?: string[];
   officialTicketUrl?: string;
 }
 

@@ -250,6 +250,7 @@ export interface DbEventRow {
   starts_at: string;
   ends_at: string | null;
   cover_image_url: string | null;
+  official_ticket_url?: string | null;
   venue_id: string;
   status: DbEventStatus;
   review_status?: string | null;
@@ -572,6 +573,31 @@ export interface Database {
         Args: {
           p_request_id: string;
           p_decision: DbEventChangeDecision;
+        };
+        Returns: Json;
+      };
+      upsert_artist_atomic: {
+        Args: {
+          p_name: string;
+          p_slug?: string | null;
+          p_bio?: string | null;
+          p_image_url?: string | null;
+          p_is_active?: boolean | null;
+          p_artist_id?: string | null;
+        };
+        Returns: Json;
+      };
+      set_event_artists_atomic: {
+        Args: {
+          p_event_id: string;
+          p_artists: Json;
+        };
+        Returns: Json;
+      };
+      set_event_official_ticket_url: {
+        Args: {
+          p_event_id: string;
+          p_url?: string | null;
         };
         Returns: Json;
       };

@@ -141,9 +141,13 @@ export default async function EventOrDistrictPage({ params }: Props) {
 
         <div>
           <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">{event.title}</h1>
-          {event.artist && (
+          {event.artists && event.artists.length > 0 ? (
+            <p className="mt-2 text-base font-medium text-slate-500">
+              {event.artists.join(" · ")}
+            </p>
+          ) : event.artist ? (
             <p className="mt-2 text-base font-medium text-slate-500">{event.artist}</p>
-          )}
+          ) : null}
           <p className="mt-4 text-lg leading-relaxed text-slate-600">{event.description}</p>
 
           <dl className="mt-8 space-y-4 rounded-2xl bg-slate-50 p-6">
