@@ -188,5 +188,16 @@
   "checkValidImage": "Geçerli görsel mevcut",
   "checkSeoSlug": "SEO slug hazır",
   "checkDistrictMatch": "Görsel ilçe eşleşmesi",
-  "checkAiHumanApproved": "AI görseli insan onaylı"
+  "checkAiHumanApproved": "AI görseli insan onaylı",
+  "accountApplicationsTitle": "Hesap başvuruları",
+  "accountApplicationsSubtitle": "Organizatör ve mekan sahibi başvurularını Super Admin approve_account_application RPC ile onaylar.",
+  "accountApplicationsLive": "Canlı Supabase — yalnızca RPC yazma",
+  "noPendingAccountApplications": "Bekleyen hesap başvurusu yok.",
+  "accountApplicationType": "Başvuru tipi",
+  "accountApplicationApplicant": "Başvuran",
+  "accountApplicationOrgId": "Mevcut organizasyon id (opsiyonel)",
+  "accountApplicationOrgIdPlaceholder": "Mevcut organizasyon UUID",
+  "approveAccountApplication": "Hesabı onayla",
+  "rejectAccountApplication": "Hesabı reddet",
+  "rejectAccountApplicationReason": "Red sebebi (opsiyonel)"
 }
