@@ -1,6 +1,13 @@
 import type { EventCategory } from "@/types/event";
 
-export type AIReviewFlag = "SPAM" | "DUPLICATE" | "LOW_QUALITY" | "DATE_UNCERTAIN";
+export type AIReviewFlag =
+  | "SPAM"
+  | "DUPLICATE"
+  | "LOW_QUALITY"
+  | "DATE_UNCERTAIN"
+  | "CONTRADICTION"
+  | "INSUFFICIENT_CORROBORATION"
+  | "UNSURE";
 
 export type AIReviewRecommendation = "PROCEED" | "REJECT" | "NEEDS_HUMAN";
 

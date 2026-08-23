@@ -25,7 +25,7 @@ const DISTRICT_ALIASES: Record<string, DistrictSlug> = {
   iskele: "iskele",
 };
 
-function resolveDistrict(rawDistrict?: string): DistrictSlug {
+export function resolveSpiderDistrict(rawDistrict?: string): DistrictSlug {
   if (!rawDistrict?.trim()) {
     throw new Error("Spider intake requires rawDistrict.");
   }
@@ -40,7 +40,7 @@ function resolveDistrict(rawDistrict?: string): DistrictSlug {
   throw new Error(`Unsupported spider district: ${rawDistrict}`);
 }
 
-function resolveCategory(rawCategory?: string): EventCategory | undefined {
+export function resolveSpiderCategory(rawCategory?: string): EventCategory | undefined {
   if (!rawCategory?.trim()) {
     return undefined;
   }
@@ -84,7 +84,7 @@ export function validateSpiderRawEvent(raw: RawSpiderEvent): void {
 export function mapRawSpiderEventToIntake(raw: RawSpiderEvent): CreateIntakeInput {
   validateSpiderRawEvent(raw);
 
-  const district = resolveDistrict(raw.rawDistrict);
+  const district = resolveSpiderDistrict(raw.rawDistrict);
   const suggestedStartsAt = combineDateTime(raw.rawDate, raw.rawTime);
   const suggestedVenueId = slugifyVenue(raw.rawVenue);
   const normalizedTitle = normalizeEventTitle(raw.rawTitle);
@@ -102,7 +102,7 @@ export function mapRawSpiderEventToIntake(raw: RawSpiderEvent): CreateIntakeInpu
     sourceUrl: raw.sourceUrl.trim(),
     rawTitle: raw.rawTitle.trim(),
     rawDescription: raw.rawDescription?.trim(),
-    suggestedCategory: resolveCategory(raw.rawCategory),
+    suggestedCategory: resolveSpiderCategory(raw.rawCategory),
     suggestedDistrictId: district,
     suggestedVenueId,
     suggestedStartsAt,

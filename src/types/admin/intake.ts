@@ -6,6 +6,14 @@ import type { IntakeEvidence } from "@/types/admin/intake-evidence";
 
 export type IntakeSource = "SPIDER" | "MANUAL" | "ORGANIZER_SUBMIT";
 
+/** Independent-publisher corroboration attached by the Örümcek motor. */
+export interface IntakeCorroboration {
+  independentPublisherCount: number;
+  threshold: number;
+  met: boolean;
+  publisherIds: string[];
+}
+
 export interface DiscoveredEventIntake {
   id: string;
   status: IntakeStatus;
@@ -26,6 +34,12 @@ export interface DiscoveredEventIntake {
   imageCandidates: ImageCandidate[];
   platformEventId?: string;
   officialTicketUrl?: string;
+  /**
+   * Motor flag: 4 independent publishers, no contradiction, not unsure.
+   * Does not mean APPROVED or PUBLISHED.
+   */
+  autoEligible?: boolean;
+  corroboration?: IntakeCorroboration;
   approvedBy?: string;
   approvedAt?: string;
   publishedBy?: string;
