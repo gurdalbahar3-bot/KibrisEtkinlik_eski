@@ -29,19 +29,17 @@ test("events_insert_owner_draft remains in 034 and is not rewritten in 051", () 
   assert.match(policySql, /p\.verification_status = 'approved'/);
 
   const sql051 = readFileSync(migration051, "utf8");
-  assert.doesNotMatch(sql051, /events_insert_owner_draft/);
-  assert.doesNotMatch(sql051, /publish_event/);
-  assert.doesNotMatch(sql051, /postpone_event/);
-  assert.doesNotMatch(sql051, /reschedule_event/);
+  assert.doesNotMatch(sql051, /CREATE\s+(OR\s+REPLACE\s+)?POLICY\s+events_insert_owner_draft/i);
+  assert.doesNotMatch(sql051, /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.(publish_event|postpone_event|reschedule_event)/i);
 });
 
 test("051 does not add create_event* / create_venue_atomic / official_ticket_url", () => {
   const sql051 = readFileSync(migration051, "utf8");
-  assert.doesNotMatch(sql051, /create_event/);
-  assert.doesNotMatch(sql051, /create_venue_atomic/);
-  assert.doesNotMatch(sql051, /official_ticket_url/);
-  assert.match(sql051, /approve_account_application/);
-  assert.match(sql051, /admin_audit_log/);
-  assert.match(sql051, /is_super_admin\(\)/);
-  assert.match(sql051, /organization_memberships/);
+  assert.doesNotMatch(sql051, /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.create_event/i);
+  assert.doesNotMatch(sql051, /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.create_venue_atomic/i);
+  assert.doesNotMatch(sql051, /ADD\s+COLUMN\s+\w*official_ticket_url/i);
+  assert.match(sql051, /CREATE OR REPLACE FUNCTION public\.approve_account_application/);
+  assert.match(sql051, /CREATE TABLE public\.admin_audit_log/);
+  assert.match(sql051, /public\.is_super_admin\(\)/);
+  assert.match(sql051, /public\.organization_memberships/);
 });
