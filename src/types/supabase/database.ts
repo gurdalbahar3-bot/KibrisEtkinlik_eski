@@ -13,10 +13,33 @@ export type Json =
 
 export type DbEventStatus =
   | "draft"
+  | "in_review"
+  | "approved"
   | "published"
   | "postponed"
+  | "unpublished"
   | "cancelled"
   | "completed";
+
+export type DbEventChangeRequestType = "postpone" | "reschedule";
+
+export type DbEventChangeRequestStatus = "pending" | "accepted" | "rejected";
+
+export type DbEventChangeDecision = "accept" | "reject";
+
+export interface DbEventChangeRequestRow {
+  id: string;
+  event_id: string;
+  requester_id: string;
+  change_type: DbEventChangeRequestType;
+  proposed_start: string | null;
+  proposed_end: string | null;
+  reason: string | null;
+  status: DbEventChangeRequestStatus;
+  decided_by: string | null;
+  decided_at: string | null;
+  created_at: string;
+}
 
 export interface DbKktcDistrictRow {
   id?: string;
@@ -410,6 +433,19 @@ export interface Database {
         Update: Record<string, never>;
         Relationships: [];
       };
+      event_change_requests: {
+        Row: DbEventChangeRequestRow;
+        Insert: {
+          event_id: string;
+          requester_id: string;
+          change_type: DbEventChangeRequestType;
+          proposed_start?: string | null;
+          proposed_end?: string | null;
+          reason?: string | null;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
       event_ticket_zones: {
         Row: DbEventTicketZoneRow;
         Insert: Record<string, never>;
@@ -477,6 +513,75 @@ export interface Database {
         };
         Returns: Json;
       };
+      publish_event: {
+        Args: {
+          p_event_id: string;
+        };
+        Returns: Json;
+      };
+      postpone_event: {
+        Args: {
+          p_event_id: string;
+          p_reason?: string | null;
+        };
+        Returns: Json;
+      };
+      reschedule_event: {
+        Args: {
+          p_event_id: string;
+          p_starts_at: string;
+          p_ends_at?: string | null;
+        };
+        Returns: Json;
+      };
+      submit_event_for_review: {
+        Args: {
+          p_event_id: string;
+        };
+        Returns: Json;
+      };
+      approve_event: {
+        Args: {
+          p_event_id: string;
+        };
+        Returns: Json;
+      };
+      unpublish_event: {
+        Args: {
+          p_event_id: string;
+        };
+        Returns: Json;
+      };
+      cancel_event: {
+        Args: {
+          p_event_id: string;
+          p_reason?: string | null;
+        };
+        Returns: Json;
+      };
+      complete_event: {
+        Args: {
+          p_event_id: string;
+        };
+        Returns: Json;
+      };
+      propose_event_schedule_change: {
+        Args: {
+          p_event_id: string;
+          p_change_type: DbEventChangeRequestType;
+          p_proposed_start?: string | null;
+          p_proposed_end?: string | null;
+          p_reason?: string | null;
+        };
+        Returns: Json;
+      };
+      decide_event_change_request: {
+        Args: {
+          p_request_id: string;
+          p_decision: DbEventChangeDecision;
+        };
+        Returns: Json;
+      };
       update_venue_atomic: {
         Args: {
           p_venue_id: string;
@@ -536,7 +641,9 @@ export interface Database {
         Returns: Json;
       };
     };
-    Enums: Record<string, never>;
+    Enums: {
+      event_status: DbEventStatus;
+    };
     CompositeTypes: Record<string, never>;
   };
 }
