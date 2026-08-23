@@ -152,7 +152,7 @@
     "directions": "Yol tarifi",
     "ticketsTitle": "Biletler",
     "fromPrice": "{price} itibarıyla",
-    "remaining": "{count} koltuk kaldı",
+    "remaining": "{count} bilet kaldı",
     "soldOut": "Tükendi",
     "catalogEmpty": "Bu etkinlik için henüz bilet türü yayınlanmadı.",
     "noCheckoutHint": "Bilet türleri yayınlandı. Platform içi ödeme henüz açık değil.",

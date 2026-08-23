@@ -165,12 +165,16 @@ export default async function EventOrDistrictPage({ params }: Props) {
                 {t("venue")}
               </dt>
               <dd className="mt-1 font-medium text-slate-900">
-                <Link
-                  href={{ pathname: "/venues/[slug]", params: { slug: event.venueSlug } }}
-                  className="text-brand-700 hover:underline"
-                >
-                  {event.venue}
-                </Link>
+                {venue ? (
+                  <Link
+                    href={{ pathname: "/venues/[slug]", params: { slug: event.venueSlug } }}
+                    className="text-brand-700 hover:underline"
+                  >
+                    {event.venue}
+                  </Link>
+                ) : (
+                  event.venue
+                )}
               </dd>
             </div>
             <div>
