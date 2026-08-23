@@ -14,6 +14,8 @@ import {
   attachObservationToMotor,
   createMotorForIdentity,
   getMotorByIdentityId,
+  getMotorByObservationId,
+  getObservation,
   patchMotorRecord,
   resolveOrCreateIdentity,
   setMotorIntakeId,
@@ -57,6 +59,15 @@ export class OrumcekDiscoveryEngine {
   constructor(private readonly deps: OrumcekEngineDeps) {}
 
   async ingest(observation: RawObservation): Promise<MotorRecord> {
+    // Same observation.id is a retry: do not append evidence or rewrite the motor.
+    const alreadySeen = getObservation(observation.id);
+    if (alreadySeen) {
+      const existingMotor = getMotorByObservationId(observation.id);
+      if (existingMotor) {
+        return existingMotor;
+      }
+    }
+
     addObservation(observation);
     const identity = resolveOrCreateIdentity(observation);
     const existing = getMotorByIdentityId(identity.id);

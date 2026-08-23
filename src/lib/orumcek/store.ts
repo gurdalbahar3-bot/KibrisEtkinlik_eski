@@ -78,6 +78,10 @@ export function updateJob(job: SpiderJob): SpiderJob {
 }
 
 export function addObservation(observation: RawObservation): RawObservation {
+  const existing = getObservation(observation.id);
+  if (existing) {
+    return existing;
+  }
   getStore().observations.push(observation);
   return observation;
 }
@@ -96,6 +100,14 @@ export function getMotorByIdentityId(identityId: string): MotorRecord | undefine
 
 export function getMotorByIntakeId(intakeId: string): MotorRecord | undefined {
   return getStore().motors.find((item) => item.intakeId === intakeId);
+}
+
+export function getMotorByObservationId(observationId: string): MotorRecord | undefined {
+  return getStore().motors.find(
+    (item) =>
+      item.observations.some((observation) => observation.id === observationId) ||
+      item.identity.observationIds.includes(observationId)
+  );
 }
 
 export function resolveOrCreateIdentity(observation: RawObservation): EventIdentity {
@@ -140,9 +152,10 @@ export function attachObservationToMotor(
   if (!record) {
     throw new Error(`Motor record not found for identity ${identityId}.`);
   }
-  if (!record.observations.some((item) => item.id === observation.id)) {
-    record.observations.push(observation);
+  if (record.observations.some((item) => item.id === observation.id)) {
+    return record;
   }
+  record.observations.push(observation);
   if (!record.identity.observationIds.includes(observation.id)) {
     record.identity.observationIds.push(observation.id);
   }

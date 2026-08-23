@@ -65,4 +65,4 @@ export {
 export { applyMotorToIntake, mapMotorToAIReview } from "@/lib/orumcek/mapper";
 export { createRawObservation, observationToRawEvent } from "@/lib/orumcek/observation";
 export { FrozenIntakeError, OrumcekDiscoveryEngine, createOrumcekEngine } from "@/lib/orumcek/engine";
-export { resetOrumcekStore } from "@/lib/orumcek/store";
+export { getObservation, getMotorByObservationId, resetOrumcekStore } from "@/lib/orumcek/store";
