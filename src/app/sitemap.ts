@@ -5,18 +5,41 @@ import {
   discoveryEventsRepository,
   discoveryVenuesRepository,
 } from "@/lib/data/discovery-repository";
+import {
+  assertSupabaseDataSourceReady,
+  isSupabaseDataSource,
+} from "@/lib/supabase/config";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://globaleventdiscovery.com";
 
+export const dynamic = "force-dynamic";
+
 /**
  * Async sitemap via the discovery facade.
- * Mock by default; live slugs when SUPABASE_DATA_SOURCE=supabase.
+ * Supabase/prod: live slugs only — never mock. Missing env or query error → static entries, no mock catalog.
+ * Mock slugs only when SUPABASE_DATA_SOURCE=mock is explicit in development.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [events, venues] = await Promise.all([
-    discoveryEventsRepository.getAll(),
-    discoveryVenuesRepository.getAll(),
-  ]);
+  let events: Awaited<ReturnType<typeof discoveryEventsRepository.getAll>> = [];
+  let venues: Awaited<ReturnType<typeof discoveryVenuesRepository.getAll>> = [];
+
+  if (isSupabaseDataSource()) {
+    try {
+      assertSupabaseDataSourceReady();
+      [events, venues] = await Promise.all([
+        discoveryEventsRepository.getAll(),
+        discoveryVenuesRepository.getAll(),
+      ]);
+    } catch {
+      events = [];
+      venues = [];
+    }
+  } else {
+    [events, venues] = await Promise.all([
+      discoveryEventsRepository.getAll(),
+      discoveryVenuesRepository.getAll(),
+    ]);
+  }
 
   const locales = ["tr", "en"] as const;
   const entries: MetadataRoute.Sitemap = [];

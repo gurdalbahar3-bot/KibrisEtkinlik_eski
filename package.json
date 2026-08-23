@@ -9,7 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test src/lib/supabase/config.test.ts src/lib/discovery/official-ticket-url.test.ts src/lib/admin/auth/should-use-dev-admin-auth.test.ts src/lib/data/adapters/ticket-offer-mapper.test.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

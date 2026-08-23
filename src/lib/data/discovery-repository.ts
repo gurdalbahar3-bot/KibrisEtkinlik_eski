@@ -4,6 +4,7 @@ import {
   assertSupabaseDataSourceReady,
   isSupabaseDataSource,
 } from "@/lib/supabase/config";
+import { stripPublicLiveSalesSignals } from "@/lib/data/adapters/ticket-offer-mapper";
 import {
   districtsRepository as mockDistrictsRepository,
   eventsRepository as mockEventsRepository,
@@ -65,7 +66,8 @@ function findEventBySlug(events: DiscoveryEvent[], slug: string): DiscoveryEvent
 /**
  * Canonical public discovery facade for pages.
  * Supabase backend: `supabaseEventsRepository` (list = upcoming; detail = includes past).
- * Mock only when SUPABASE_DATA_SOURCE=mock (or unset default).
+ * Mock only when SUPABASE_DATA_SOURCE=mock is explicit in development.
+ * Query errors and missing Supabase env never fall back to mock.
  */
 export const discoveryEventsRepository = {
   /** Upcoming discovery pool — homepage, listings, search, category/district grids. */
@@ -171,13 +173,15 @@ export const discoveryEventsRepository = {
     return findRelatedEvents(event, all, limit);
   },
 
-  /** Public ticket catalog for an event — empty when unpublished or no types. */
+  /** Public ticket catalog — remaining/sold/stock are stripped (no live sales). */
   async getTicketOffers(eventId: string): Promise<DiscoveryTicketOffer[]> {
     if (isSupabaseDataSource()) {
       assertSupabaseDataSourceReady();
-      return supabaseTicketOffersRepository.getByEventId(eventId);
+      return stripPublicLiveSalesSignals(
+        await supabaseTicketOffersRepository.getByEventId(eventId)
+      );
     }
-    return getMockTicketOffers(eventId);
+    return stripPublicLiveSalesSignals(getMockTicketOffers(eventId));
   },
 };
 
