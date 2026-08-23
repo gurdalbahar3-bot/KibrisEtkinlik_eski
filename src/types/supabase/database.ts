@@ -188,6 +188,31 @@ export interface DbAccountApplicationRow {
   submitted_at: string;
 }
 
+export type DbApproveAccountDecision = "approve" | "reject";
+
+export interface DbApproveAccountApplicationResult {
+  success: boolean;
+  error_code?: string;
+  application_id?: string;
+  decision?: DbApproveAccountDecision;
+  account_type?: string;
+  verification_status?: string;
+  organization_id?: string | null;
+}
+
+export interface DbAdminAuditLogRow {
+  id: string;
+  actor_id: string | null;
+  actor_role: string | null;
+  action: string;
+  target_type: string;
+  target_id: string;
+  old_state: Json | null;
+  new_state: Json | null;
+  metadata: Json;
+  created_at: string;
+}
+
 export interface DbEventRow {
   id: string;
   owner_id: string;
@@ -375,6 +400,12 @@ export interface Database {
         Update: Record<string, never>;
         Relationships: [];
       };
+      admin_audit_log: {
+        Row: DbAdminAuditLogRow;
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
       event_ticket_zones: {
         Row: DbEventTicketZoneRow;
         Insert: Record<string, never>;
@@ -393,6 +424,15 @@ export interface Database {
       is_super_admin: {
         Args: Record<string, never>;
         Returns: boolean;
+      };
+      approve_account_application: {
+        Args: {
+          p_application_id: string;
+          p_decision: string;
+          p_rejection_reason: string | null;
+          p_organization_id: string | null;
+        };
+        Returns: Json;
       };
       create_venue_atomic: {
         Args: {

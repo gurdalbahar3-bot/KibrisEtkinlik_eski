@@ -188,5 +188,16 @@
   "checkValidImage": "Valid image present",
   "checkSeoSlug": "SEO slug ready",
   "checkDistrictMatch": "Image district match",
-  "checkAiHumanApproved": "AI image human approved"
+  "checkAiHumanApproved": "AI image human approved",
+  "accountApplicationsTitle": "Account applications",
+  "accountApplicationsSubtitle": "Super Admin approval of organizer and venue-owner applications via approve_account_application.",
+  "accountApplicationsLive": "Live Supabase — RPC write path",
+  "noPendingAccountApplications": "No pending account applications.",
+  "accountApplicationType": "Application type",
+  "accountApplicationApplicant": "Applicant",
+  "accountApplicationOrgId": "Existing organization id (optional)",
+  "accountApplicationOrgIdPlaceholder": "UUID of an existing organization",
+  "approveAccountApplication": "Approve account",
+  "rejectAccountApplication": "Reject account",
+  "rejectAccountApplicationReason": "Rejection reason (optional)"
 }
