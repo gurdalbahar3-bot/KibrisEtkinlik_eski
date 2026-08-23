@@ -30,6 +30,13 @@ function parseCoordinate(value: number | null | undefined): number | undefined {
  * Venues have no dedicated cover/photo column yet — do not misuse `floor_plan_url`
  * or invent Unsplash placeholders here. UI may show a gradient when `photo` is empty.
  */
+function formatVenueAddress(row: DbVenueRow): string | undefined {
+  const parts = [row.address, row.city, row.region]
+    .map((value) => value?.trim())
+    .filter((value): value is string => Boolean(value));
+  return parts.length > 0 ? parts.join(", ") : undefined;
+}
+
 export function mapVenueRowToDiscoveryVenue(
   row: DbVenueRow,
   upcomingEventCount = 0
@@ -46,6 +53,11 @@ export function mapVenueRowToDiscoveryVenue(
     venueType,
     upcomingEventCount,
   };
+
+  const address = formatVenueAddress(row);
+  if (address) {
+    venue.address = address;
+  }
 
   const lat = parseCoordinate(row.latitude);
   const lng = parseCoordinate(row.longitude);

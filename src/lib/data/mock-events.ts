@@ -201,6 +201,7 @@ export const MOCK_VENUES: DiscoveryVenue[] = [
     district: "girne",
     venueType: "outdoor",
     upcomingEventCount: 4,
+    address: "Bellapais, Girne",
     location: { latitude: 35.3075, longitude: 33.3444 },
   },
   {
@@ -211,6 +212,7 @@ export const MOCK_VENUES: DiscoveryVenue[] = [
     district: "lefkosa",
     venueType: "culture",
     upcomingEventCount: 6,
+    address: "Arabahmet, Lefkoşa",
     location: { latitude: 35.1753, longitude: 33.3642 },
   },
   {
@@ -221,6 +223,8 @@ export const MOCK_VENUES: DiscoveryVenue[] = [
     district: "iskele",
     venueType: "arena",
     upcomingEventCount: 3,
+    address: "Long Beach, İskele",
+    location: { latitude: 35.3348, longitude: 33.9812 },
   },
   {
     id: "v4",
@@ -230,6 +234,8 @@ export const MOCK_VENUES: DiscoveryVenue[] = [
     district: "gazimagusa",
     venueType: "beach",
     upcomingEventCount: 5,
+    address: "Palm Beach, Gazimağusa",
+    location: { latitude: 35.1362, longitude: 33.9328 },
   },
 ];
 

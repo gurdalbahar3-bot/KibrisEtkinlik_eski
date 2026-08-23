@@ -43,6 +43,7 @@ export const VENUE_DISCOVERY_SELECT = `
   id,
   name,
   venue_category,
+  address,
   city,
   region,
   latitude,
@@ -51,6 +52,30 @@ export const VENUE_DISCOVERY_SELECT = `
   status,
   district_id,
   kktc_districts ( code )
+`.trim();
+
+/** Detail-only ticket catalog. Public SELECT is gated by event_is_published (034). */
+export const EVENT_TICKET_OFFER_SELECT = `
+  id,
+  event_id,
+  zone_id,
+  name,
+  price,
+  description,
+  is_active,
+  event_ticket_zones (
+    id,
+    event_id,
+    name,
+    zone_type,
+    sale_mode,
+    capacity,
+    reserved_count,
+    sold_count,
+    description,
+    sort_order,
+    is_active
+  )
 `.trim();
 
 export const DISTRICT_DISCOVERY_SELECT = `

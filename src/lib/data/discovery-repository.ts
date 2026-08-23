@@ -9,8 +9,10 @@ import {
   eventsRepository as mockEventsRepository,
   venuesRepository as mockVenuesRepository,
 } from "@/lib/data/events";
+import { getMockTicketOffers } from "@/lib/data/mock-ticket-offers";
 import { supabaseDistrictsRepository } from "@/lib/data/supabase-districts";
 import { supabaseEventsRepository } from "@/lib/data/supabase-events";
+import { supabaseTicketOffersRepository } from "@/lib/data/supabase-ticket-offers";
 import { supabaseVenuesRepository } from "@/lib/data/supabase-venues";
 import { filterEvents } from "@/lib/discovery/filter-events";
 import { findRelatedEvents } from "@/lib/discovery/related-events";
@@ -20,6 +22,7 @@ import type { DiscoverySearchParams } from "@/lib/discovery/search-params";
 import type { SearchOptions } from "@/types/discovery";
 import type {
   DiscoveryEvent,
+  DiscoveryTicketOffer,
   DiscoveryVenue,
   DistrictInfo,
   DistrictSlug,
@@ -166,6 +169,15 @@ export const discoveryEventsRepository = {
   async getRelatedEvents(event: DiscoveryEvent, limit = 4): Promise<DiscoveryEvent[]> {
     const all = await loadDiscoveryEvents();
     return findRelatedEvents(event, all, limit);
+  },
+
+  /** Public ticket catalog for an event — empty when unpublished or no types. */
+  async getTicketOffers(eventId: string): Promise<DiscoveryTicketOffer[]> {
+    if (isSupabaseDataSource()) {
+      assertSupabaseDataSourceReady();
+      return supabaseTicketOffersRepository.getByEventId(eventId);
+    }
+    return getMockTicketOffers(eventId);
   },
 };
 
