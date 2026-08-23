@@ -1,4 +1,6 @@
 import type { Locale } from "@/lib/i18n/routing";
+import { sanitizePublicOfficialTicketUrl } from "@/lib/discovery/official-ticket-url";
+import { publicSiteName } from "@/lib/seo/site-brand";
 import type { DiscoveryEvent, DiscoveryTicketOffer, DiscoveryVenue } from "@/types/event";
 
 const TR_MONTHS = [
@@ -72,31 +74,43 @@ export function eventToJsonLd(
       }
     : undefined;
 
+  const officialUrl = sanitizePublicOfficialTicketUrl(event.officialTicketUrl);
+
   const offers = event.isFree
     ? {
         "@type": "Offer",
         price: "0",
         priceCurrency: "TRY",
-        availability: "https://schema.org/InStock",
       }
-    : ticketOffers.length > 0
-      ? ticketOffers.map((offer) => ({
+    : officialUrl
+      ? {
           "@type": "Offer",
-          name: offer.name,
-          price: String(offer.price),
-          priceCurrency: "TRY",
-          availability: offer.isSoldOut
-            ? "https://schema.org/SoldOut"
-            : "https://schema.org/InStock",
-        }))
-      : undefined;
+          url: officialUrl,
+        }
+      : ticketOffers.length > 0
+        ? ticketOffers.map((offer) => ({
+            "@type": "Offer",
+            name: offer.name,
+            price: String(offer.price),
+            priceCurrency: "TRY",
+          }))
+        : undefined;
+
+  const eventStatus =
+    event.status === "postponed"
+      ? "https://schema.org/EventPostponed"
+      : event.status === "cancelled"
+        ? "https://schema.org/EventCancelled"
+        : event.status === "completed"
+          ? "https://schema.org/EventCompleted"
+          : "https://schema.org/EventScheduled";
 
   return {
     "@type": "Event",
     name: event.title,
     startDate: `${event.date}T${event.startTime}:00`,
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-    eventStatus: "https://schema.org/EventScheduled",
+    eventStatus,
     location: {
       "@type": "Place",
       name: venue?.name ?? event.venue,
@@ -124,7 +138,7 @@ export function buildWebsiteJsonLd(siteUrl: string, locale: Locale) {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: locale === "tr" ? "Global Event Discovery" : "Global Event Discovery",
+    name: publicSiteName(locale),
     url: `${siteUrl}/${locale}`,
     potentialAction: {
       "@type": "SearchAction",

@@ -48,7 +48,7 @@ export function Header() {
       <div className="section-container flex h-16 items-center justify-between gap-4">
         <Link href="/" className="flex min-w-0 shrink items-center gap-2">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-600 to-brand-800 text-sm font-bold text-white shadow-sm">
-            G
+            K
           </span>
           <span className="truncate text-sm font-semibold text-slate-900 md:hidden">
             {tMeta("siteNameShort")}

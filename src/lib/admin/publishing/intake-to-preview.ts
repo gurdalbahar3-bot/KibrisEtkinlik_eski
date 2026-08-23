@@ -70,7 +70,7 @@ export function buildAdminPublishPreview(
   const metadata = buildEventDetailMetadata(discoveryEvent, locale, {
     title: seoTitle,
     description: seoDescription,
-    siteName: "Global Event Discovery",
+    siteName: locale === "en" ? "Cyprus Events" : "Kıbrıs Etkinlik",
   });
 
   const paths = eventDetailPaths(discoveryEvent.slug);

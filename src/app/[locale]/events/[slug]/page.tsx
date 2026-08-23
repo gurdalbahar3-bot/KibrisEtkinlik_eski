@@ -3,8 +3,10 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { MapsDirectionsChooser } from "@/components/discovery/MapsDirectionsChooser";
 import { EventGrid } from "@/components/events/EventGrid";
+import { EventShareLinks } from "@/components/events/EventShareLinks";
 import { EventTicketOffers } from "@/components/events/EventTicketOffers";
 import { SectionHeader } from "@/components/home/SectionHeader";
+import { publicSiteName } from "@/lib/seo/site-brand";
 import { PosterImage } from "@/components/ui/PosterImage";
 import { Link } from "@/lib/i18n/navigation";
 import { DISTRICT_SLUGS } from "@/lib/data/categories";
@@ -38,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const tDist = await getTranslations({ locale, namespace: "districts" });
     const name = tDist(slug as DistrictSlug);
     return {
-      title: `${name} — ${locale === "tr" ? "Etkinlikler" : "Events"} | Global Event Discovery`,
+      title: `${name} — ${locale === "tr" ? "Etkinlikler" : "Events"} | ${publicSiteName(locale)}`,
       description:
         locale === "tr"
           ? `${name} ilçesindeki konser, festival ve etkinlikleri keşfedin.`
@@ -53,7 +55,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const image = getEventImage(event);
 
   return {
-    title: `${event.title} | Global Event Discovery`,
+    title: `${event.title} | ${publicSiteName(locale)}`,
     description: event.description,
     alternates: { canonical: `${SITE_URL}${path}` },
     openGraph: {
@@ -137,6 +139,15 @@ export default async function EventOrDistrictPage({ params }: Props) {
               {t("free")}
             </span>
           )}
+          {(event.status === "postponed" || event.status === "cancelled" || event.status === "completed") && (
+            <span className="absolute right-4 top-4 rounded-full bg-amber-500 px-3 py-1 text-xs font-semibold text-white shadow">
+              {event.status === "postponed"
+                ? t("statusPostponed")
+                : event.status === "cancelled"
+                  ? t("statusCancelled")
+                  : t("statusCompleted")}
+            </span>
+          )}
         </div>
 
         <div>
@@ -214,6 +225,11 @@ export default async function EventOrDistrictPage({ params }: Props) {
               <MapsDirectionsChooser destination={mapsDestination} />
             </div>
           )}
+
+          <EventShareLinks
+            url={`${SITE_URL}${locale === "tr" ? `/tr/etkinlikler/${event.slug}` : `/en/events/${event.slug}`}`}
+            title={event.title}
+          />
 
           <EventTicketOffers
             offers={ticketOffers}

@@ -38,6 +38,8 @@ export interface DiscoveryEvent {
   isFree: boolean;
   isPopular?: boolean;
   artist?: string;
+  /** Present when mapped from Supabase `events.status`. Mock catalog omits (treat as published). */
+  status?: "draft" | "published" | "postponed" | "cancelled" | "completed";
   officialTicketUrl?: string;
 }
 

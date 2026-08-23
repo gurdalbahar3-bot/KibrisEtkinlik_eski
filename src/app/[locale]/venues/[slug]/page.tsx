@@ -10,6 +10,7 @@ import {
   discoveryVenuesRepository,
 } from "@/lib/data/discovery-repository";
 import { buildVenueMapsDestination } from "@/lib/discovery/venue-directions";
+import { publicSiteName } from "@/lib/seo/site-brand";
 import { getVenueImage, getVenueImageSources } from "@/lib/ui/venue-image";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const venue = await discoveryVenuesRepository.getBySlug(slug);
   if (!venue) return {};
   return {
-    title: `${venue.name} | Global Event Discovery`,
+    title: `${venue.name} | ${publicSiteName(locale)}`,
     description: locale === "tr"
       ? `${venue.name} mekanındaki yaklaşan etkinlikler.`
       : `Upcoming events at ${venue.name}.`,

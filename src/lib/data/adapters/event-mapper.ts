@@ -92,6 +92,8 @@ export function mapEventRowToDiscoveryEvent(row: DbEventRow): DiscoveryEvent {
     description: row.description?.trim() ?? "",
     isFree: row.is_free,
     artist: resolvePrimaryArtist(row),
+    status: row.status,
+    // events has no official ticket URL column; do not invent a fake URL.
     officialTicketUrl: undefined,
   };
 

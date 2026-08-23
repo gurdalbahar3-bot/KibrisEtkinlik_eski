@@ -35,6 +35,11 @@ export function EventCard({ event, priority = false }: EventCardProps) {
             {t("free")}
           </span>
         )}
+        {event.status === "postponed" && (
+          <span className="absolute right-3 top-3 rounded-full bg-amber-500 px-2.5 py-1 text-xs font-semibold text-white shadow">
+            {t("postponed")}
+          </span>
+        )}
         <div className="absolute bottom-3 left-3 right-3">
           <p className="text-xs font-bold uppercase tracking-widest text-white">
             {day} {month}
