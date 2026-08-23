@@ -23,6 +23,7 @@ export interface AdminEventListItem {
 export interface AdminEventDetail extends AdminEventListItem {
   description: string | null;
   venueId: string;
+  endsAt: string | null;
 }
 
 const ADMIN_EVENT_SELECT = `
@@ -127,6 +128,7 @@ async function fetchEventByIdViaAuthenticatedSupabase(id: string): Promise<Admin
     ...base,
     description: row.description,
     venueId: row.venue_id,
+    endsAt: row.ends_at,
   };
 }
 
@@ -166,6 +168,7 @@ async function fetchEventByIdViaDiscoveryFallback(id: string): Promise<AdminEven
     ownerLabel: "—",
     description: event.description,
     venueId: event.venueSlug,
+    endsAt: null,
   };
 }
 

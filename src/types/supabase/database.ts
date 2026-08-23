@@ -394,6 +394,22 @@ export interface Database {
         Args: Record<string, never>;
         Returns: boolean;
       };
+      publish_event: {
+        Args: { p_event_id: string };
+        Returns: Json;
+      };
+      postpone_event: {
+        Args: { p_event_id: string; p_reason?: string | null };
+        Returns: Json;
+      };
+      reschedule_event: {
+        Args: {
+          p_event_id: string;
+          p_starts_at: string;
+          p_ends_at?: string | null;
+        };
+        Returns: Json;
+      };
       create_venue_atomic: {
         Args: {
           p_name: string;

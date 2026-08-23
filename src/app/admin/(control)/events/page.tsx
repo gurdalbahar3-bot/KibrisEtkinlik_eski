@@ -18,7 +18,7 @@ export default async function AdminEventsPage() {
         <h1 className="text-2xl font-bold text-slate-900">{t("events")}</h1>
         <p className="mt-1 text-sm text-slate-600">{t("adminEventsSubtitle")}</p>
         <p className="mt-2 inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
-          {t("adminEventsReadOnlyBadge")}
+          {t("adminEventsLifecycleBadge")}
         </p>
       </header>
       <AdminEventsTable events={events} t={t} />
