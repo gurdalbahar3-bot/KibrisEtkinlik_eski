@@ -8,6 +8,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabasePublicEnv } from "@/lib/supabase/config";
 
 export async function loginDevAction(): Promise<void> {
+  if (!shouldUseDevAdminAuth()) {
+    throw new Error("Development admin login is not available outside local development.");
+  }
   await setDevAdminSession();
   redirect("/admin");
 }
