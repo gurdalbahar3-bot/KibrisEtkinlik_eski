@@ -11,8 +11,7 @@
 --   submit_event_for_review, approve_event, unpublish_event, postpone_event,
 --   reschedule_event, cancel_event, complete_event, decide_event_change_request,
 --   propose_event_schedule_change.
--- Does NOT add: spider/AI, payment, PayTR, iyzico, Sipay, checkout, orders,
---               QR, POS, Organizer OS, Venue OS, 2D/3D.
+-- Does NOT add: spider/AI, payments, checkout, orders, QR, POS, or layout OS.
 -- URL is NOT required to publish. Free events publish without URL.
 -- We still do not sell tickets.
 

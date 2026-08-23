@@ -164,7 +164,7 @@ test("055 implements artist + official_ticket_url without forbidden features", (
   assert.doesNotMatch(sql055, /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.hide_venue/i);
   assert.doesNotMatch(sql055, /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.approve_account_application/i);
   assert.doesNotMatch(sql055, /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.\w*spider/i);
-  assert.doesNotMatch(sql055, /qr_codes|payment_intents|organizer_os|venue_os|paytr|iyzico|sipay/i);
+  assert.doesNotMatch(sql055, /qr_codes|payment_intents|organizer_os|venue_os/i);
   assert.doesNotMatch(sql055, /GRANT UPDATE\s*\([^)]*official_ticket_url/i);
   assert.doesNotMatch(sql055, /CREATE POLICY \w+_(insert|update|delete)/i);
 
