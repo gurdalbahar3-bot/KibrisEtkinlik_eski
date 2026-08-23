@@ -429,8 +429,8 @@ export interface Database {
         Args: {
           p_application_id: string;
           p_decision: string;
-          p_rejection_reason?: string | null;
-          p_organization_id?: string | null;
+          p_rejection_reason: string | null;
+          p_organization_id: string | null;
         };
         Returns: Json;
       };
