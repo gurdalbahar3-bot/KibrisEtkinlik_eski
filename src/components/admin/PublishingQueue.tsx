@@ -10,6 +10,8 @@ import {
 } from "@/lib/admin/publish-event-result";
 import type { AdminMessages } from "@/lib/admin/i18n";
 import type { AdminEventListItem } from "@/lib/admin/data/admin-events-read";
+import { getPublishingBadgeKey } from "@/lib/admin/dashboard-view-model";
+import { getDataSource } from "@/lib/supabase/config";
 
 interface PublishingQueueProps {
   events: AdminEventListItem[];
@@ -19,10 +21,20 @@ interface PublishingQueueProps {
 }
 
 export function PublishingQueue({ events, locale, t, publishError }: PublishingQueueProps) {
+  const badgeKey = getPublishingBadgeKey(getDataSource());
+  const live = badgeKey === "realPublishingBadge";
+
   if (events.length === 0) {
     return (
       <div className="space-y-4">
         {publishError ? <PublishFeedback success={false} error={publishError} t={t} /> : null}
+        <p
+          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+            live ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-800"
+          }`}
+        >
+          {t(badgeKey)}
+        </p>
         <p className="text-sm text-slate-500">{t("noPublishingQueue")}</p>
       </div>
     );
@@ -31,8 +43,12 @@ export function PublishingQueue({ events, locale, t, publishError }: PublishingQ
   return (
     <div className="space-y-4">
       {publishError ? <PublishFeedback success={false} error={publishError} t={t} /> : null}
-      <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-900">
-        {t("realPublishingBadge")}
+      <p
+        className={`rounded-lg px-3 py-2 text-sm font-medium ${
+          live ? "bg-emerald-50 text-emerald-900" : "bg-amber-50 text-amber-900"
+        }`}
+      >
+        {t(badgeKey)}
       </p>
       {events.map((event) => {
         const checklist = buildDefaultEventPublishChecklist(event);

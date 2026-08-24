@@ -113,6 +113,7 @@ test("public discovery does not flip mock catalog to confirm publish", () => {
   assert.doesNotMatch(action, /mockEventsRepository/);
   assert.doesNotMatch(action, /mockAdminIntakeRepository/);
   assert.match(discovery, /isSupabaseDataSource\(\)/);
+  assert.match(config, /PRODUCTION_DATA_SOURCE_ERROR/);
   assert.match(config, /return "mock"/);
 });
 

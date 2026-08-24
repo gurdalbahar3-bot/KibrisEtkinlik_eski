@@ -2,7 +2,9 @@ import Link from "next/link";
 
 import { PublishEventForm } from "@/components/admin/PublishEventForm";
 import { PublishFeedback } from "@/components/admin/PublishFeedback";
+import { getAdminEventHeaderBadgeKey } from "@/lib/admin/dashboard-view-model";
 import { isDefaultPublishableStatus } from "@/lib/admin/publish-event-result";
+import { getDataSource } from "@/lib/supabase/config";
 import type { AdminMessages } from "@/lib/admin/i18n";
 import type { AdminEventDetail } from "@/lib/admin/data/admin-events-read";
 
@@ -28,6 +30,7 @@ export function AdminEventDetailView({
   publishError,
 }: AdminEventDetailViewProps) {
   const canPublish = showPublish && isDefaultPublishableStatus(event.status);
+  const headerBadgeKey = getAdminEventHeaderBadgeKey(getDataSource(), canPublish);
 
   return (
     <div className="space-y-6">
@@ -41,7 +44,7 @@ export function AdminEventDetailView({
 
       <header className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">
-          {canPublish ? t("realPublishingBadge") : t("adminEventsReadOnlyBadge")}
+          {t(headerBadgeKey)}
         </p>
         <h1 className="mt-2 text-2xl font-bold text-slate-900">{event.title}</h1>
         {event.description ? (

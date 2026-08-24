@@ -5,14 +5,21 @@ import {
   discoveryEventsRepository,
   discoveryVenuesRepository,
 } from "@/lib/data/discovery-repository";
+import { assertDiscoverySourceAllowed } from "@/lib/supabase/config";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://globaleventdiscovery.com";
 
+/** Runtime catalog — production never bakes mock event slugs into sitemap.xml. */
+export const dynamic = "force-dynamic";
+
 /**
  * Async sitemap via the discovery facade.
- * Mock by default; live slugs when SUPABASE_DATA_SOURCE=supabase.
+ * Development/test: mock catalog when unset/mock.
+ * Production: supabase only (assertDiscoverySourceAllowed fails loud otherwise).
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  assertDiscoverySourceAllowed();
+
   const [events, venues] = await Promise.all([
     discoveryEventsRepository.getAll(),
     discoveryVenuesRepository.getAll(),

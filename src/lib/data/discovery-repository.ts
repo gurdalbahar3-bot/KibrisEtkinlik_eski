@@ -65,7 +65,8 @@ function findEventBySlug(events: DiscoveryEvent[], slug: string): DiscoveryEvent
 /**
  * Canonical public discovery facade for pages.
  * Supabase backend: `supabaseEventsRepository` (list = upcoming; detail = includes past).
- * Mock only when SUPABASE_DATA_SOURCE=mock (or unset default).
+ * Mock only in development/test when SUPABASE_DATA_SOURCE is unset or mock.
+ * Production never uses mock — getDataSource() fails loud.
  */
 export const discoveryEventsRepository = {
   /** Upcoming discovery pool — homepage, listings, search, category/district grids. */
