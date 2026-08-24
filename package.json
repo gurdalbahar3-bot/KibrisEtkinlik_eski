@@ -10,7 +10,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "node --test scripts/assert-051-scope.mjs scripts/assert-052-scope.mjs scripts/assert-053-scope.mjs scripts/assert-054-scope.mjs"
+    "test": "node --experimental-strip-types --test scripts/assert-051-scope.mjs scripts/assert-052-scope.mjs scripts/assert-053-scope.mjs scripts/assert-054-scope.mjs scripts/assert-055-scope.mjs scripts/assert-055-jsonld.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

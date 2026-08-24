@@ -72,24 +72,33 @@ export function eventToJsonLd(
       }
     : undefined;
 
+  const officialTicketUrl = event.officialTicketUrl?.trim() || undefined;
+
+  const withOfficialTicketUrl = <T extends Record<string, unknown>>(offer: T): T =>
+    officialTicketUrl ? { ...offer, url: officialTicketUrl } : offer;
+
   const offers = event.isFree
-    ? {
+    ? withOfficialTicketUrl({
         "@type": "Offer",
         price: "0",
         priceCurrency: "TRY",
         availability: "https://schema.org/InStock",
-      }
+      })
     : ticketOffers.length > 0
-      ? ticketOffers.map((offer) => ({
-          "@type": "Offer",
-          name: offer.name,
-          price: String(offer.price),
-          priceCurrency: "TRY",
-          availability: offer.isSoldOut
-            ? "https://schema.org/SoldOut"
-            : "https://schema.org/InStock",
-        }))
-      : undefined;
+      ? ticketOffers.map((offer) =>
+          withOfficialTicketUrl({
+            "@type": "Offer",
+            name: offer.name,
+            price: String(offer.price),
+            priceCurrency: "TRY",
+            availability: offer.isSoldOut
+              ? "https://schema.org/SoldOut"
+              : "https://schema.org/InStock",
+          })
+        )
+      : officialTicketUrl
+        ? { "@type": "Offer", url: officialTicketUrl }
+        : undefined;
 
   return {
     "@type": "Event",

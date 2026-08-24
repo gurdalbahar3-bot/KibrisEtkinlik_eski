@@ -51,20 +51,14 @@ function formatCyprusTime(iso: string): string {
   }).format(new Date(iso));
 }
 
-function resolvePrimaryArtist(row: DbEventRow): string | undefined {
+function resolveSortedArtistNames(row: DbEventRow): string[] {
   const artists = row.event_artists ?? [];
-  if (artists.length === 0) return undefined;
+  if (artists.length === 0) return [];
 
-  const sorted = [...artists].sort(
-    (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
-  );
-
-  for (const link of sorted) {
-    const name = link.artists?.name?.trim();
-    if (name) return name;
-  }
-
-  return undefined;
+  return [...artists]
+    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    .map((link) => link.artists?.name?.trim())
+    .filter((name): name is string => Boolean(name));
 }
 
 export function mapEventRowToDiscoveryEvent(row: DbEventRow): DiscoveryEvent {
@@ -75,6 +69,7 @@ export function mapEventRowToDiscoveryEvent(row: DbEventRow): DiscoveryEvent {
 
   const coverImageUrl = row.cover_image_url?.trim() || undefined;
   const hasRealCover = Boolean(coverImageUrl);
+  const artistNames = resolveSortedArtistNames(row);
 
   const draft: DiscoveryEvent = {
     id: row.id,
@@ -91,8 +86,9 @@ export function mapEventRowToDiscoveryEvent(row: DbEventRow): DiscoveryEvent {
     category: normalizeEventCategory(row.category),
     description: row.description?.trim() ?? "",
     isFree: row.is_free,
-    artist: resolvePrimaryArtist(row),
-    officialTicketUrl: undefined,
+    artist: artistNames[0],
+    artists: artistNames.length > 0 ? artistNames : undefined,
+    officialTicketUrl: row.official_ticket_url?.trim() || undefined,
   };
 
   // Display-only placeholder — must never set hasRealCover / coverImageUrl.
