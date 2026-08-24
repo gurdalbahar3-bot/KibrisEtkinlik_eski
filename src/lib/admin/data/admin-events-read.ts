@@ -1,3 +1,4 @@
+import { isDefaultPublishableStatus } from "@/lib/admin/publish-event-result";
 import { resolveEventDistrict } from "@/lib/data/adapters/district-resolve";
 import { normalizeEventCategory } from "@/lib/data/adapters/event-mapper";
 import { discoveryEventsRepository } from "@/lib/data/discovery-repository";
@@ -192,4 +193,21 @@ export async function getAdminPublicEventById(id: string): Promise<AdminEventDet
   }
 
   return fetchEventByIdViaDiscoveryFallback(id);
+}
+
+/**
+ * Real events eligible for the default Super Admin publish button.
+ * Dev cookie / unauthenticated sessions get an empty list (fail-closed, no mock catalog).
+ */
+export async function getAdminPublishableEvents(): Promise<AdminEventListItem[]> {
+  if (!isSupabaseDataSource()) {
+    return [];
+  }
+
+  if (!(await isAuthenticatedSuperAdmin())) {
+    return [];
+  }
+
+  const events = await fetchEventsViaAuthenticatedSupabase();
+  return events.filter((event) => isDefaultPublishableStatus(event.status));
 }

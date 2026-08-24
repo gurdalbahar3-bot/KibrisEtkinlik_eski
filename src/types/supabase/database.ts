@@ -226,6 +226,14 @@ export interface DbApproveAccountApplicationResult {
   organization_id?: string | null;
 }
 
+export interface DbPublishEventResult {
+  success: boolean;
+  error_code?: string;
+  event_id?: string;
+  status?: string;
+  noop?: boolean;
+}
+
 export interface DbAdminAuditLogRow {
   id: string;
   actor_id: string | null;

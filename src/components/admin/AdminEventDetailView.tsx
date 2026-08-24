@@ -1,23 +1,47 @@
 import Link from "next/link";
 
+import { PublishEventForm } from "@/components/admin/PublishEventForm";
+import { PublishFeedback } from "@/components/admin/PublishFeedback";
+import { isDefaultPublishableStatus } from "@/lib/admin/publish-event-result";
 import type { AdminMessages } from "@/lib/admin/i18n";
 import type { AdminEventDetail } from "@/lib/admin/data/admin-events-read";
 
 interface AdminEventDetailViewProps {
   event: AdminEventDetail;
   t: (key: keyof AdminMessages) => string;
+  backHref?: string;
+  backLabel?: string;
+  showPublish?: boolean;
+  publishReturnPath?: string;
+  publishSuccess?: boolean;
+  publishError?: string;
 }
 
-export function AdminEventDetailView({ event, t }: AdminEventDetailViewProps) {
+export function AdminEventDetailView({
+  event,
+  t,
+  backHref = "/admin/events",
+  backLabel,
+  showPublish = false,
+  publishReturnPath,
+  publishSuccess = false,
+  publishError,
+}: AdminEventDetailViewProps) {
+  const canPublish = showPublish && isDefaultPublishableStatus(event.status);
+
   return (
     <div className="space-y-6">
-      <Link href="/admin/events" className="text-sm font-medium text-brand-700 hover:underline">
-        ← {t("events")}
+      <Link href={backHref} className="text-sm font-medium text-brand-700 hover:underline">
+        ← {backLabel ?? t("events")}
       </Link>
+
+      {publishError || publishSuccess ? (
+        <PublishFeedback success={publishSuccess} error={publishError} t={t} />
+      ) : null}
 
       <header className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">
-          {t("adminEventsReadOnlyBadge")}
+          {canPublish ? t("realPublishingBadge") : t("adminEventsReadOnlyBadge")}
         </p>
         <h1 className="mt-2 text-2xl font-bold text-slate-900">{event.title}</h1>
         {event.description ? (
@@ -69,6 +93,20 @@ export function AdminEventDetailView({ event, t }: AdminEventDetailViewProps) {
           <dd className="mt-1 font-mono text-xs text-slate-700">{event.id}</dd>
         </div>
       </dl>
+
+      {canPublish ? (
+        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-900">{t("publishEvent")}</h2>
+          <p className="mt-1 text-sm text-slate-600">{t("publishingSubtitle")}</p>
+          <div className="mt-4">
+            <PublishEventForm
+              eventId={event.id}
+              returnPath={publishReturnPath ?? `/admin/events/${event.id}`}
+              t={t}
+            />
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

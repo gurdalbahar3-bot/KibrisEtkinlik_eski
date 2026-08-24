@@ -15,7 +15,8 @@ export interface PublishChecklistItem {
     | "checkValidImage"
     | "checkSeoSlug"
     | "checkDistrictMatch"
-    | "checkAiHumanApproved";
+    | "checkAiHumanApproved"
+    | "checkPublishableStatus";
   passed: boolean;
 }
 
