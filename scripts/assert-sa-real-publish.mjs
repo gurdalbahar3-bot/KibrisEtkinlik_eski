@@ -66,7 +66,9 @@ test("publish_event RPC is the only live call site and sits after dev-cookie fai
   assert.ok(devIdx >= 0, "dev cookie gate must exist");
   assert.ok(rpcIdx > devIdx, "publish_event must be after the dev cookie gate");
   assert.match(fnBody, /return \{ ok: false, message: DEV_COOKIE_PUBLISH_BLOCKED_MESSAGE \}/);
-  assert.match(fnBody, /is_super_admin/);
+  assert.match(fnBody, /isDefaultPublishableStatus/);
+  const statusGuardIdx = fnBody.indexOf("isDefaultPublishableStatus");
+  assert.ok(statusGuardIdx > devIdx && statusGuardIdx < rpcIdx, "default path must refuse non-approved/unpublished before RPC");
   assert.doesNotMatch(action, /mockPublishingAdapter/);
   assert.doesNotMatch(action, /can_manage_event/);
   assert.doesNotMatch(action, /eventsRepository|mockEventsRepository/);

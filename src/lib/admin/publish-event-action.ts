@@ -7,6 +7,7 @@ import { getAdminAuth } from "@/lib/admin/auth";
 import { shouldUseDevAdminAuth } from "@/lib/admin/auth/should-use-dev-admin-auth";
 import {
   DEV_COOKIE_PUBLISH_BLOCKED_MESSAGE,
+  isDefaultPublishableStatus,
   isEventUuid,
   parsePublishEventRpcResult,
   resolvePublishReturnPath,
@@ -53,6 +54,27 @@ export async function publishEventAction(eventId: string): Promise<PublishEventA
   const { data: isSuperAdmin, error: superAdminError } = await supabase.rpc("is_super_admin");
   if (superAdminError || !isSuperAdmin) {
     return { ok: false, message: "publish_event failed: FORBIDDEN" };
+  }
+
+  const { data: eventRow, error: eventReadError } = await supabase
+    .from("events")
+    .select("id, status")
+    .eq("id", trimmedId)
+    .maybeSingle();
+
+  if (eventReadError) {
+    return { ok: false, message: `publish_event failed: ${eventReadError.message}` };
+  }
+
+  const row = eventRow as { id: string; status: string } | null;
+  if (!row) {
+    return { ok: false, message: "publish_event failed: EVENT_NOT_FOUND" };
+  }
+
+  // Default Super Admin button: approved | unpublished only. Do not use this
+  // action as the emergency draft publish path (RPC still allows that separately).
+  if (!isDefaultPublishableStatus(row.status)) {
+    return { ok: false, message: "publish_event failed: INVALID_STATE" };
   }
 
   const rpcArgs: PublishEventArgs = { p_event_id: trimmedId };
