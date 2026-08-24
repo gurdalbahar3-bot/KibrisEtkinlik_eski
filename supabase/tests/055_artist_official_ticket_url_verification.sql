@@ -553,14 +553,14 @@ BEGIN
 
   EXECUTE 'SET LOCAL ROLE authenticated';
   PERFORM set_config('request.jwt.claim.sub', v_sa::text, true);
-  v_result := public.set_event_official_ticket_url(v_published, 'https://tickets.kibris.test/published');
+  v_result := public.set_event_official_ticket_url(v_published, 'https://tickets.kibrisetkinlik.com/published');
   EXECUTE 'RESET ROLE';
   SELECT official_ticket_url, status INTO v_url, v_status FROM public.events WHERE id = v_published;
   INSERT INTO t055_report VALUES (
-    'auth', 'SA published set URL PASS status unchanged', 'published/https://tickets.kibris.test/published',
+    'auth', 'SA published set URL PASS status unchanged', 'published/https://tickets.kibrisetkinlik.com/published',
     coalesce(v_status, 'NULL') || '/' || coalesce(v_url, 'NULL'),
     CASE
-      WHEN v_status = 'published' AND v_url = 'https://tickets.kibris.test/published'
+      WHEN v_status = 'published' AND v_url = 'https://tickets.kibrisetkinlik.com/published'
       THEN 'PASS' ELSE 'FAIL'
     END
   );
@@ -618,13 +618,44 @@ BEGIN
 
   EXECUTE 'SET LOCAL ROLE authenticated';
   PERFORM set_config('request.jwt.claim.sub', v_org::text, true);
+  v_result := public.set_event_official_ticket_url(v_draft, 'https://tickets.example.com/tickets');
+  EXECUTE 'RESET ROLE';
+  INSERT INTO t055_report VALUES (
+    'url', 'tickets.example.com rejected', 'INVALID_URL',
+    coalesce(v_result->>'error_code', 'NULL'),
+    CASE WHEN v_result->>'error_code' = 'INVALID_URL' THEN 'PASS' ELSE 'FAIL' END
+  );
+
+  EXECUTE 'SET LOCAL ROLE authenticated';
+  PERFORM set_config('request.jwt.claim.sub', v_org::text, true);
   v_result := public.set_event_official_ticket_url(v_draft, 'https://tickets.kibris.test/draft');
+  EXECUTE 'RESET ROLE';
+  INSERT INTO t055_report VALUES (
+    'url', '.test host rejected', 'INVALID_URL',
+    coalesce(v_result->>'error_code', 'NULL'),
+    CASE WHEN v_result->>'error_code' = 'INVALID_URL' THEN 'PASS' ELSE 'FAIL' END
+  );
+
+  EXECUTE 'SET LOCAL ROLE authenticated';
+  PERFORM set_config('request.jwt.claim.sub', v_org::text, true);
+  v_result := public.set_event_official_ticket_url(v_draft, 'https://tickets.kibrisetkinlik.com/draft');
   EXECUTE 'RESET ROLE';
   SELECT official_ticket_url INTO v_url FROM public.events WHERE id = v_draft;
   INSERT INTO t055_report VALUES (
-    'url', 'draft owner valid URL PASS', 'https://tickets.kibris.test/draft',
+    'url', 'draft owner valid https PASS', 'https://tickets.kibrisetkinlik.com/draft',
     coalesce(v_url, v_result->>'error_code', 'NULL'),
-    CASE WHEN v_url = 'https://tickets.kibris.test/draft' THEN 'PASS' ELSE 'FAIL' END
+    CASE WHEN v_url = 'https://tickets.kibrisetkinlik.com/draft' THEN 'PASS' ELSE 'FAIL' END
+  );
+
+  EXECUTE 'SET LOCAL ROLE authenticated';
+  PERFORM set_config('request.jwt.claim.sub', v_org::text, true);
+  v_result := public.set_event_official_ticket_url(v_draft, 'http://tickets.kibrisetkinlik.com/http-ok');
+  EXECUTE 'RESET ROLE';
+  SELECT official_ticket_url INTO v_url FROM public.events WHERE id = v_draft;
+  INSERT INTO t055_report VALUES (
+    'url', 'draft owner valid http PASS', 'http://tickets.kibrisetkinlik.com/http-ok',
+    coalesce(v_url, v_result->>'error_code', 'NULL'),
+    CASE WHEN v_url = 'http://tickets.kibrisetkinlik.com/http-ok' THEN 'PASS' ELSE 'FAIL' END
   );
 
   EXECUTE 'SET LOCAL ROLE authenticated';
@@ -652,7 +683,7 @@ BEGIN
   -- Restore draft URL for public-visibility contrast
   EXECUTE 'SET LOCAL ROLE authenticated';
   PERFORM set_config('request.jwt.claim.sub', v_org::text, true);
-  v_result := public.set_event_official_ticket_url(v_draft, 'https://tickets.kibris.test/draft');
+  v_result := public.set_event_official_ticket_url(v_draft, 'https://tickets.kibrisetkinlik.com/draft');
   EXECUTE 'RESET ROLE';
 
   -- Public URL on published only; draft artists must not leak

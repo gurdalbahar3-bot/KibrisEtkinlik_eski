@@ -27,7 +27,7 @@ export const mockEvents: DiscoveryEvent[] = [
     isPopular: true,
     artist: "Kyrenia Live Band",
     artists: ["Kyrenia Live Band", "Guest DJ"],
-    officialTicketUrl: "https://tickets.kibris.test/girne-yaz",
+    officialTicketUrl: "https://tickets.kibrisetkinlik.com/girne-yaz",
   },
   {
     id: "2",

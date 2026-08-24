@@ -173,3 +173,34 @@ test("055 implements artist + official_ticket_url without forbidden features", (
     "055 verification harness must exist"
   );
 });
+
+test("055 JSON-LD, URL fixtures, and multi-artist stay in scope", () => {
+  const jsonld = readFileSync(join(root, "src/lib/seo/jsonld.ts"), "utf8");
+  assert.match(jsonld, /officialTicketUrl/);
+  assert.match(jsonld, /url: officialTicketUrl/);
+  assert.match(jsonld, /withOfficialTicketUrl/);
+  assert.doesNotMatch(jsonld, /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.publish_event/i);
+
+  const mapper = readFileSync(join(root, "src/lib/data/adapters/event-mapper.ts"), "utf8");
+  assert.match(mapper, /sort\(\(a, b\) => \(a\.sort_order \?\? 0\) - \(b\.sort_order \?\? 0\)\)/);
+  assert.match(mapper, /artists: artistNames\.length > 0 \? artistNames : undefined/);
+  assert.match(mapper, /artist: artistNames\[0\]/);
+
+  const verify055 = readFileSync(verification055, "utf8");
+  assert.match(verify055, /tickets\.example\.com rejected/);
+  assert.match(verify055, /\.test host rejected/);
+  assert.match(verify055, /draft owner valid https PASS/);
+  assert.match(verify055, /draft owner valid http PASS/);
+  assert.match(verify055, /http:\/\/tickets\.kibrisetkinlik\.com\/http-ok/);
+  assert.match(verify055, /https:\/\/tickets\.kibrisetkinlik\.com\/draft/);
+  assert.match(verify055, /publish_event body has no official_ticket_url/);
+  assert.match(verify055, /multi-artist sort_order B,C,A/);
+  assert.doesNotMatch(
+    verify055,
+    /'url', 'draft owner valid https PASS', 'https:\/\/tickets\.kibris\.test/
+  );
+
+  const sql055 = readFileSync(migration055, "utf8");
+  assert.match(sql055, /OR v_host LIKE '%\.test'/);
+  assert.doesNotMatch(sql055, /kibrisetkinlik\.com/);
+});
