@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test scripts/assert-051-scope.mjs scripts/assert-052-scope.mjs scripts/assert-053-scope.mjs scripts/assert-054-scope.mjs scripts/assert-055-scope.mjs scripts/assert-055-jsonld.mjs scripts/assert-sa-real-publish.mjs scripts/assert-production-data-source.mjs scripts/assert-live-jwt-publish-e2e.mjs",
     "test:e2e": "playwright test",
-    "test:e2e:sprint1": "playwright test e2e/sprint1-sa-publish.spec.ts"
+    "test:e2e:sprint1": "playwright test e2e/sprint1-sa-publish.spec.ts",
+    "backup:staging:preflight": "node scripts/staging-backup-preflight.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
