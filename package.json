@@ -10,7 +10,9 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test scripts/assert-051-scope.mjs scripts/assert-052-scope.mjs scripts/assert-053-scope.mjs scripts/assert-054-scope.mjs scripts/assert-055-scope.mjs scripts/assert-055-jsonld.mjs scripts/assert-sa-real-publish.mjs scripts/assert-production-data-source.mjs scripts/assert-live-jwt-publish-e2e.mjs"
+    "test": "node --experimental-strip-types --test scripts/assert-051-scope.mjs scripts/assert-052-scope.mjs scripts/assert-053-scope.mjs scripts/assert-054-scope.mjs scripts/assert-055-scope.mjs scripts/assert-055-jsonld.mjs scripts/assert-sa-real-publish.mjs scripts/assert-production-data-source.mjs scripts/assert-live-jwt-publish-e2e.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:sprint1": "playwright test e2e/sprint1-sa-publish.spec.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
@@ -22,6 +24,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
+    "@playwright/test": "^1.63.0",
     "@types/node": "^22.10.7",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
