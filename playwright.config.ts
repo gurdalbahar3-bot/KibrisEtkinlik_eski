@@ -4,11 +4,15 @@ import { liveE2EGateDecision, loadLocalEnv } from "./e2e/helpers/env";
 
 loadLocalEnv();
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
+const playwrightBaseUrlEnv = process.env.PLAYWRIGHT_BASE_URL?.trim();
+const baseURL = playwrightBaseUrlEnv || "http://127.0.0.1:3000";
 const localBase =
-  baseURL.startsWith("http://127.0.0.1:") || baseURL.startsWith("http://localhost:");
-// Do not boot Next when the live test will skip for missing credentials.
-const startLocalWebServer = localBase && liveE2EGateDecision() === "run";
+  baseURL.startsWith("http://127.0.0.1:") ||
+  baseURL.startsWith("http://localhost:");
+const startLocalWebServer =
+  !playwrightBaseUrlEnv &&
+  localBase &&
+  liveE2EGateDecision() === "run";
 
 export default defineConfig({
   testDir: "e2e",
