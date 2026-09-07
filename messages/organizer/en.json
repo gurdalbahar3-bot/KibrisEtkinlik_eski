@@ -194,5 +194,17 @@
   "errMetaBrideRequired": "Bride name is required.",
   "errMetaGroomRequired": "Groom name is required.",
   "errMetaWeddingNotFound": "Wedding details not found.",
-  "errMetaMutationFailed": "Could not save metadata. Please try again."
+  "errMetaMutationFailed": "Could not save metadata. Please try again.",
+  "ticketUrlTitle": "Official ticket URL",
+  "ticketUrlSubtitle": "External official ticket page. Optional. Editable only while draft.",
+  "fieldOfficialTicketUrl": "Official ticket URL",
+  "ticketUrlHint": "http:// or https://. Saving empty clears the URL.",
+  "ticketUrlSave": "Save ticket URL",
+  "ticketUrlSaving": "Saving…",
+  "ticketUrlEmpty": "No official ticket URL.",
+  "ticketUrlReadOnlyHint": "Ticket URL is read-only in this status.",
+  "msgTicketSaved": "Official ticket URL saved.",
+  "errTicketInvalidUrl": "Invalid ticket URL.",
+  "errTicketNotDraft": "Ticket URL can only be edited on draft events.",
+  "errTicketSaveFailed": "Could not save the ticket URL. Please try again."
 }

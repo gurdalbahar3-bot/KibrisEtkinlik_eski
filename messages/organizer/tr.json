@@ -194,5 +194,17 @@
   "errMetaBrideRequired": "Gelin adı gerekli.",
   "errMetaGroomRequired": "Damat adı gerekli.",
   "errMetaWeddingNotFound": "Düğün detayı bulunamadı.",
-  "errMetaMutationFailed": "Metadata kaydedilemedi. Lütfen tekrar deneyin."
+  "errMetaMutationFailed": "Metadata kaydedilemedi. Lütfen tekrar deneyin.",
+  "ticketUrlTitle": "Resmi bilet URL",
+  "ticketUrlSubtitle": "Harici resmi bilet sayfası. Boş bırakılabilir. Yalnızca taslakken düzenlenir.",
+  "fieldOfficialTicketUrl": "Resmi bilet URL",
+  "ticketUrlHint": "http:// veya https://. Boş kaydetmek URL’yi temizler.",
+  "ticketUrlSave": "Bilet URL’sini kaydet",
+  "ticketUrlSaving": "Kaydediliyor…",
+  "ticketUrlEmpty": "Resmi bilet URL’si yok.",
+  "ticketUrlReadOnlyHint": "Bu durumda bilet URL’si salt okunur.",
+  "msgTicketSaved": "Resmi bilet URL’si kaydedildi.",
+  "errTicketInvalidUrl": "Geçersiz bilet URL’si.",
+  "errTicketNotDraft": "Bilet URL’si yalnızca taslak etkinliklerde düzenlenebilir.",
+  "errTicketSaveFailed": "Bilet URL’si kaydedilemedi. Lütfen tekrar deneyin."
 }

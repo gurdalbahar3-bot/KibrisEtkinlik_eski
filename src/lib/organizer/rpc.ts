@@ -7,6 +7,7 @@ export type OrganizerRpcPayload = {
   venue_id?: string;
   format_id?: string;
   contact_id?: string;
+  official_ticket_url?: string | null;
   status?: string;
   noop?: boolean;
 };
@@ -127,4 +128,10 @@ export type StagingUpsertEventWeddingDetailsArgs = {
 
 export type StagingDeleteEventWeddingDetailsArgs = {
   p_event_id: string;
+};
+
+/** Staging 059 set_event_official_ticket_url — draft-only enforced in RPC + app gate. */
+export type StagingSetEventOfficialTicketUrlArgs = {
+  p_event_id: string;
+  p_url?: string | null;
 };

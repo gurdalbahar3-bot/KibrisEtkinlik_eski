@@ -16,7 +16,7 @@ import {
   upsertOrganizerEventVenueContact,
   upsertOrganizerEventWeddingDetails,
 } from "@/lib/organizer/data/event-metadata";
-import { updateOrganizerDraftEvent } from "@/lib/organizer/data/events";
+import { updateOrganizerDraftEvent, setOrganizerOfficialTicketUrl } from "@/lib/organizer/data/events";
 import { listOrganizerActiveVenues } from "@/lib/organizer/data/venues";
 import {
   isEventFormatType,
@@ -549,4 +549,49 @@ export async function deleteOrganizerEventWeddingDetailsAction(
   }
 
   redirectMetaOk(eventId, "wedding_deleted");
+}
+
+function redirectTicketOk(eventId: string): never {
+  redirectEdit(eventId, "ticket=saved");
+}
+
+function redirectTicketError(eventId: string, error: string): never {
+  redirectEdit(eventId, `ticket_error=${encodeURIComponent(error)}`);
+}
+
+export async function setOrganizerEventOfficialTicketUrlAction(
+  formData: FormData
+): Promise<void> {
+  if (!getSupabasePublicEnv()) {
+    redirect("/organizer/login?error=config");
+  }
+
+  const session = await requireOrganizer();
+  const eventId = String(formData.get("event_id") ?? "").trim();
+  if (!isEventUuid(eventId)) {
+    redirect("/organizer");
+  }
+
+  const gate = await requireOwnedDraftEvent(eventId, session.userId);
+  if (!gate.ok) {
+    redirectTicketError(
+      eventId,
+      gate.reason === "not_draft" ? "not_draft" : "not_found"
+    );
+  }
+
+  // Empty / whitespace → NULL clear (RPC also normalizes).
+  const rawUrl = String(formData.get("official_ticket_url") ?? "").trim();
+  const pUrl = rawUrl.length > 0 ? rawUrl : null;
+
+  const result = await setOrganizerOfficialTicketUrl({
+    p_event_id: eventId,
+    p_url: pUrl,
+  });
+
+  if (!result.ok) {
+    redirectTicketError(eventId, result.reason);
+  }
+
+  redirectTicketOk(eventId);
 }

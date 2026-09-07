@@ -1,4 +1,9 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  parseOrganizerRpcJson,
+  type StagingSetEventOfficialTicketUrlArgs,
+} from "@/lib/organizer/rpc";
+import type { Json } from "@/types/supabase/database";
 
 export type OrganizerEventDetail = {
   id: string;
@@ -14,6 +19,7 @@ export type OrganizerEventDetail = {
   startsAt: string;
   endsAt: string | null;
   coverImageUrl: string | null;
+  officialTicketUrl: string | null;
 };
 
 type EventDetailRow = {
@@ -29,6 +35,7 @@ type EventDetailRow = {
   starts_at: string;
   ends_at: string | null;
   cover_image_url: string | null;
+  official_ticket_url: string | null;
 };
 
 export async function getOrganizerEvent(
@@ -39,7 +46,7 @@ export async function getOrganizerEvent(
   const { data, error } = await supabase
     .from("events")
     .select(
-      "id, owner_id, venue_id, title, description, category, is_free, is_wedding, status, starts_at, ends_at, cover_image_url"
+      "id, owner_id, venue_id, title, description, category, is_free, is_wedding, status, starts_at, ends_at, cover_image_url, official_ticket_url"
     )
     .eq("id", eventId)
     .eq("owner_id", ownerId)
@@ -76,6 +83,7 @@ export async function getOrganizerEvent(
     startsAt: row.starts_at,
     endsAt: row.ends_at,
     coverImageUrl: row.cover_image_url,
+    officialTicketUrl: row.official_ticket_url?.trim() || null,
   };
 }
 
@@ -122,4 +130,43 @@ export async function updateOrganizerDraftEvent(
     return { ok: false, reason: "not_found" };
   }
   return { ok: true };
+}
+
+export type SetOfficialTicketUrlResult =
+  | { ok: true; url: string | null }
+  | { ok: false; reason: string };
+
+/** Calls staging set_event_official_ticket_url (no client column UPDATE). */
+export async function setOrganizerOfficialTicketUrl(
+  args: StagingSetEventOfficialTicketUrlArgs
+): Promise<SetOfficialTicketUrlResult> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await (supabase.rpc as unknown as (
+    name: "set_event_official_ticket_url",
+    params: StagingSetEventOfficialTicketUrlArgs
+  ) => Promise<{ data: Json | null; error: { message: string } | null }>)(
+    "set_event_official_ticket_url",
+    args
+  );
+
+  if (error) {
+    return { ok: false, reason: "rpc_failed" };
+  }
+
+  const payload = parseOrganizerRpcJson(data);
+  if (!payload.success) {
+    return {
+      ok: false,
+      reason: (payload.error_code ?? "mutation_failed").toLowerCase(),
+    };
+  }
+
+  const url =
+    typeof payload.official_ticket_url === "string"
+      ? payload.official_ticket_url
+      : payload.official_ticket_url === null
+        ? null
+        : null;
+
+  return { ok: true, url };
 }

@@ -6,6 +6,7 @@ import {
   updateOrganizerDraftEventAction,
 } from "@/app/organizer/(app)/events/actions";
 import { EventMetadataPanels } from "@/components/organizer/EventMetadataPanels";
+import { OfficialTicketUrlPanel } from "@/components/organizer/OfficialTicketUrlPanel";
 import { CATEGORY_KEYS } from "@/lib/data/categories";
 import { requireOrganizer } from "@/lib/organizer/auth";
 import { getOrganizerEventMetadata } from "@/lib/organizer/data/event-metadata";
@@ -28,6 +29,8 @@ type Props = {
     meta?: string;
     meta_error?: string;
     meta_section?: string;
+    ticket?: string;
+    ticket_error?: string;
   }>;
 };
 
@@ -300,6 +303,15 @@ export default async function OrganizerEventEditPage({ params, searchParams }: P
           <p className="text-sm text-slate-500">{t("readOnlyHint")}</p>
         </div>
       )}
+
+      <OfficialTicketUrlPanel
+        eventId={event.id}
+        isDraft={isDraft}
+        officialTicketUrl={event.officialTicketUrl}
+        t={t}
+        ticketOk={query.ticket === "saved"}
+        ticketError={query.ticket_error ?? null}
+      />
 
       <EventMetadataPanels
         eventId={event.id}
