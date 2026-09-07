@@ -66,12 +66,15 @@ export default async function OrganizerDashboardPage() {
             <p className="mt-2 text-sm text-slate-500">{t("noOrganization")}</p>
           )}
         </div>
-        <div className="rounded-2xl border border-teal-100 bg-white p-4 shadow-sm">
+        <Link
+          href="/organizer/venues"
+          className="rounded-2xl border border-teal-100 bg-white p-4 shadow-sm transition hover:border-teal-300 hover:bg-teal-50/40"
+        >
           <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">
             {t("venuesLabel")}
           </p>
           <p className="mt-2 text-3xl font-bold text-slate-900">{data.venueCount}</p>
-        </div>
+        </Link>
         <div className="rounded-2xl border border-teal-100 bg-white p-4 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">
             {t("eventsLabel")}
@@ -105,14 +108,25 @@ export default async function OrganizerDashboardPage() {
         ))}
       </section>
 
-      <section className="flex flex-col gap-3 rounded-2xl border border-dashed border-teal-200 bg-teal-50/50 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-teal-950">{t("newEventHint")}</p>
-        <Link
-          href="/organizer/events/new"
-          className="inline-flex min-h-11 items-center justify-center rounded-xl bg-teal-700 px-4 text-sm font-semibold text-white transition hover:bg-teal-800"
-        >
-          {t("newEvent")}
-        </Link>
+      <section className="grid gap-3 sm:grid-cols-2">
+        <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-teal-200 bg-teal-50/50 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-teal-950">{t("manageVenuesHint")}</p>
+          <Link
+            href="/organizer/venues"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-teal-200 bg-white px-4 text-sm font-semibold text-teal-900 transition hover:bg-teal-50"
+          >
+            {t("manageVenues")}
+          </Link>
+        </div>
+        <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-teal-200 bg-teal-50/50 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-teal-950">{t("newEventHint")}</p>
+          <Link
+            href="/organizer/events/new"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl bg-teal-700 px-4 text-sm font-semibold text-white transition hover:bg-teal-800"
+          >
+            {t("newEvent")}
+          </Link>
+        </div>
       </section>
 
       <section className="space-y-3">
