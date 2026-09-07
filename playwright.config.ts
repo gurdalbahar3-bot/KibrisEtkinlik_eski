@@ -5,7 +5,9 @@ import { liveE2EGateDecision, loadLocalEnv } from "./e2e/helpers/env";
 loadLocalEnv();
 
 const playwrightBaseUrlEnv = process.env.PLAYWRIGHT_BASE_URL?.trim();
-const baseURL = playwrightBaseUrlEnv || "http://127.0.0.1:3000";
+// Prefer localhost over 127.0.0.1 — next-intl localized path redirects
+// (e.g. /tr/etkinlikler) emit Location: http://localhost:... and loop on 127.0.0.1.
+const baseURL = playwrightBaseUrlEnv || "http://localhost:3000";
 const localBase =
   baseURL.startsWith("http://127.0.0.1:") ||
   baseURL.startsWith("http://localhost:");
@@ -36,8 +38,8 @@ export default defineConfig({
   ...(startLocalWebServer
     ? {
         webServer: {
-          command: "npm run dev -- --hostname 127.0.0.1 --port 3000",
-          url: "http://127.0.0.1:3000",
+          command: "npm run dev -- --hostname localhost --port 3000",
+          url: "http://localhost:3000",
           reuseExistingServer: true,
           timeout: 120_000,
         },
