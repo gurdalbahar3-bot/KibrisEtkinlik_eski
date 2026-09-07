@@ -6,6 +6,7 @@ export type AdminNavKey =
   | "aiReview"
   | "imageReview"
   | "approval"
+  | "eventReview"
   | "publishing"
   | "events"
   | "social"
@@ -25,6 +26,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: "/admin/review/ai", labelKey: "aiReview" },
   { href: "/admin/review/images", labelKey: "imageReview" },
   { href: "/admin/review/approval", labelKey: "approval" },
+  { href: "/admin/review/events", labelKey: "eventReview" },
   { href: "/admin/publishing", labelKey: "publishing" },
   { href: "/admin/events", labelKey: "events" },
   { href: "/admin/distribution/social", labelKey: "social" },

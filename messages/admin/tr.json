@@ -5,6 +5,7 @@
   "aiReview": "AI Review",
   "imageReview": "Görsel Review",
   "approval": "Onay",
+  "eventReview": "Etkinlik İnceleme",
   "publishing": "Yayınlama",
   "events": "Etkinlikler",
   "social": "Sosyal Dağıtım",
@@ -204,5 +205,19 @@
   "accountApplicationOrgIdPlaceholder": "Mevcut organizasyon UUID",
   "approveAccountApplication": "Hesabı onayla",
   "rejectAccountApplication": "Hesabı reddet",
-  "rejectAccountApplicationReason": "Red sebebi (opsiyonel)"
+  "rejectAccountApplicationReason": "Red sebebi (opsiyonel)",
+  "eventReviewSubtitle": "Organizer'ın incelemeye gönderdiği etkinlikler (status = in_review).",
+  "eventReviewLiveBadge": "Canlı approve_event — mock onay yok",
+  "noEventReviewQueue": "İnceleme kuyruğunda etkinlik yok.",
+  "approveEvent": "Onayla",
+  "approveEventSuccess": "Etkinlik onaylandı (approved).",
+  "approveHint": "Onay sonrası etkinlik yayın kuyruğuna düşer. Publish burada yapılmaz.",
+  "approveThenPublishHint": "Şimdi mevcut Sprint 1 publish akışıyla yayınlayabilirsiniz.",
+  "goToPublish": "Yayına git",
+  "colSubmitted": "İncelemeye gönderilme",
+  "colEndsAt": "Bitiş",
+  "colPricing": "Ücret",
+  "colWedding": "Düğün",
+  "pricingFree": "Ücretsiz",
+  "pricingPaid": "Ücretli"
 }

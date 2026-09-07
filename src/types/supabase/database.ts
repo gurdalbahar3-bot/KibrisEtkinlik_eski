@@ -234,6 +234,13 @@ export interface DbPublishEventResult {
   noop?: boolean;
 }
 
+export interface DbApproveEventResult {
+  success: boolean;
+  error_code?: string;
+  event_id?: string;
+  status?: string;
+}
+
 export interface DbAdminAuditLogRow {
   id: string;
   actor_id: string | null;
@@ -414,6 +421,68 @@ export interface Database {
           full_name?: string | null;
           phone?: string | null;
           avatar_url?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      organizations: {
+        Row: {
+          id: string;
+          name: string;
+          status: string;
+        };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      organization_memberships: {
+        Row: {
+          id: string;
+          organization_id: string;
+          profile_id: string;
+          status: string;
+        };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      organizer_profiles: {
+        Row: {
+          profile_id: string;
+          organization_name: string | null;
+          organization_id: string | null;
+          created_at: string | null;
+        };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      events: {
+        Row: {
+          id: string;
+          owner_id: string;
+          venue_id: string;
+          title: string;
+          description: string | null;
+          category: string;
+          is_free: boolean;
+          is_wedding: boolean;
+          status: DbEventStatus | string;
+          starts_at: string;
+          ends_at: string | null;
+          cover_image_url: string | null;
+          organization_id: string | null;
+          created_at?: string | null;
+          review_submitted_at?: string | null;
+        };
+        Insert: Record<string, never>;
+        Update: {
+          title?: string;
+          description?: string | null;
+          category?: string;
+          is_free?: boolean;
+          is_wedding?: boolean;
+          cover_image_url?: string | null;
           updated_at?: string;
         };
         Relationships: [];

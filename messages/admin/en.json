@@ -5,6 +5,7 @@
   "aiReview": "AI Review",
   "imageReview": "Image Review",
   "approval": "Approval",
+  "eventReview": "Event Review",
   "publishing": "Publishing",
   "events": "Events",
   "social": "Social Distribution",
@@ -204,5 +205,19 @@
   "accountApplicationOrgIdPlaceholder": "UUID of an existing organization",
   "approveAccountApplication": "Approve account",
   "rejectAccountApplication": "Reject account",
-  "rejectAccountApplicationReason": "Rejection reason (optional)"
+  "rejectAccountApplicationReason": "Rejection reason (optional)",
+  "eventReviewSubtitle": "Events submitted by organizers for review (status = in_review).",
+  "eventReviewLiveBadge": "Live approve_event — no mock approval",
+  "noEventReviewQueue": "No events in the review queue.",
+  "approveEvent": "Approve",
+  "approveEventSuccess": "Event approved.",
+  "approveHint": "After approval the event enters the publishing queue. Publish is not done here.",
+  "approveThenPublishHint": "You can now publish via the existing Sprint 1 publish flow.",
+  "goToPublish": "Go to publish",
+  "colSubmitted": "Submitted for review",
+  "colEndsAt": "Ends",
+  "colPricing": "Pricing",
+  "colWedding": "Wedding",
+  "pricingFree": "Free",
+  "pricingPaid": "Paid"
 }
