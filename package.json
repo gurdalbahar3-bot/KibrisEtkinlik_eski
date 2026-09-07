@@ -15,6 +15,7 @@
     "test:e2e:sprint1": "playwright test e2e/sprint1-sa-publish.spec.ts",
     "test:e2e:sprint2": "playwright test e2e/sprint2-organizer-review-publish.spec.ts",
     "test:e2e:sprint2:venue": "playwright test e2e/sprint2-organizer-venue.spec.ts",
+    "test:e2e:sprint2:metadata": "playwright test e2e/sprint2-organizer-event-metadata.spec.ts",
     "backup:staging:preflight": "node scripts/staging-backup-preflight.mjs"
   },
   "dependencies": {

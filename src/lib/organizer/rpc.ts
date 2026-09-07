@@ -5,6 +5,8 @@ export type OrganizerRpcPayload = {
   error_code?: string;
   event_id?: string;
   venue_id?: string;
+  format_id?: string;
+  contact_id?: string;
   status?: string;
   noop?: boolean;
 };
@@ -60,4 +62,69 @@ export type StagingUpdateVenueArgs = {
 
 export type StagingVenueStatusArgs = {
   p_venue_id: string;
+};
+
+export const EVENT_FORMAT_TYPES = [
+  "general_admission",
+  "seated",
+  "table_reservation",
+] as const;
+
+export type EventFormatType = (typeof EVENT_FORMAT_TYPES)[number];
+
+export function isEventFormatType(value: string): value is EventFormatType {
+  return (EVENT_FORMAT_TYPES as readonly string[]).includes(value);
+}
+
+/** Staging upsert_event_format_atomic — no status gate; app enforces draft. */
+export type StagingUpsertEventFormatArgs = {
+  p_event_id: string;
+  p_format_type: string;
+  p_format_id?: string | null;
+};
+
+export type StagingDeleteEventFormatArgs = {
+  p_event_id: string;
+  p_format_id: string;
+};
+
+/** Staging upsert_event_location_atomic (049 signature with district_id). */
+export type StagingUpsertEventLocationArgs = {
+  p_event_id: string;
+  p_address?: string | null;
+  p_city?: string | null;
+  p_region?: string | null;
+  p_latitude?: number | null;
+  p_longitude?: number | null;
+  p_directions_text?: string | null;
+  p_district_id?: string | null;
+};
+
+export type StagingDeleteEventLocationArgs = {
+  p_event_id: string;
+};
+
+export type StagingUpsertEventVenueContactArgs = {
+  p_event_id: string;
+  p_venue_id: string;
+  p_venue_name: string;
+  p_contact_full_name: string;
+  p_contact_phone: string;
+  p_contact_id?: string | null;
+};
+
+export type StagingDeleteEventVenueContactArgs = {
+  p_event_id: string;
+  p_contact_id: string;
+};
+
+export type StagingUpsertEventWeddingDetailsArgs = {
+  p_event_id: string;
+  p_bride_name: string;
+  p_groom_name: string;
+  p_calendar_export_url?: string | null;
+};
+
+export type StagingDeleteEventWeddingDetailsArgs = {
+  p_event_id: string;
 };

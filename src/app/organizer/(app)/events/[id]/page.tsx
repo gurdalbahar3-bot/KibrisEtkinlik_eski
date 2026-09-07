@@ -5,14 +5,17 @@ import {
   submitOrganizerEventForReviewAction,
   updateOrganizerDraftEventAction,
 } from "@/app/organizer/(app)/events/actions";
+import { EventMetadataPanels } from "@/components/organizer/EventMetadataPanels";
+import { CATEGORY_KEYS } from "@/lib/data/categories";
 import { requireOrganizer } from "@/lib/organizer/auth";
+import { getOrganizerEventMetadata } from "@/lib/organizer/data/event-metadata";
 import { getOrganizerEvent } from "@/lib/organizer/data/events";
+import { listActiveDistrictOptions } from "@/lib/organizer/data/venues";
 import {
   createOrganizerTranslator,
   getOrganizerMessages,
   resolveOrganizerLocale,
 } from "@/lib/organizer/i18n";
-import { CATEGORY_KEYS } from "@/lib/data/categories";
 import { isEventUuid } from "@/lib/organizer/rpc";
 
 type Props = {
@@ -22,6 +25,9 @@ type Props = {
     created?: string;
     saved?: string;
     submitted?: string;
+    meta?: string;
+    meta_error?: string;
+    meta_section?: string;
   }>;
 };
 
@@ -112,7 +118,11 @@ export default async function OrganizerEventEditPage({ params, searchParams }: P
     notFound();
   }
 
-  const locale = await resolveOrganizerLocale();
+  const [locale, metadata, districts] = await Promise.all([
+    resolveOrganizerLocale(),
+    getOrganizerEventMetadata(id),
+    listActiveDistrictOptions(),
+  ]);
   const messages = getOrganizerMessages(locale);
   const t = createOrganizerTranslator(messages);
   const isDraft = event.status === "draft";
@@ -263,6 +273,7 @@ export default async function OrganizerEventEditPage({ params, searchParams }: P
                 name="is_wedding"
                 defaultChecked={event.isWedding}
                 className="rounded border-slate-300"
+                data-testid="event-is-wedding"
               />
               {t("fieldIsWedding")}
             </label>
@@ -289,6 +300,21 @@ export default async function OrganizerEventEditPage({ params, searchParams }: P
           <p className="text-sm text-slate-500">{t("readOnlyHint")}</p>
         </div>
       )}
+
+      <EventMetadataPanels
+        eventId={event.id}
+        venueId={event.venueId}
+        venueName={event.venueName}
+        isWedding={event.isWedding}
+        isDraft={isDraft}
+        locale={locale}
+        metadata={metadata}
+        districts={districts}
+        t={t}
+        metaOk={query.meta ?? null}
+        metaError={query.meta_error ?? null}
+        metaSection={query.meta_section ?? null}
+      />
 
       {isDraft ? (
         <form
