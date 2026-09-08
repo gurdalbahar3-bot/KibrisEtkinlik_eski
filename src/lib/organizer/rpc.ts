@@ -8,6 +8,10 @@ export type OrganizerRpcPayload = {
   format_id?: string;
   contact_id?: string;
   official_ticket_url?: string | null;
+  artist_id?: string;
+  slug?: string;
+  created?: boolean;
+  count?: number;
   status?: string;
   noop?: boolean;
 };
@@ -134,4 +138,26 @@ export type StagingDeleteEventWeddingDetailsArgs = {
 export type StagingSetEventOfficialTicketUrlArgs = {
   p_event_id: string;
   p_url?: string | null;
+};
+
+/** Staging 060 upsert_artist_atomic — create/update; app gates draft for panel mutations. */
+export type StagingUpsertArtistArgs = {
+  p_name: string;
+  p_slug?: string | null;
+  p_bio?: string | null;
+  p_image_url?: string | null;
+  p_is_active?: boolean | null;
+  p_artist_id?: string | null;
+};
+
+export type StagingEventArtistPayloadItem = {
+  artist_id: string;
+  role?: string;
+  sort_order?: number;
+};
+
+/** Staging 060 set_event_artists_atomic — replace-set; draft-only in RPC + app gate. */
+export type StagingSetEventArtistsArgs = {
+  p_event_id: string;
+  p_artists: StagingEventArtistPayloadItem[];
 };

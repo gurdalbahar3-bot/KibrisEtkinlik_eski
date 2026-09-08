@@ -5,10 +5,12 @@ import {
   submitOrganizerEventForReviewAction,
   updateOrganizerDraftEventAction,
 } from "@/app/organizer/(app)/events/actions";
+import { EventArtistsPanel } from "@/components/organizer/EventArtistsPanel";
 import { EventMetadataPanels } from "@/components/organizer/EventMetadataPanels";
 import { OfficialTicketUrlPanel } from "@/components/organizer/OfficialTicketUrlPanel";
 import { CATEGORY_KEYS } from "@/lib/data/categories";
 import { requireOrganizer } from "@/lib/organizer/auth";
+import { getOrganizerEventArtists } from "@/lib/organizer/data/artists";
 import { getOrganizerEventMetadata } from "@/lib/organizer/data/event-metadata";
 import { getOrganizerEvent } from "@/lib/organizer/data/events";
 import { listActiveDistrictOptions } from "@/lib/organizer/data/venues";
@@ -31,6 +33,8 @@ type Props = {
     meta_section?: string;
     ticket?: string;
     ticket_error?: string;
+    artists?: string;
+    artists_error?: string;
   }>;
 };
 
@@ -121,10 +125,11 @@ export default async function OrganizerEventEditPage({ params, searchParams }: P
     notFound();
   }
 
-  const [locale, metadata, districts] = await Promise.all([
+  const [locale, metadata, districts, artistsBundle] = await Promise.all([
     resolveOrganizerLocale(),
     getOrganizerEventMetadata(id),
     listActiveDistrictOptions(),
+    getOrganizerEventArtists(id),
   ]);
   const messages = getOrganizerMessages(locale);
   const t = createOrganizerTranslator(messages);
@@ -311,6 +316,54 @@ export default async function OrganizerEventEditPage({ params, searchParams }: P
         t={t}
         ticketOk={query.ticket === "saved"}
         ticketError={query.ticket_error ?? null}
+      />
+
+      <EventArtistsPanel
+        eventId={event.id}
+        isDraft={isDraft}
+        catalog={artistsBundle.catalog}
+        attached={artistsBundle.attached}
+        artistsOk={query.artists === "saved"}
+        artistsError={query.artists_error ?? null}
+        labels={{
+          title: t("artistsTitle"),
+          subtitle: t("artistsSubtitle"),
+          saved: t("msgArtistsSaved"),
+          readOnlyHint: t("artistsReadOnlyHint"),
+          empty: t("artistsEmpty"),
+          searchLabel: t("artistsSearchLabel"),
+          searchPlaceholder: t("artistsSearchPlaceholder"),
+          add: t("artistsAdd"),
+          createTitle: t("artistsCreateTitle"),
+          fieldName: t("artistsFieldName"),
+          fieldSlug: t("artistsFieldSlug"),
+          fieldBio: t("artistsFieldBio"),
+          fieldImageUrl: t("artistsFieldImageUrl"),
+          createSubmit: t("artistsCreateSubmit"),
+          createPending: t("artistsCreatePending"),
+          fieldRole: t("artistsFieldRole"),
+          rolePlaceholder: t("artistsRolePlaceholder"),
+          moveUp: t("artistsMoveUp"),
+          moveDown: t("artistsMoveDown"),
+          remove: t("artistsRemove"),
+          save: t("artistsSave"),
+          saving: t("artistsSaving"),
+          alreadyAttached: t("artistsAlreadyAttached"),
+          noSearchResults: t("artistsNoSearchResults"),
+          errUnauthenticated: t("errArtistsUnauthenticated"),
+          errForbidden: t("errArtistsForbidden"),
+          errNameRequired: t("errArtistsNameRequired"),
+          errSlugRequired: t("errArtistsSlugRequired"),
+          errSlugConflict: t("errArtistsSlugConflict"),
+          errArtistNotFound: t("errArtistsNotFound"),
+          errArtistInactive: t("errArtistsInactive"),
+          errInvalidArtists: t("errArtistsInvalid"),
+          errDuplicateArtist: t("errArtistsDuplicate"),
+          errNotDraft: t("errArtistsNotDraft"),
+          errEventNotFound: t("errEventNotFound"),
+          errSaveFailed: t("errArtistsSaveFailed"),
+          errCreateFailed: t("errArtistsCreateFailed"),
+        }}
       />
 
       <EventMetadataPanels

@@ -16,12 +16,18 @@ import {
   upsertOrganizerEventVenueContact,
   upsertOrganizerEventWeddingDetails,
 } from "@/lib/organizer/data/event-metadata";
+import {
+  setOrganizerEventArtists,
+  upsertOrganizerArtist,
+  type UpsertOrganizerArtistResult,
+} from "@/lib/organizer/data/artists";
 import { updateOrganizerDraftEvent, setOrganizerOfficialTicketUrl } from "@/lib/organizer/data/events";
 import { listOrganizerActiveVenues } from "@/lib/organizer/data/venues";
 import {
   isEventFormatType,
   isEventUuid,
   parseOrganizerRpcJson,
+  type StagingEventArtistPayloadItem,
 } from "@/lib/organizer/rpc";
 import { getSupabasePublicEnv } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -594,4 +600,140 @@ export async function setOrganizerEventOfficialTicketUrlAction(
   }
 
   redirectTicketOk(eventId);
+}
+
+function redirectArtistsOk(eventId: string): never {
+  redirectEdit(eventId, "artists=saved");
+}
+
+function redirectArtistsError(eventId: string, error: string): never {
+  redirectEdit(eventId, `artists_error=${encodeURIComponent(error)}`);
+}
+
+const ARTIST_UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function parseArtistsPayload(raw: string): StagingEventArtistPayloadItem[] | null {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(parsed)) return null;
+
+  const items: StagingEventArtistPayloadItem[] = [];
+  const seen = new Set<string>();
+
+  for (const entry of parsed) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return null;
+    const row = entry as Record<string, unknown>;
+    const artistId = String(row.artist_id ?? "").trim();
+    if (!ARTIST_UUID_RE.test(artistId)) return null;
+    if (seen.has(artistId.toLowerCase())) return null;
+    seen.add(artistId.toLowerCase());
+
+    const roleRaw = String(row.role ?? "").trim();
+    const role = roleRaw.length > 0 ? roleRaw.slice(0, 80) : "performer";
+    const sortRaw = row.sort_order;
+    const sortOrder =
+      typeof sortRaw === "number" && Number.isFinite(sortRaw)
+        ? Math.trunc(sortRaw)
+        : items.length;
+
+    items.push({
+      artist_id: artistId,
+      role,
+      sort_order: sortOrder,
+    });
+  }
+
+  return items.map((item, index) => ({
+    ...item,
+    sort_order: index,
+  }));
+}
+
+/**
+ * Create artist via upsert_artist_atomic (no client DML).
+ * Returns payload for client local-list merge; draft-gated for panel use.
+ */
+export async function createOrganizerArtistAction(
+  formData: FormData
+): Promise<UpsertOrganizerArtistResult> {
+  if (!getSupabasePublicEnv()) {
+    return { ok: false, reason: "config" };
+  }
+
+  const session = await requireOrganizer();
+  const eventId = String(formData.get("event_id") ?? "").trim();
+  if (!isEventUuid(eventId)) {
+    return { ok: false, reason: "event_not_found" };
+  }
+
+  const gate = await requireOwnedDraftEvent(eventId, session.userId);
+  if (!gate.ok) {
+    return {
+      ok: false,
+      reason: gate.reason === "not_draft" ? "not_draft" : "not_found",
+    };
+  }
+
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) {
+    return { ok: false, reason: "name_required" };
+  }
+
+  const slugRaw = String(formData.get("slug") ?? "").trim();
+  const bioRaw = String(formData.get("bio") ?? "").trim();
+  const imageRaw = String(formData.get("image_url") ?? "").trim();
+
+  return upsertOrganizerArtist({
+    p_name: name,
+    p_slug: slugRaw.length > 0 ? slugRaw : null,
+    p_bio: bioRaw.length > 0 ? bioRaw : null,
+    p_image_url: imageRaw.length > 0 ? imageRaw : null,
+    p_is_active: null,
+    p_artist_id: null,
+  });
+}
+
+/** Replace event_artists set via set_event_artists_atomic (draft-gated). */
+export async function setOrganizerEventArtistsAction(
+  formData: FormData
+): Promise<void> {
+  if (!getSupabasePublicEnv()) {
+    redirect("/organizer/login?error=config");
+  }
+
+  const session = await requireOrganizer();
+  const eventId = String(formData.get("event_id") ?? "").trim();
+  if (!isEventUuid(eventId)) {
+    redirect("/organizer");
+  }
+
+  const gate = await requireOwnedDraftEvent(eventId, session.userId);
+  if (!gate.ok) {
+    redirectArtistsError(
+      eventId,
+      gate.reason === "not_draft" ? "not_draft" : "not_found"
+    );
+  }
+
+  const rawPayload = String(formData.get("artists_json") ?? "").trim();
+  const artists = parseArtistsPayload(rawPayload.length > 0 ? rawPayload : "[]");
+  if (!artists) {
+    redirectArtistsError(eventId, "invalid_artists");
+  }
+
+  const result = await setOrganizerEventArtists({
+    p_event_id: eventId,
+    p_artists: artists,
+  });
+
+  if (!result.ok) {
+    redirectArtistsError(eventId, result.reason);
+  }
+
+  redirectArtistsOk(eventId);
 }
