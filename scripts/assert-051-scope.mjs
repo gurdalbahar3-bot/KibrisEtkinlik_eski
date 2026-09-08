@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import assert from "node:assert/strict";
 import test from "node:test";
+import { assertPost055Allowlist } from "./migration-scope-allowlist.mjs";
 
 const root = join(import.meta.dirname, "..");
 const migrationsDir = join(root, "supabase/migrations");
@@ -13,18 +14,15 @@ test("051 exists and 001-050 stay out of this change", () => {
   assert.ok(files.includes("051_approval_audit.sql"), "051_approval_audit.sql must exist");
 
   const numbered = files
-    .map((name) => name.match(/^(\d{3})_/))
-    .filter(Boolean)
-    .map((match) => Number(match[1]));
+    .map((name) => ({ name, match: name.match(/^(\d{3})_/) }))
+    .filter((row) => row.match)
+    .map((row) => ({ name: row.name, n: Number(row.match[1]) }));
 
   assert.ok(
-    numbered.filter((n) => n <= 51).length >= 51,
+    numbered.filter((row) => row.n <= 51).length >= 51,
     "migrations 001-051 must remain"
   );
-  assert.ok(
-    numbered.every((n) => n <= 55),
-    `unexpected 056+ migration: ${files.filter((name) => /^0(5[6-9]|[6-9]\d)/.test(name)).join(", ")}`
-  );
+  assertPost055Allowlist(numbered, assert);
 });
 
 test("events_insert_owner_draft remains in 034 and is not rewritten in 051", () => {

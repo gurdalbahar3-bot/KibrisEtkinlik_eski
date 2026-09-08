@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createClient } from "@supabase/supabase-js";
+import { loadLocalEnv } from "../e2e/helpers/env.ts";
+
+// Match Playwright: fill unset keys from .env.local so the gate can see
+// SUPABASE_* / SA_E2E_* when REQUIRE_LIVE_JWT_E2E=1 (never logs values).
+loadLocalEnv();
 
 const REQUIRED_SECRET_KEYS = [
   "SUPABASE_URL",

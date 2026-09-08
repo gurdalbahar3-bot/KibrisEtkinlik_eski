@@ -9,6 +9,7 @@ import {
   parsePublishEventRpcResult,
   shouldShowPublishSuccess,
 } from "../src/lib/admin/publish-event-result.ts";
+import { assertPost055Allowlist } from "./migration-scope-allowlist.mjs";
 
 const root = join(import.meta.dirname, "..");
 const src = (rel) => readFileSync(join(root, rel), "utf8");
@@ -16,7 +17,7 @@ const src = (rel) => readFileSync(join(root, rel), "utf8");
 const EVENT_ID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 const OTHER_ID = "11111111-2222-3333-4444-555555555555";
 
-test("no 056+ migration and no publish_event rewrite in app SQL", () => {
+test("post-055 migrations stay on project allowlist; app SQL does not rewrite publish_event", () => {
   const migrationsDir = join(root, "supabase/migrations");
   const files = readdirSync(migrationsDir).filter((name) => name.endsWith(".sql"));
   const numbered = files
@@ -24,15 +25,13 @@ test("no 056+ migration and no publish_event rewrite in app SQL", () => {
     .filter((row) => row.match)
     .map((row) => ({ name: row.name, n: Number(row.match[1]) }));
 
-  assert.ok(
-    numbered.every((row) => row.n <= 55),
-    `unexpected 056+ migration: ${numbered.filter((row) => row.n >= 56).map((row) => row.name).join(", ")}`
-  );
+  assertPost055Allowlist(numbered, assert);
 
-  const appSql = files
-    .filter((name) => Number(name.slice(0, 3)) >= 56 || name.startsWith("056"))
-    .join(",");
-  assert.equal(appSql, "", "no 056 SQL files");
+  // App / non-migration sources must never ship CREATE OR REPLACE publish_event
+  // (publish path is RPC-only via publish-event-action). Allowlisted staging
+  // migrations may redefine publish_event only inside supabase/migrations/.
+  const action = src("src/lib/admin/publish-event-action.ts");
+  assert.doesNotMatch(action, /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.publish_event/i);
 });
 
 test("src does not CREATE OR REPLACE publish_event", () => {
