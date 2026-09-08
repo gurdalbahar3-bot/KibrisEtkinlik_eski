@@ -7,12 +7,14 @@ import {
 } from "@/app/organizer/(app)/events/actions";
 import { EventArtistsPanel } from "@/components/organizer/EventArtistsPanel";
 import { EventMetadataPanels } from "@/components/organizer/EventMetadataPanels";
+import { EventTicketCommercePanel } from "@/components/organizer/EventTicketCommercePanel";
 import { OfficialTicketUrlPanel } from "@/components/organizer/OfficialTicketUrlPanel";
 import { CATEGORY_KEYS } from "@/lib/data/categories";
 import { requireOrganizer } from "@/lib/organizer/auth";
 import { getOrganizerEventArtists } from "@/lib/organizer/data/artists";
 import { getOrganizerEventMetadata } from "@/lib/organizer/data/event-metadata";
 import { getOrganizerEvent } from "@/lib/organizer/data/events";
+import { getOrganizerEventTicketCommerce } from "@/lib/organizer/data/ticket-commerce";
 import { listActiveDistrictOptions } from "@/lib/organizer/data/venues";
 import {
   createOrganizerTranslator,
@@ -35,6 +37,8 @@ type Props = {
     ticket_error?: string;
     artists?: string;
     artists_error?: string;
+    commerce?: string;
+    commerce_error?: string;
   }>;
 };
 
@@ -125,12 +129,14 @@ export default async function OrganizerEventEditPage({ params, searchParams }: P
     notFound();
   }
 
-  const [locale, metadata, districts, artistsBundle] = await Promise.all([
-    resolveOrganizerLocale(),
-    getOrganizerEventMetadata(id),
-    listActiveDistrictOptions(),
-    getOrganizerEventArtists(id),
-  ]);
+  const [locale, metadata, districts, artistsBundle, ticketCommerce] =
+    await Promise.all([
+      resolveOrganizerLocale(),
+      getOrganizerEventMetadata(id),
+      listActiveDistrictOptions(),
+      getOrganizerEventArtists(id),
+      getOrganizerEventTicketCommerce(id),
+    ]);
   const messages = getOrganizerMessages(locale);
   const t = createOrganizerTranslator(messages);
   const isDraft = event.status === "draft";
@@ -316,6 +322,78 @@ export default async function OrganizerEventEditPage({ params, searchParams }: P
         t={t}
         ticketOk={query.ticket === "saved"}
         ticketError={query.ticket_error ?? null}
+      />
+
+      <EventTicketCommercePanel
+        eventId={event.id}
+        isDraft={isDraft}
+        locale={locale}
+        zones={ticketCommerce.zones}
+        commerceOk={query.commerce ?? null}
+        commerceError={query.commerce_error ?? null}
+        labels={{
+          title: t("commerceTitle"),
+          subtitle: t("commerceSubtitle"),
+          readOnlyHint: t("commerceReadOnlyHint"),
+          empty: t("commerceEmpty"),
+          addZone: t("commerceAddZone"),
+          saveZone: t("commerceSaveZone"),
+          savingZone: t("commerceSavingZone"),
+          deactivateZone: t("commerceDeactivateZone"),
+          deactivatingZone: t("commerceDeactivatingZone"),
+          fieldName: t("commerceFieldName"),
+          fieldZoneType: t("commerceFieldZoneType"),
+          fieldCapacity: t("commerceFieldCapacity"),
+          fieldDescription: t("commerceFieldDescription"),
+          fieldSortOrder: t("commerceFieldSortOrder"),
+          fieldSaleMode: t("commerceFieldSaleMode"),
+          saleModeTicketBased: t("commerceSaleModeTicketBased"),
+          inventoryCapacity: t("commerceInventoryCapacity"),
+          inventorySold: t("commerceInventorySold"),
+          inventoryReserved: t("commerceInventoryReserved"),
+          inventoryRemaining: t("commerceInventoryRemaining"),
+          inventoryWarning: t("commerceInventoryWarning"),
+          soldReservedReadonly: t("commerceSoldReservedReadonly"),
+          inactiveBadge: t("commerceInactiveBadge"),
+          seatBasedReadonly: t("commerceSeatBasedReadonly"),
+          addType: t("commerceAddType"),
+          saveType: t("commerceSaveType"),
+          savingType: t("commerceSavingType"),
+          deactivateType: t("commerceDeactivateType"),
+          deactivatingType: t("commerceDeactivatingType"),
+          fieldPrice: t("commerceFieldPrice"),
+          fieldPriceHint: t("commerceFieldPriceHint"),
+          fieldMaxPerOrder: t("commerceFieldMaxPerOrder"),
+          fieldTypeDescription: t("commerceFieldTypeDescription"),
+          typesHeading: t("commerceTypesHeading"),
+          noTypes: t("commerceNoTypes"),
+          zoneTypeStandard: t("commerceZoneTypeStandard"),
+          zoneTypeFrontRow: t("commerceZoneTypeFrontRow"),
+          zoneTypeVip: t("commerceZoneTypeVip"),
+          zoneTypeOther: t("commerceZoneTypeOther"),
+          msgZoneCreated: t("msgCommerceZoneCreated"),
+          msgZoneSaved: t("msgCommerceZoneSaved"),
+          msgZoneDeactivated: t("msgCommerceZoneDeactivated"),
+          msgTypeCreated: t("msgCommerceTypeCreated"),
+          msgTypeSaved: t("msgCommerceTypeSaved"),
+          msgTypeDeactivated: t("msgCommerceTypeDeactivated"),
+          errUnauthenticated: t("errCommerceUnauthenticated"),
+          errForbidden: t("errCommerceForbidden"),
+          errNotDraft: t("errCommerceNotDraft"),
+          errEventNotFound: t("errEventNotFound"),
+          errNameRequired: t("errCommerceNameRequired"),
+          errInvalidCapacity: t("errCommerceInvalidCapacity"),
+          errInvalidZoneType: t("errCommerceInvalidZoneType"),
+          errInvalidSaleMode: t("errCommerceInvalidSaleMode"),
+          errZoneInUse: t("errCommerceZoneInUse"),
+          errZoneNotFound: t("errCommerceZoneNotFound"),
+          errZoneNameConflict: t("errCommerceZoneNameConflict"),
+          errWrongSaleMode: t("errCommerceWrongSaleMode"),
+          errInvalidPrice: t("errCommerceInvalidPrice"),
+          errInvalidMaxPerOrder: t("errCommerceInvalidMaxPerOrder"),
+          errTicketTypeNotFound: t("errCommerceTicketTypeNotFound"),
+          errSaveFailed: t("errCommerceSaveFailed"),
+        }}
       />
 
       <EventArtistsPanel

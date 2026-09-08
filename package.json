@@ -18,6 +18,7 @@
     "test:e2e:sprint2:metadata": "playwright test e2e/sprint2-organizer-event-metadata.spec.ts",
     "test:e2e:sprint2:ticket": "playwright test e2e/sprint2-organizer-official-ticket.spec.ts",
     "test:e2e:sprint2:artists": "playwright test e2e/sprint2-organizer-artists.spec.ts",
+    "test:e2e:sprint2:ticket-commerce": "playwright test e2e/sprint2-organizer-ticket-commerce.spec.ts",
     "backup:staging:preflight": "node scripts/staging-backup-preflight.mjs"
   },
   "dependencies": {

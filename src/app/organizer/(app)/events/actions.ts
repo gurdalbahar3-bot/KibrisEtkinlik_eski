@@ -21,10 +21,16 @@ import {
   upsertOrganizerArtist,
   type UpsertOrganizerArtistResult,
 } from "@/lib/organizer/data/artists";
+import {
+  deactivateOrganizerEventTicketZone,
+  upsertOrganizerEventTicketType,
+  upsertOrganizerEventTicketZone,
+} from "@/lib/organizer/data/ticket-commerce";
 import { updateOrganizerDraftEvent, setOrganizerOfficialTicketUrl } from "@/lib/organizer/data/events";
 import { listOrganizerActiveVenues } from "@/lib/organizer/data/venues";
 import {
   isEventFormatType,
+  isEventTicketZoneType,
   isEventUuid,
   parseOrganizerRpcJson,
   type StagingEventArtistPayloadItem,
@@ -736,4 +742,190 @@ export async function setOrganizerEventArtistsAction(
   }
 
   redirectArtistsOk(eventId);
+}
+
+function redirectCommerceOk(eventId: string, ok: string): never {
+  redirectEdit(eventId, `commerce=${encodeURIComponent(ok)}`);
+}
+
+function redirectCommerceError(eventId: string, error: string): never {
+  redirectEdit(eventId, `commerce_error=${encodeURIComponent(error)}`);
+}
+
+async function gateDraftCommerce(
+  eventId: string,
+  ownerId: string
+): Promise<void> {
+  const gate = await requireOwnedDraftEvent(eventId, ownerId);
+  if (!gate.ok) {
+    redirectCommerceError(
+      eventId,
+      gate.reason === "not_draft" ? "not_draft" : "not_found"
+    );
+  }
+}
+
+function parseOptionalInt(raw: string): number | null {
+  const t = raw.trim();
+  if (!t) return null;
+  const n = Number.parseInt(t, 10);
+  return Number.isFinite(n) ? n : null;
+}
+
+function parseRequiredPositiveInt(raw: string): number | null {
+  const n = parseOptionalInt(raw);
+  if (n === null || n <= 0) return null;
+  return n;
+}
+
+function parseNonNegativePrice(raw: string): number | null {
+  const t = raw.trim().replace(",", ".");
+  if (!t) return null;
+  const n = Number.parseFloat(t);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return Math.round(n * 100) / 100;
+}
+
+/** P0.8: create/update ticket_based zone only. */
+export async function upsertOrganizerEventTicketZoneAction(
+  formData: FormData
+): Promise<void> {
+  if (!getSupabasePublicEnv()) {
+    redirect("/organizer/login?error=config");
+  }
+
+  const session = await requireOrganizer();
+  const eventId = String(formData.get("event_id") ?? "").trim();
+  if (!isEventUuid(eventId)) {
+    redirect("/organizer");
+  }
+
+  await gateDraftCommerce(eventId, session.userId);
+
+  const zoneIdRaw = String(formData.get("zone_id") ?? "").trim();
+  const zoneId = zoneIdRaw && isEventUuid(zoneIdRaw) ? zoneIdRaw : null;
+  const name = String(formData.get("name") ?? "").trim();
+  const zoneType = String(formData.get("zone_type") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const sortOrder = parseOptionalInt(String(formData.get("sort_order") ?? ""));
+  const capacity = parseRequiredPositiveInt(
+    String(formData.get("capacity") ?? "")
+  );
+  const isActive = String(formData.get("is_active") ?? "true") !== "false";
+
+  if (!name) {
+    redirectCommerceError(eventId, "name_required");
+  }
+  if (!isEventTicketZoneType(zoneType)) {
+    redirectCommerceError(eventId, "invalid_zone_type");
+  }
+  if (capacity === null) {
+    redirectCommerceError(eventId, "invalid_capacity");
+  }
+
+  // P0.8 hard-lock: never create/edit as seat_based from this UI.
+  const result = await upsertOrganizerEventTicketZone({
+    p_event_id: eventId,
+    p_name: name,
+    p_zone_type: zoneType,
+    p_sale_mode: "ticket_based",
+    p_capacity: capacity,
+    p_venue_area_id: null,
+    p_description: description.length > 0 ? description : null,
+    p_sort_order: sortOrder,
+    p_is_active: isActive,
+    p_zone_id: zoneId,
+  });
+
+  if (!result.ok) {
+    redirectCommerceError(eventId, result.reason);
+  }
+
+  redirectCommerceOk(eventId, zoneId ? "zone_saved" : "zone_created");
+}
+
+export async function deactivateOrganizerEventTicketZoneAction(
+  formData: FormData
+): Promise<void> {
+  if (!getSupabasePublicEnv()) {
+    redirect("/organizer/login?error=config");
+  }
+
+  const session = await requireOrganizer();
+  const eventId = String(formData.get("event_id") ?? "").trim();
+  const zoneId = String(formData.get("zone_id") ?? "").trim();
+  if (!isEventUuid(eventId) || !isEventUuid(zoneId)) {
+    redirect("/organizer");
+  }
+
+  await gateDraftCommerce(eventId, session.userId);
+
+  const result = await deactivateOrganizerEventTicketZone({
+    p_event_id: eventId,
+    p_zone_id: zoneId,
+  });
+
+  if (!result.ok) {
+    redirectCommerceError(eventId, result.reason);
+  }
+
+  redirectCommerceOk(eventId, "zone_deactivated");
+}
+
+/** Create/update ticket type (price TRY). Deactivate via p_is_active=false. */
+export async function upsertOrganizerEventTicketTypeAction(
+  formData: FormData
+): Promise<void> {
+  if (!getSupabasePublicEnv()) {
+    redirect("/organizer/login?error=config");
+  }
+
+  const session = await requireOrganizer();
+  const eventId = String(formData.get("event_id") ?? "").trim();
+  const zoneId = String(formData.get("zone_id") ?? "").trim();
+  if (!isEventUuid(eventId) || !isEventUuid(zoneId)) {
+    redirect("/organizer");
+  }
+
+  await gateDraftCommerce(eventId, session.userId);
+
+  const typeIdRaw = String(formData.get("ticket_type_id") ?? "").trim();
+  const typeId = typeIdRaw && isEventUuid(typeIdRaw) ? typeIdRaw : null;
+  const name = String(formData.get("name") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const price = parseNonNegativePrice(String(formData.get("price") ?? ""));
+  const maxPerOrder = parseOptionalInt(
+    String(formData.get("max_per_order") ?? "")
+  );
+  const isActive = String(formData.get("is_active") ?? "true") !== "false";
+
+  if (!name) {
+    redirectCommerceError(eventId, "name_required");
+  }
+  if (price === null) {
+    redirectCommerceError(eventId, "invalid_price");
+  }
+  if (maxPerOrder !== null && maxPerOrder <= 0) {
+    redirectCommerceError(eventId, "invalid_max_per_order");
+  }
+
+  const result = await upsertOrganizerEventTicketType({
+    p_event_id: eventId,
+    p_zone_id: zoneId,
+    p_name: name,
+    p_price: price,
+    p_description: description.length > 0 ? description : null,
+    p_max_per_order: maxPerOrder,
+    p_is_active: isActive,
+    p_ticket_type_id: typeId,
+  });
+
+  if (!result.ok) {
+    redirectCommerceError(eventId, result.reason);
+  }
+
+  redirectCommerceOk(
+    eventId,
+    !isActive && typeId ? "type_deactivated" : typeId ? "type_saved" : "type_created"
+  );
 }

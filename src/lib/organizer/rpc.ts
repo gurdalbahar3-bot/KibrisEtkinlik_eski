@@ -12,6 +12,8 @@ export type OrganizerRpcPayload = {
   slug?: string;
   created?: boolean;
   count?: number;
+  zone_id?: string;
+  ticket_type_id?: string;
   status?: string;
   noop?: boolean;
 };
@@ -160,4 +162,56 @@ export type StagingEventArtistPayloadItem = {
 export type StagingSetEventArtistsArgs = {
   p_event_id: string;
   p_artists: StagingEventArtistPayloadItem[];
+};
+
+export const EVENT_TICKET_ZONE_TYPES = [
+  "standard",
+  "front_row",
+  "vip",
+  "other",
+] as const;
+
+export type EventTicketZoneType = (typeof EVENT_TICKET_ZONE_TYPES)[number];
+
+export function isEventTicketZoneType(value: string): value is EventTicketZoneType {
+  return (EVENT_TICKET_ZONE_TYPES as readonly string[]).includes(value);
+}
+
+/**
+ * Staging upsert_event_ticket_zone_atomic — exact identity args order:
+ * (p_event_id, p_name, p_zone_type, p_sale_mode, p_capacity,
+ *  p_venue_area_id, p_description, p_sort_order, p_is_active, p_zone_id)
+ */
+export type StagingUpsertEventTicketZoneArgs = {
+  p_event_id: string;
+  p_name: string;
+  p_zone_type: string;
+  p_sale_mode: string;
+  p_capacity: number;
+  p_venue_area_id?: string | null;
+  p_description?: string | null;
+  p_sort_order?: number | null;
+  p_is_active?: boolean;
+  p_zone_id?: string | null;
+};
+
+export type StagingDeactivateEventTicketZoneArgs = {
+  p_event_id: string;
+  p_zone_id: string;
+};
+
+/**
+ * Staging upsert_event_ticket_type (034) — NOT *_atomic. Exact identity args:
+ * (p_event_id, p_zone_id, p_name, p_price, p_description,
+ *  p_max_per_order, p_is_active, p_ticket_type_id)
+ */
+export type StagingUpsertEventTicketTypeArgs = {
+  p_event_id: string;
+  p_zone_id: string;
+  p_name: string;
+  p_price: number;
+  p_description?: string | null;
+  p_max_per_order?: number | null;
+  p_is_active?: boolean;
+  p_ticket_type_id?: string | null;
 };
