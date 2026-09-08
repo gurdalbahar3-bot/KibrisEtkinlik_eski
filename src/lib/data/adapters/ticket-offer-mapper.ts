@@ -39,11 +39,14 @@ export function mapTicketTypeRowToOffer(
 
   return {
     id: row.id,
+    eventId: row.event_id,
+    zoneId: row.zone_id,
     name: row.name.trim(),
     zoneName: zone.name.trim(),
     zoneType: zone.zone_type,
     saleMode,
     price,
+    maxPerOrder: row.max_per_order,
     description: row.description?.trim() || undefined,
     remaining,
     isSoldOut: remaining === 0,

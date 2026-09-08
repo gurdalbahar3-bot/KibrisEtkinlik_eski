@@ -99,6 +99,15 @@ export const discoveryEventsRepository = {
     return findEventBySlug(mockEventsRepository.getAll(), slug);
   },
 
+  /** Checkout deep-link — public statuses only (same as getById on supabase). */
+  async getById(id: string): Promise<DiscoveryEvent | undefined> {
+    if (isSupabaseDataSource()) {
+      assertSupabaseDataSourceReady();
+      return supabaseEventsRepository.getById(id);
+    }
+    return mockEventsRepository.getAll().find((event) => event.id === id);
+  },
+
   async search(
     params: DiscoverySearchParams = {},
     options: SearchOptions = {}

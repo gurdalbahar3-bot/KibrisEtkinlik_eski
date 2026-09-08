@@ -55,6 +55,10 @@ export const SPRINT2_E2E_SECRET_KEYS = [
   "ORGANIZER_E2E_EMAIL",
 ] as const;
 
+export const SPRINT3_E2E_SECRET_KEYS = [
+  ...SPRINT2_E2E_SECRET_KEYS,
+] as const;
+
 const STAGING_SUPABASE_HOST = "nksctgxmkymmiubkrohf.supabase.co";
 
 /** Returns missing env *names* only — never values. */
@@ -129,4 +133,17 @@ export function sprint2E2EGateFailureReason(): string {
     parts.push("SUPABASE_URL is not staging");
   }
   return parts.join("; ") || "unavailable";
+}
+
+/** Sprint 3 customer checkout — same staging gate as Sprint 2 (+ optional service role for user seed). */
+export function sprint3E2EGateDecision(): "run" | "skip" | "fail" {
+  return sprint2E2EGateDecision();
+}
+
+export function sprint3E2EGateFailureReason(): string {
+  return sprint2E2EGateFailureReason();
+}
+
+export function getSupabaseServiceRoleKey(): string {
+  return process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ?? "";
 }

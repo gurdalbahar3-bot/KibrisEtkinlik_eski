@@ -223,6 +223,7 @@ export default async function EventOrDistrictPage({ params }: Props) {
             offers={ticketOffers}
             isFree={event.isFree}
             officialTicketUrl={event.officialTicketUrl}
+            eventId={event.id}
           />
         </div>
       </div>

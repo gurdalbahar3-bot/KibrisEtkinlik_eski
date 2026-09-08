@@ -300,6 +300,89 @@ export interface DbEventTicketTypeRow {
   event_ticket_zones: DbEventTicketZoneRow | DbEventTicketZoneRow[] | null;
 }
 
+export type DbOrderStatus =
+  | "draft"
+  | "pending_payment"
+  | "paid"
+  | "failed"
+  | "expired"
+  | "cancelled_by_organizer";
+
+export interface DbOrderRow {
+  id: string;
+  customer_id: string;
+  event_id: string;
+  status: DbOrderStatus | string;
+  subtotal_amount: number | string;
+  total_amount: number | string;
+  currency: string | null;
+  expires_at: string;
+  paid_at: string | null;
+  created_at: string;
+  updated_at: string;
+  amount_paid_online: number | string | null;
+  amount_remaining: number | string | null;
+  amount_due_now: number | string | null;
+}
+
+export interface DbOrderItemRow {
+  id: string;
+  order_id: string;
+  item_type: string;
+  reference_id: string | null;
+  zone_id: string | null;
+  quantity: number;
+  unit_price: number | string;
+  total_price: number | string;
+  snapshot_label: string | null;
+  created_at: string;
+  amount_due_now: number | string | null;
+}
+
+export interface DbOrderItemSelectionRow {
+  id: string;
+  order_item_id: string;
+  selection_type: string;
+  package_item_id: string | null;
+  package_upgrade_id: string | null;
+  upgrade_option_id: string | null;
+  snapshot_item_name: string;
+  snapshot_option_name: string | null;
+  snapshot_category: string | null;
+  quantity: number;
+  unit_price_delta: number | string;
+  line_total_delta: number | string;
+  created_at: string;
+}
+
+export type DbTicketStatus =
+  | "pending_payment"
+  | "active"
+  | "transferred"
+  | "used"
+  | "cancelled"
+  | "cancelled_by_organizer";
+
+export interface DbTicketRow {
+  id: string;
+  event_id: string;
+  ticket_type_id: string;
+  zone_id: string;
+  order_id: string;
+  order_item_id: string | null;
+  holder_id: string;
+  status: DbTicketStatus | string;
+  qr_code_id: string | null;
+  confirmed_at: string | null;
+  created_at: string;
+}
+
+export interface DbCustomerProfileRow {
+  profile_id: string;
+  preferred_city: string | null;
+  created_at: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -529,6 +612,36 @@ export interface Database {
         Update: Record<string, never>;
         Relationships: [];
       };
+      orders: {
+        Row: DbOrderRow;
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      order_items: {
+        Row: DbOrderItemRow;
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      order_item_selections: {
+        Row: DbOrderItemSelectionRow;
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      tickets: {
+        Row: DbTicketRow;
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      customer_profiles: {
+        Row: DbCustomerProfileRow;
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -733,6 +846,52 @@ export interface Database {
           p_tables?: Json[];
           p_seats?: Json[];
           p_objects?: Json[];
+        };
+        Returns: Json;
+      };
+      create_mixed_cart_atomic: {
+        Args: {
+          p_event_id: string;
+          p_items: Json;
+        };
+        Returns: Json;
+      };
+      checkout_ticket_only_atomic: {
+        Args: {
+          p_event_id: string;
+          p_zone_id: string;
+          p_ticket_type_id: string;
+          p_quantity: number;
+        };
+        Returns: Json;
+      };
+      expire_due_pending_orders_atomic: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      expire_order_atomic: {
+        Args: {
+          p_order_id: string;
+        };
+        Returns: Json;
+      };
+      confirm_payment_atomic: {
+        Args: {
+          p_order_id: string;
+          p_provider: string;
+          p_provider_payment_id: string;
+          p_amount: number;
+          p_currency: string;
+          p_payment_method?: string | null;
+        };
+        Returns: Json;
+      };
+      fail_payment_atomic: {
+        Args: {
+          p_order_id: string;
+          p_provider?: string | null;
+          p_provider_payment_id?: string | null;
+          p_currency?: string | null;
         };
         Returns: Json;
       };

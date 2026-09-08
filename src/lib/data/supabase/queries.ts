@@ -63,6 +63,7 @@ export const EVENT_TICKET_OFFER_SELECT = `
   name,
   price,
   description,
+  max_per_order,
   is_active,
   event_ticket_zones (
     id,

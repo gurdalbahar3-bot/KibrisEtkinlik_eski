@@ -49,11 +49,15 @@ export type TicketSaleMode = "ticket_based" | "seat_based";
 /** Public, read-only catalog row from `event_ticket_types` + zone (014). */
 export interface DiscoveryTicketOffer {
   id: string;
+  eventId: string;
+  zoneId: string;
   name: string;
   zoneName: string;
   zoneType: string;
   saleMode: TicketSaleMode;
   price: number;
+  /** Max quantity per order from catalog; null/undefined = no catalog cap beyond capacity. */
+  maxPerOrder?: number | null;
   description?: string;
   /** Remaining capacity when `sale_mode = ticket_based`. */
   remaining?: number;

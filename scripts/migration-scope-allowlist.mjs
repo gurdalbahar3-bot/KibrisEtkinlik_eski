@@ -10,6 +10,7 @@ export const ALLOWED_POST_055_MIGRATION_FILES = new Set([
   "059_staging_set_event_official_ticket_url.sql",
   "060_staging_artist_write_rpcs.sql",
   "061_staging_commerce_security_hardening.sql",
+  "062_staging_checkout_phase_a.sql",
 ]);
 
 /**

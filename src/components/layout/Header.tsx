@@ -101,6 +101,19 @@ export function Header() {
             {switchLocale}
           </button>
 
+          <Link
+            href="/account/orders"
+            className="hidden rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 sm:inline-flex"
+          >
+            {t("orders")}
+          </Link>
+          <Link
+            href="/login"
+            className="hidden rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:border-brand-400 hover:text-brand-700 sm:inline-flex"
+          >
+            {t("login")}
+          </Link>
+
           <button
             type="button"
             className="inline-flex rounded-lg p-2 text-slate-700 md:hidden"
@@ -136,6 +149,24 @@ export function Header() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link
+                href="/account/orders"
+                className="block rounded-lg px-3 py-3 text-base font-medium text-slate-700 hover:bg-slate-50"
+                onClick={() => setMobileOpen(false)}
+              >
+                {t("orders")}
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/login"
+                className="block rounded-lg px-3 py-3 text-base font-medium text-slate-700 hover:bg-slate-50"
+                onClick={() => setMobileOpen(false)}
+              >
+                {t("login")}
+              </Link>
+            </li>
           </ul>
         </nav>
       )}

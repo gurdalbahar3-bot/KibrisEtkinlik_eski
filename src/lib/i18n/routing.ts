@@ -34,6 +34,30 @@ export const routing = defineRouting({
       tr: "/ilceler",
       en: "/districts",
     },
+    "/login": {
+      tr: "/giris",
+      en: "/login",
+    },
+    "/signup": {
+      tr: "/kayit",
+      en: "/signup",
+    },
+    "/checkout": {
+      tr: "/odeme",
+      en: "/checkout",
+    },
+    "/account/orders": {
+      tr: "/hesap/siparisler",
+      en: "/account/orders",
+    },
+    "/account/orders/[id]": {
+      tr: "/hesap/siparisler/[id]",
+      en: "/account/orders/[id]",
+    },
+    "/account/tickets": {
+      tr: "/hesap/biletler",
+      en: "/account/tickets",
+    },
   },
 });
 
