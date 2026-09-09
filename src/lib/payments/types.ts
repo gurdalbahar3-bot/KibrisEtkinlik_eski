@@ -23,6 +23,8 @@ export type CreatePaymentSessionResult = {
   conversationId: string;
   /** Hosted checkout URL when applicable; stub may return a local placeholder. */
   paymentPageUrl: string | null;
+  /** Base64 CF HTML from iyzico when using embed mode (B2.3+). */
+  checkoutFormContent?: string | null;
   expiresAt: string;
   raw?: unknown;
 };
@@ -41,8 +43,14 @@ export type RetrievePaymentResult = {
   currency: string;
   outcome: PaymentOutcome;
   fraudStatus?: string | null;
+  paymentStatus?: string | null;
   raw?: unknown;
 };
+
+/**
+ * Trusted settlement is server-built only.
+ * There is intentionally no `fromClient` / `parseClientSettlement` helper.
+ */
 
 export type WebhookVerificationResult =
   | { ok: true; eventId: string; eventType: string; payload: unknown }
