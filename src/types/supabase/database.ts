@@ -383,6 +383,72 @@ export interface DbCustomerProfileRow {
   created_at: string;
 }
 
+export type DbPaymentStatus =
+  | "pending"
+  | "succeeded"
+  | "failed"
+  | "refunded_partial"
+  | "refunded_full";
+
+export interface DbPaymentRow {
+  id: string;
+  order_id: string | null;
+  provider: string | null;
+  provider_payment_id: string | null;
+  amount: number | string | null;
+  currency: string;
+  status: DbPaymentStatus | string;
+  payment_method: string | null;
+  paid_at: string | null;
+  created_at: string | null;
+}
+
+export type DbPaymentSessionStatus =
+  | "created"
+  | "redirected"
+  | "awaiting_provider"
+  | "succeeded"
+  | "failed"
+  | "expired"
+  | "cancelled";
+
+export interface DbPaymentSessionRow {
+  id: string;
+  order_id: string;
+  provider: string;
+  provider_token: string | null;
+  conversation_id: string;
+  status: DbPaymentSessionStatus | string;
+  amount: number | string;
+  currency: string;
+  expires_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type DbPaymentWebhookProcessingStatus =
+  | "received"
+  | "processing"
+  | "processed"
+  | "ignored"
+  | "failed";
+
+export interface DbPaymentWebhookEventRow {
+  id: string;
+  provider: string;
+  provider_event_id: string;
+  event_type: string | null;
+  payload: Json;
+  processing_status: DbPaymentWebhookProcessingStatus | string;
+  order_id: string | null;
+  payment_id: string | null;
+  error_code: string | null;
+  error_message: string | null;
+  received_at: string;
+  processed_at: string | null;
+  created_at: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -640,6 +706,69 @@ export interface Database {
         Row: DbCustomerProfileRow;
         Insert: Record<string, never>;
         Update: Record<string, never>;
+        Relationships: [];
+      };
+      payments: {
+        Row: DbPaymentRow;
+        Insert: {
+          order_id?: string | null;
+          provider?: string | null;
+          provider_payment_id?: string | null;
+          amount?: number | string | null;
+          currency: string;
+          status: string;
+          payment_method?: string | null;
+          paid_at?: string | null;
+          created_at?: string | null;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      payment_sessions: {
+        Row: DbPaymentSessionRow;
+        Insert: {
+          order_id: string;
+          provider: string;
+          provider_token?: string | null;
+          conversation_id: string;
+          status?: string;
+          amount: number | string;
+          currency: string;
+          expires_at: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          status?: string;
+          provider_token?: string | null;
+          updated_at?: string;
+          expires_at?: string;
+        };
+        Relationships: [];
+      };
+      payment_webhook_events: {
+        Row: DbPaymentWebhookEventRow;
+        Insert: {
+          provider: string;
+          provider_event_id: string;
+          event_type?: string | null;
+          payload: Json;
+          processing_status?: string;
+          order_id?: string | null;
+          payment_id?: string | null;
+          error_code?: string | null;
+          error_message?: string | null;
+          received_at?: string;
+          processed_at?: string | null;
+        };
+        Update: {
+          processing_status?: string;
+          order_id?: string | null;
+          payment_id?: string | null;
+          error_code?: string | null;
+          error_message?: string | null;
+          processed_at?: string | null;
+        };
         Relationships: [];
       };
     };

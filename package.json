@@ -10,7 +10,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test scripts/assert-051-scope.mjs scripts/assert-052-scope.mjs scripts/assert-053-scope.mjs scripts/assert-054-scope.mjs scripts/assert-055-scope.mjs scripts/assert-055-jsonld.mjs scripts/assert-sa-real-publish.mjs scripts/assert-production-data-source.mjs scripts/assert-live-jwt-publish-e2e.mjs",
+    "test": "node --experimental-strip-types --test scripts/assert-051-scope.mjs scripts/assert-052-scope.mjs scripts/assert-053-scope.mjs scripts/assert-054-scope.mjs scripts/assert-055-scope.mjs scripts/assert-055-jsonld.mjs scripts/assert-sa-real-publish.mjs scripts/assert-production-data-source.mjs scripts/assert-live-jwt-publish-e2e.mjs scripts/assert-b1-payment-foundation.mjs",
     "test:e2e": "playwright test",
     "test:e2e:sprint1": "playwright test e2e/sprint1-sa-publish.spec.ts",
     "test:e2e:sprint2": "playwright test e2e/sprint2-organizer-review-publish.spec.ts",
@@ -28,7 +28,8 @@
     "next": "^15.1.6",
     "next-intl": "^3.26.3",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
