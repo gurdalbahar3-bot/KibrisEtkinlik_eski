@@ -114,3 +114,17 @@ export type SettleResult = {
   noop?: boolean;
   errorCode?: string;
 };
+
+/** Server webhook processing result — never includes secrets or raw provider dumps. */
+export type WebhookHandleResult = {
+  ok: boolean;
+  /** HTTP hint: 401 signature, 400 malformed, 200 otherwise. */
+  httpStatus: number;
+  duplicate?: boolean;
+  ignored?: boolean;
+  settled?: boolean;
+  noop?: boolean;
+  orderId?: string;
+  paymentId?: string | null;
+  errorCode?: string;
+};

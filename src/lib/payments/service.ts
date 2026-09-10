@@ -16,12 +16,13 @@ import type {
   PaymentProviderCode,
   SettleResult,
   VerifiedSettlement,
+  WebhookHandleResult,
 } from "@/lib/payments/types";
 import {
   assertStagingSupabaseHostForPayments,
   createSupabaseServiceRoleClient,
 } from "@/lib/supabase/service-role";
-import type { Database } from "@/types/supabase/database";
+import type { Database, Json } from "@/types/supabase/database";
 
 type OrderLedger = {
   id: string;
@@ -640,8 +641,250 @@ export class PaymentService {
     return settled;
   }
 
-  async handleProviderWebhook(): Promise<SettleResult> {
-    return { success: false, errorCode: "WEBHOOK_NOT_IMPLEMENTED_B3" };
+  async handleProviderWebhook(input: {
+    headers: Headers | Record<string, string | null | undefined>;
+    rawBody: string;
+  }): Promise<WebhookHandleResult> {
+    assertStagingSupabaseHostForPayments();
+
+    const rawBody = input.rawBody ?? "";
+    if (!rawBody.trim()) {
+      return {
+        ok: false,
+        httpStatus: 400,
+        errorCode: "WEBHOOK_MALFORMED_BODY",
+      };
+    }
+
+    let verified;
+    try {
+      verified = await this.provider.verifyWebhook(input.headers, rawBody);
+    } catch {
+      return {
+        ok: false,
+        httpStatus: 400,
+        errorCode: "WEBHOOK_VERIFY_FAILED",
+      };
+    }
+
+    if (!verified.ok) {
+      const code = verified.errorCode;
+      const httpStatus =
+        code === "WEBHOOK_SIGNATURE_INVALID"
+          ? 401
+          : code === "PAYMENT_CONFIG_MISSING"
+            ? 503
+            : 400;
+      return { ok: false, httpStatus, errorCode: code };
+    }
+
+    const supabase = this.supabase();
+    const payload = (verified.payload ?? {}) as Record<string, unknown>;
+    const conversationId = String(payload.paymentConversationId ?? "").trim();
+    const token =
+      typeof payload.token === "string" ? payload.token.trim() : "";
+    const webhookStatus = String(payload.status ?? "")
+      .trim()
+      .toUpperCase();
+
+    type WebhookInsert = Database["public"]["Tables"]["payment_webhook_events"]["Insert"];
+    type WebhookUpdate = Database["public"]["Tables"]["payment_webhook_events"]["Update"];
+
+    const webhooks = supabase.from("payment_webhook_events") as unknown as {
+      insert: (values: WebhookInsert) => {
+        select: (columns: string) => {
+          single: () => Promise<{
+            data: { id: string } | null;
+            error: { message: string; code?: string } | null;
+          }>;
+        };
+      };
+      update: (values: WebhookUpdate) => {
+        eq: (
+          column: string,
+          value: string
+        ) => Promise<{ error: { message: string } | null }>;
+      };
+      select: (columns: string) => {
+        eq: (column: string, value: string) => {
+          eq: (column: string, value: string) => {
+            maybeSingle: () => Promise<{
+              data: {
+                id: string;
+                processing_status: string;
+                order_id: string | null;
+                payment_id: string | null;
+              } | null;
+              error: { message: string } | null;
+            }>;
+          };
+        };
+      };
+    };
+
+    // Idempotent insert — unique (provider, provider_event_id)
+    const { data: inserted, error: insertError } = await webhooks
+      .insert({
+        provider: "iyzico",
+        provider_event_id: verified.eventId,
+        event_type: verified.eventType,
+        payload: {
+          iyziEventType: verified.eventType,
+          paymentConversationId: conversationId || null,
+          status: webhookStatus || null,
+          hasToken: Boolean(token),
+          hasPaymentId: Boolean(
+            payload.paymentId != null || payload.iyziPaymentId != null
+          ),
+          iyziReferenceCode:
+            typeof payload.iyziReferenceCode === "string"
+              ? payload.iyziReferenceCode
+              : null,
+        } as Json,
+        processing_status: "received",
+        order_id: conversationId || null,
+      })
+      .select("id")
+      .single();
+
+    if (insertError) {
+      const isUnique =
+        insertError.code === "23505" ||
+        /duplicate|unique/i.test(insertError.message);
+      if (isUnique) {
+        const { data: existing } = await webhooks
+          .select("id, processing_status, order_id, payment_id")
+          .eq("provider", "iyzico")
+          .eq("provider_event_id", verified.eventId)
+          .maybeSingle();
+        return {
+          ok: true,
+          httpStatus: 200,
+          duplicate: true,
+          noop: true,
+          orderId: existing?.order_id ?? (conversationId || undefined),
+          paymentId: existing?.payment_id ?? null,
+          errorCode: "WEBHOOK_DUPLICATE",
+        };
+      }
+      return {
+        ok: false,
+        httpStatus: 500,
+        errorCode: "WEBHOOK_PERSIST_FAILED",
+      };
+    }
+
+    const webhookRowId = inserted?.id;
+    if (!webhookRowId) {
+      return {
+        ok: false,
+        httpStatus: 500,
+        errorCode: "WEBHOOK_PERSIST_FAILED",
+      };
+    }
+
+    await webhooks
+      .update({ processing_status: "processing" })
+      .eq("id", webhookRowId);
+
+    // Non-SUCCESS provider status: record and acknowledge (no settle).
+    if (webhookStatus && webhookStatus !== "SUCCESS") {
+      await webhooks
+        .update({
+          processing_status: "ignored",
+          processed_at: new Date().toISOString(),
+          error_code: "WEBHOOK_STATUS_NOT_SUCCESS",
+          order_id: conversationId || null,
+        })
+        .eq("id", webhookRowId);
+      return {
+        ok: true,
+        httpStatus: 200,
+        ignored: true,
+        orderId: conversationId || undefined,
+        errorCode: "WEBHOOK_STATUS_NOT_SUCCESS",
+      };
+    }
+
+    // Resolve CF token: payload token, else payment_sessions by conversationId.
+    let settleToken = token;
+    if (!settleToken && conversationId) {
+      const { data: sessionByConv } = await supabase
+        .from("payment_sessions")
+        .select("provider_token, order_id, status")
+        .eq("provider", "iyzico")
+        .eq("conversation_id", conversationId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const row = sessionByConv as {
+        provider_token: string | null;
+        order_id: string;
+        status: string;
+      } | null;
+      settleToken = row?.provider_token?.trim() ?? "";
+    }
+
+    if (!settleToken) {
+      await webhooks
+        .update({
+          processing_status: "failed",
+          processed_at: new Date().toISOString(),
+          error_code: "WEBHOOK_TOKEN_MISSING",
+          order_id: conversationId || null,
+        })
+        .eq("id", webhookRowId);
+      return {
+        ok: true,
+        httpStatus: 200,
+        errorCode: "WEBHOOK_TOKEN_MISSING",
+        orderId: conversationId || undefined,
+      };
+    }
+
+    // Reuse callback settlement path (retrieve → VerifiedSettlement → confirm).
+    const settled = await this.handleProviderCallback({ token: settleToken });
+
+    if (settled.success) {
+      await webhooks
+        .update({
+          processing_status: "processed",
+          processed_at: new Date().toISOString(),
+          order_id: settled.orderId ?? (conversationId || null),
+          payment_id: settled.paymentId ?? null,
+          error_code: settled.noop ? "NOOP_ALREADY_PAID" : null,
+        })
+        .eq("id", webhookRowId);
+      return {
+        ok: true,
+        httpStatus: 200,
+        settled: !settled.noop,
+        noop: settled.noop,
+        orderId: settled.orderId,
+        paymentId: settled.paymentId ?? null,
+      };
+    }
+
+    // Business failures (expiry, mismatch, fraud): acknowledge so iyzico stops retrying.
+    await webhooks
+      .update({
+        processing_status:
+          settled.errorCode === "PAYMENT_AFTER_EXPIRY" ||
+          settled.errorCode === "ORDER_NOT_PAYABLE"
+            ? "ignored"
+            : "failed",
+        processed_at: new Date().toISOString(),
+        order_id: settled.orderId ?? (conversationId || null),
+        error_code: settled.errorCode ?? "WEBHOOK_SETTLE_FAILED",
+      })
+      .eq("id", webhookRowId);
+
+    return {
+      ok: true,
+      httpStatus: 200,
+      orderId: settled.orderId ?? (conversationId || undefined),
+      errorCode: settled.errorCode,
+    };
   }
 }
 

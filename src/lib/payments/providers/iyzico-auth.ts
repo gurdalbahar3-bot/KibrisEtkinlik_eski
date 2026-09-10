@@ -104,9 +104,10 @@ export function verifyIyzicoHmacHex(
   const actual = createHmac("sha256", secretKey).update(payload, "utf8").digest("hex");
   try {
     const a = Buffer.from(actual, "utf8");
-    const b = Buffer.from(expectedHex, "utf8");
-    if (a.length !== b.length) return false;
-    return timingSafeEqual(a, b);
+    const b = Buffer.from(expectedHex.trim().toLowerCase(), "utf8");
+    const normalizedActual = Buffer.from(actual.toLowerCase(), "utf8");
+    if (normalizedActual.length !== b.length) return false;
+    return timingSafeEqual(normalizedActual, b);
   } catch {
     return false;
   }
@@ -137,4 +138,161 @@ export function buildCheckoutFormRetrieveSignaturePayload(parts: {
     parts.token,
   ];
   return vals.map((v) => (v == null ? "" : String(v))).join(":");
+}
+
+/** Header name for iyzico webhook signature V3 (case-insensitive lookup). */
+export const IYZICO_WEBHOOK_SIGNATURE_HEADER = "x-iyz-signature-v3";
+
+export type IyzicoWebhookSignatureVariant = "hpp" | "direct";
+
+/**
+ * HPP / Checkout Form webhook V3 message (docs):
+ * secretKey + iyziEventType + iyziPaymentId + token + paymentConversationId + status
+ */
+export function buildIyzicoWebhookSignatureV3PayloadHpp(input: {
+  secretKey: string;
+  iyziEventType: string;
+  iyziPaymentId: string;
+  token: string;
+  paymentConversationId: string;
+  status: string;
+}): string {
+  return (
+    input.secretKey +
+    input.iyziEventType +
+    input.iyziPaymentId +
+    input.token +
+    input.paymentConversationId +
+    input.status
+  );
+}
+
+/**
+ * Direct payment webhook V3 message (docs):
+ * secretKey + iyziEventType + paymentId + paymentConversationId + status
+ */
+export function buildIyzicoWebhookSignatureV3PayloadDirect(input: {
+  secretKey: string;
+  iyziEventType: string;
+  paymentId: string;
+  paymentConversationId: string;
+  status: string;
+}): string {
+  return (
+    input.secretKey +
+    input.iyziEventType +
+    input.paymentId +
+    input.paymentConversationId +
+    input.status
+  );
+}
+
+export function computeIyzicoWebhookSignatureV3Hex(
+  secretKey: string,
+  message: string
+): string {
+  return createHmac("sha256", secretKey).update(message, "utf8").digest("hex");
+}
+
+/**
+ * Verify X-IYZ-SIGNATURE-V3 against HPP (token) or direct payment field sets.
+ * Prefers HPP when `token` is present.
+ */
+export function verifyIyzicoWebhookSignatureV3(input: {
+  secretKey: string;
+  signatureHeader: string | null | undefined;
+  iyziEventType: string;
+  paymentConversationId: string;
+  status: string;
+  token?: string | null;
+  iyziPaymentId?: string | null;
+  paymentId?: string | null;
+}): { ok: true; variant: IyzicoWebhookSignatureVariant } | { ok: false } {
+  const signature = input.signatureHeader?.trim() ?? "";
+  if (!signature || !input.secretKey) return { ok: false };
+
+  const eventType = input.iyziEventType ?? "";
+  const conversationId = input.paymentConversationId ?? "";
+  const status = input.status ?? "";
+  if (!eventType || !conversationId || !status) return { ok: false };
+
+  const token = input.token?.trim() ?? "";
+  const iyziPaymentId = String(input.iyziPaymentId ?? "").trim();
+  const paymentId = String(input.paymentId ?? iyziPaymentId).trim();
+
+  if (token) {
+    if (!iyziPaymentId && !paymentId) return { ok: false };
+    const message = buildIyzicoWebhookSignatureV3PayloadHpp({
+      secretKey: input.secretKey,
+      iyziEventType: eventType,
+      iyziPaymentId: iyziPaymentId || paymentId,
+      token,
+      paymentConversationId: conversationId,
+      status,
+    });
+    if (verifyIyzicoHmacHex(input.secretKey, message, signature)) {
+      return { ok: true, variant: "hpp" };
+    }
+    return { ok: false };
+  }
+
+  if (!paymentId) return { ok: false };
+  const message = buildIyzicoWebhookSignatureV3PayloadDirect({
+    secretKey: input.secretKey,
+    iyziEventType: eventType,
+    paymentId,
+    paymentConversationId: conversationId,
+    status,
+  });
+  if (verifyIyzicoHmacHex(input.secretKey, message, signature)) {
+    return { ok: true, variant: "direct" };
+  }
+  return { ok: false };
+}
+
+export function extractIyzicoWebhookSignatureHeader(
+  headers: Headers | Record<string, string | null | undefined>
+): string | null {
+  if (typeof (headers as Headers).get === "function") {
+    const h = headers as Headers;
+    return (
+      h.get("x-iyz-signature-v3") ??
+      h.get("X-IYZ-SIGNATURE-V3") ??
+      h.get("X-Iyz-Signature-V3") ??
+      null
+    );
+  }
+  const rec = headers as Record<string, string | null | undefined>;
+  for (const [key, value] of Object.entries(rec)) {
+    if (key.toLowerCase() === "x-iyz-signature-v3" && value) {
+      return value;
+    }
+  }
+  return null;
+}
+
+/**
+ * Stable idempotency key for payment_webhook_events.provider_event_id.
+ * Prefer iyziReferenceCode; else derive from event fields.
+ */
+export function buildIyzicoWebhookEventId(payload: {
+  iyziReferenceCode?: string | null;
+  iyziEventType?: string | null;
+  paymentId?: string | number | null;
+  iyziPaymentId?: string | number | null;
+  paymentConversationId?: string | null;
+  status?: string | null;
+  token?: string | null;
+}): string {
+  const ref = payload.iyziReferenceCode?.trim();
+  if (ref) return ref;
+  const paymentId = String(payload.paymentId ?? payload.iyziPaymentId ?? "").trim();
+  const parts = [
+    payload.iyziEventType ?? "",
+    paymentId,
+    payload.paymentConversationId ?? "",
+    payload.status ?? "",
+    payload.token ?? "",
+  ];
+  return parts.join(":");
 }

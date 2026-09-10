@@ -12,6 +12,11 @@ import {
   IYZICO_ENV_KEYS,
 } from "./iyzico-config.ts";
 import {
+  buildIyzicoWebhookEventId,
+  extractIyzicoWebhookSignatureHeader,
+  verifyIyzicoWebhookSignatureV3,
+} from "./iyzico-auth.ts";
+import {
   IyzicoProviderError,
   type IyzicoCheckoutFormInitializeRequest,
   type IyzicoCheckoutFormInitializeResponse,
@@ -235,12 +240,89 @@ export class IyzicoPaymentProvider implements PaymentProvider {
   }
 
   async verifyWebhook(
-    ..._args: [
-      Headers | Record<string, string | null | undefined>,
-      string,
-    ]
+    headers: Headers | Record<string, string | null | undefined>,
+    rawBody: string
   ): Promise<WebhookVerificationResult> {
-    void _args;
-    return { ok: false, errorCode: "WEBHOOK_NOT_IMPLEMENTED_B3" };
+    if (this.stubMode) {
+      return { ok: false, errorCode: "WEBHOOK_STUB_MODE" };
+    }
+
+    let parsed: Record<string, unknown>;
+    try {
+      const value = JSON.parse(rawBody) as unknown;
+      if (!value || typeof value !== "object" || Array.isArray(value)) {
+        return { ok: false, errorCode: "WEBHOOK_MALFORMED_BODY" };
+      }
+      parsed = value as Record<string, unknown>;
+    } catch {
+      return { ok: false, errorCode: "WEBHOOK_MALFORMED_BODY" };
+    }
+
+    const iyziEventType = String(parsed.iyziEventType ?? "").trim();
+    const paymentConversationId = String(
+      parsed.paymentConversationId ?? ""
+    ).trim();
+    const status = String(parsed.status ?? "").trim();
+    const token =
+      typeof parsed.token === "string" ? parsed.token.trim() : null;
+    const iyziPaymentId =
+      parsed.iyziPaymentId != null ? String(parsed.iyziPaymentId).trim() : null;
+    const paymentId =
+      parsed.paymentId != null ? String(parsed.paymentId).trim() : null;
+
+    if (!iyziEventType || !paymentConversationId || !status) {
+      return { ok: false, errorCode: "WEBHOOK_MALFORMED_BODY" };
+    }
+
+    let secretKey: string;
+    try {
+      secretKey = loadIyzicoSandboxConfig().secretKey;
+    } catch {
+      return { ok: false, errorCode: "PAYMENT_CONFIG_MISSING" };
+    }
+
+    const signatureHeader = extractIyzicoWebhookSignatureHeader(headers);
+    const verified = verifyIyzicoWebhookSignatureV3({
+      secretKey,
+      signatureHeader,
+      iyziEventType,
+      paymentConversationId,
+      status,
+      token,
+      iyziPaymentId,
+      paymentId,
+    });
+
+    if (!verified.ok) {
+      return { ok: false, errorCode: "WEBHOOK_SIGNATURE_INVALID" };
+    }
+
+    const eventId = buildIyzicoWebhookEventId({
+      iyziReferenceCode:
+        typeof parsed.iyziReferenceCode === "string"
+          ? parsed.iyziReferenceCode
+          : null,
+      iyziEventType,
+      paymentId,
+      iyziPaymentId,
+      paymentConversationId,
+      status,
+      token,
+    });
+
+    if (!eventId.trim()) {
+      return { ok: false, errorCode: "WEBHOOK_EVENT_ID_MISSING" };
+    }
+
+    return {
+      ok: true,
+      eventId,
+      eventType: iyziEventType,
+      payload: {
+        ...parsed,
+        _signatureVariant: verified.variant,
+        // Never include secret material; parsed body only.
+      },
+    };
   }
 }
