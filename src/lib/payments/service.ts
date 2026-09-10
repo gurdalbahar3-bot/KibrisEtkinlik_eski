@@ -12,6 +12,10 @@ import type { PaymentProvider } from "@/lib/payments/provider";
 import { resolveIyzicoCallbackUrl } from "@/lib/payments/providers/iyzico-config.ts";
 import { IyzicoProviderError } from "@/lib/payments/providers/iyzico-types.ts";
 import { buildVerifiedSettlementFromRetrieve } from "@/lib/payments/settlement";
+import {
+  buildPaymentReconReport,
+  type PaymentReconReport,
+} from "@/lib/payments/reconciliation";
 import type {
   PaymentProviderCode,
   SettleResult,
@@ -314,6 +318,9 @@ export class PaymentService {
 
     const conversationId = row.id;
     const sessions = paymentSessionsWriter(supabase);
+
+    // B4: expire stale in-flight sessions before starting a new one.
+    await this.reconcileOrderPayments(row.id);
 
     // Idempotency: cancel prior in-flight sessions (no payment_page_url column
     // to resume redirect without re-initialize).
@@ -639,6 +646,78 @@ export class PaymentService {
 
     await updateSessionStatus(supabase, session.id, "succeeded");
     return settled;
+  }
+
+  /**
+   * B4 reconciliation: classify order/session payment safety and expire stale
+   * in-flight sessions. Never auto-refunds; never calls confirm.
+   */
+  async reconcileOrderPayments(orderId: string): Promise<
+    PaymentReconReport & { expiredSessionCount: number }
+  > {
+    assertStagingSupabaseHostForPayments();
+    const supabase = this.supabase();
+
+    const { data: orderRaw, error: orderError } = await supabase
+      .from("orders")
+      .select("id, status, expires_at")
+      .eq("id", orderId)
+      .maybeSingle();
+
+    if (orderError || !orderRaw) {
+      return {
+        orderId,
+        orderStatus: "unknown",
+        findings: ["ORDER_NOT_PAYABLE"],
+        sessionIdsToExpire: [],
+        blockSettlement: true,
+        requiresManualReconciliation: true,
+        expiredSessionCount: 0,
+      };
+    }
+
+    const order = orderRaw as {
+      id: string;
+      status: string;
+      expires_at: string;
+    };
+
+    const { data: sessionsRaw } = await supabase
+      .from("payment_sessions")
+      .select("id, status, expires_at")
+      .eq("order_id", orderId);
+
+    const sessions = (sessionsRaw ?? []) as Array<{
+      id: string;
+      status: string;
+      expires_at: string;
+    }>;
+
+    const { count: paymentCount } = await supabase
+      .from("payments")
+      .select("id", { count: "exact", head: true })
+      .eq("order_id", orderId)
+      .eq("status", "succeeded");
+
+    const report = buildPaymentReconReport({
+      orderId: order.id,
+      orderStatus: order.status,
+      orderExpiresAt: order.expires_at,
+      sessions: sessions.map((s) => ({
+        id: s.id,
+        status: s.status,
+        expiresAt: s.expires_at,
+      })),
+      succeededPaymentCount: paymentCount ?? 0,
+    });
+
+    let expiredSessionCount = 0;
+    for (const sessionId of report.sessionIdsToExpire) {
+      await updateSessionStatus(supabase, sessionId, "expired");
+      expiredSessionCount += 1;
+    }
+
+    return { ...report, expiredSessionCount };
   }
 
   async handleProviderWebhook(input: {
