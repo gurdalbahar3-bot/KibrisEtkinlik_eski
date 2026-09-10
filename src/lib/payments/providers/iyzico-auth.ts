@@ -103,9 +103,8 @@ export function verifyIyzicoHmacHex(
   if (!expectedHex || !secretKey) return false;
   const actual = createHmac("sha256", secretKey).update(payload, "utf8").digest("hex");
   try {
-    const a = Buffer.from(actual, "utf8");
-    const b = Buffer.from(expectedHex.trim().toLowerCase(), "utf8");
     const normalizedActual = Buffer.from(actual.toLowerCase(), "utf8");
+    const b = Buffer.from(expectedHex.trim().toLowerCase(), "utf8");
     if (normalizedActual.length !== b.length) return false;
     return timingSafeEqual(normalizedActual, b);
   } catch {
