@@ -271,8 +271,8 @@
     "unitPrice": "Birim fiyat",
     "total": "Toplam",
     "priceNote": "Fiyat sunucu tarafında katalogdan alınır; gönderdiğin tutar kullanılmaz.",
-    "submit": "Rezervasyon oluştur",
-    "submitting": "Oluşturuluyor…",
+    "submit": "Ödemeye geç",
+    "submitting": "Ödeme başlatılıyor…",
     "emptyOffers": "Satın alınabilir bilet türü yok.",
     "errorConfig": "Ödeme altyapısı yapılandırılmamış.",
     "errorMissing": "Eksik bilet bilgisi.",
@@ -283,7 +283,13 @@
     "errorMaxPerOrder": "Sipariş adedi üst sınırı aşıldı.",
     "errorCapacity": "Kapasite yetersiz.",
     "errorZone": "Bölge veya satış modu geçersiz.",
-    "errorGeneric": "Rezervasyon oluşturulamadı."
+    "errorGeneric": "Rezervasyon oluşturulamadı.",
+    "errorPaymentConfig": "Sandbox ödeme yapılandırması eksik.",
+    "errorPaymentProvider": "Ödeme sağlayıcısı yanıt vermedi.",
+    "errorMissingCustomer": "Ödeme için profil bilgilerin (ad, e-posta, telefon) eksik.",
+    "errorOrderExpired": "Sipariş süresi doldu.",
+    "errorOrderNotPayable": "Bu sipariş ödenemez.",
+    "errorPaymentRedirect": "Ödeme sayfasına yönlendirme alınamadı."
   },
   "accountOrders": {
     "title": "Siparişlerim",
@@ -305,7 +311,16 @@
     "expiresAt": "Rezervasyon bitiş",
     "total": "Toplam",
     "items": "Kalemler",
-    "paymentPendingNote": "Ödeme bekleniyor. Online ödeme henüz açık değil."
+    "paymentPendingNote": "Ödeme bekleniyor. Sandbox ödemeyi başlatabilirsin.",
+    "payNow": "Ödemeye geç",
+    "paying": "Yönlendiriliyor…",
+    "errorPaymentConfig": "Sandbox ödeme yapılandırması eksik.",
+    "errorPaymentProvider": "Ödeme sağlayıcısı yanıt vermedi.",
+    "errorMissingCustomer": "Ödeme için profil bilgilerin (ad, e-posta, telefon) eksik.",
+    "errorOrderExpired": "Sipariş süresi doldu.",
+    "errorOrderNotPayable": "Bu sipariş ödenemez.",
+    "errorPaymentRedirect": "Ödeme sayfasına yönlendirme alınamadı.",
+    "errorGeneric": "Ödeme başlatılamadı."
   },
   "accountTickets": {
     "title": "Biletlerim",

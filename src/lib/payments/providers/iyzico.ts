@@ -7,6 +7,8 @@ import {
   isAllowedIyzicoSandboxBaseUrl,
   isForbiddenIyzicoProductionBaseUrl,
   loadIyzicoSandboxConfig,
+  resolveIyzicoCallbackUrl,
+  isIyzicoCheckoutConfigured,
   IYZICO_ENV_KEYS,
 } from "./iyzico-config.ts";
 import {
@@ -23,12 +25,15 @@ import type {
   RetrievePaymentResult,
   WebhookVerificationResult,
 } from "@/lib/payments/types";
+import { formatIyzicoMoney } from "@/lib/payments/mapping";
 
 export {
   assertIyzicoSandboxConfigPresent,
   isAllowedIyzicoSandboxBaseUrl,
   isForbiddenIyzicoProductionBaseUrl,
   loadIyzicoSandboxConfig,
+  resolveIyzicoCallbackUrl,
+  isIyzicoCheckoutConfigured,
   IYZICO_ENV_KEYS,
 };
 
@@ -39,17 +44,69 @@ export function createIyzicoApiClientFromEnv(
   return new IyzicoApiClient(loadIyzicoSandboxConfig(env), opts);
 }
 
+function toInitializeRequest(
+  input: CreatePaymentSessionInput
+): IyzicoCheckoutFormInitializeRequest {
+  const price = formatIyzicoMoney(input.amount);
+  return {
+    locale: input.locale ?? "tr",
+    conversationId: input.conversationId,
+    price,
+    paidPrice: price,
+    currency: "TRY",
+    basketId: input.basketId,
+    paymentGroup: "PRODUCT",
+    callbackUrl: input.callbackUrl,
+    enabledInstallments: [1],
+    buyer: {
+      id: input.buyer.id,
+      name: input.buyer.name,
+      surname: input.buyer.surname,
+      identityNumber: input.buyer.identityNumber,
+      email: input.buyer.email,
+      gsmNumber: input.buyer.gsmNumber,
+      registrationAddress: input.buyer.registrationAddress,
+      city: input.buyer.city,
+      country: input.buyer.country,
+      ip: input.buyer.ip,
+    },
+    billingAddress: {
+      address: input.billingAddress.address,
+      contactName: input.billingAddress.contactName,
+      city: input.billingAddress.city,
+      country: input.billingAddress.country,
+      zipCode: input.billingAddress.zipCode,
+    },
+    shippingAddress: input.shippingAddress
+      ? {
+          address: input.shippingAddress.address,
+          contactName: input.shippingAddress.contactName,
+          city: input.shippingAddress.city,
+          country: input.shippingAddress.country,
+          zipCode: input.shippingAddress.zipCode,
+        }
+      : undefined,
+    basketItems: input.basketItems.map((item) => ({
+      id: item.id,
+      name: item.name,
+      category1: item.category1,
+      itemType: item.itemType,
+      price: item.price,
+    })),
+  };
+}
+
 /**
- * PaymentProvider adapter.
- * B2.1: createPaymentSession remains stub (no checkout wire / no real charge).
- * Real CF HTTP is available via getApiClient() / initializeCheckoutForm.
+ * PaymentProvider adapter — B2.2 createPaymentSession calls Sandbox CF initialize.
  */
 export class IyzicoPaymentProvider implements PaymentProvider {
   readonly providerCode = "iyzico" as const;
   private client: IyzicoApiClient | null = null;
+  private readonly stubMode: boolean;
 
-  constructor(opts?: { client?: IyzicoApiClient | null }) {
+  constructor(opts?: { client?: IyzicoApiClient | null; stubMode?: boolean }) {
     this.client = opts?.client ?? null;
+    this.stubMode = opts?.stubMode === true;
   }
 
   getApiClient(): IyzicoApiClient {
@@ -74,16 +131,41 @@ export class IyzicoPaymentProvider implements PaymentProvider {
   async createPaymentSession(
     input: CreatePaymentSessionInput
   ): Promise<CreatePaymentSessionResult> {
-    const token = `stub_iyzico_${input.orderId}_${Date.now()}`;
-    const expiresAt = new Date(Date.now() + 15 * 60_000).toISOString();
+    if (this.stubMode) {
+      const token = `stub_iyzico_${input.orderId}_${Date.now()}`;
+      return {
+        provider: "iyzico",
+        providerToken: token,
+        conversationId: input.conversationId,
+        paymentPageUrl: null,
+        checkoutFormContent: null,
+        expiresAt: new Date(Date.now() + 15 * 60_000).toISOString(),
+        raw: { stub: true, mode: "stub_provider" },
+      };
+    }
+
+    if (input.currency.trim().toUpperCase() !== "TRY") {
+      throw new IyzicoProviderError(
+        "IYZICO_API_FAILURE",
+        "Only TRY is supported in Phase B"
+      );
+    }
+
+    const init = await this.initializeCheckoutForm(toInitializeRequest(input));
+    const expiresAt = new Date(Date.now() + 30 * 60_000).toISOString();
+
     return {
       provider: "iyzico",
-      providerToken: token,
-      conversationId: input.conversationId,
-      paymentPageUrl: null,
-      checkoutFormContent: null,
+      providerToken: init.token!,
+      conversationId: init.conversationId ?? input.conversationId,
+      paymentPageUrl: init.paymentPageUrl ?? null,
+      checkoutFormContent: init.checkoutFormContent ?? null,
       expiresAt,
-      raw: { stub: true, mode: "b2_1_no_checkout_wire" },
+      raw: {
+        status: init.status,
+        hasCheckoutFormContent: Boolean(init.checkoutFormContent),
+        hasPaymentPageUrl: Boolean(init.paymentPageUrl),
+      },
     };
   }
 

@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 
 import { requireCustomer } from "@/lib/customer/auth";
+import { isIyzicoCheckoutConfigured } from "@/lib/payments/providers/iyzico-config.ts";
+import { createPaymentService } from "@/lib/payments/service";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabasePublicEnv } from "@/lib/supabase/config";
 
@@ -23,7 +25,11 @@ function localeOrdersPath(locale: string, orderId?: string): string {
   return locale === "tr" ? "/tr/hesap/siparisler" : "/en/account/orders";
 }
 
-function localeCheckoutPath(locale: string, eventId: string, ticketTypeId: string): string {
+function localeCheckoutPath(
+  locale: string,
+  eventId: string,
+  ticketTypeId: string
+): string {
   const base = locale === "tr" ? "/tr/odeme" : "/en/checkout";
   const qs = new URLSearchParams();
   if (eventId) qs.set("event", eventId);
@@ -44,17 +50,77 @@ type CheckoutRpcResult = {
   error_code?: string;
 };
 
+function mapPaymentError(code: string): string {
+  return code.toLowerCase();
+}
+
+/**
+ * After pending order exists, start Sandbox CF session and redirect.
+ * Falls back to order page when iyzico env is not configured (Sprint3-safe).
+ */
+async function redirectToPaymentOrOrder(input: {
+  locale: string;
+  orderId: string;
+  customerId: string;
+  errorPath: string;
+  clientPrice?: number | null;
+}): Promise<never> {
+  const returnUrl = localeOrdersPath(input.locale, input.orderId);
+
+  if (!isIyzicoCheckoutConfigured()) {
+    redirect(returnUrl);
+  }
+
+  const service = createPaymentService("iyzico");
+  const started = await service.startPayment({
+    orderId: input.orderId,
+    customerId: input.customerId,
+    returnUrl,
+    locale: input.locale === "en" ? "en" : "tr",
+    clientPrice: input.clientPrice,
+  });
+
+  if (!started.ok) {
+    redirect(
+      withError(
+        localeOrdersPath(input.locale, input.orderId),
+        mapPaymentError(started.errorCode)
+      )
+    );
+  }
+
+  if (started.dto.paymentPageUrl) {
+    redirect(started.dto.paymentPageUrl);
+  }
+
+  // Embed path reserved for a later UI; content alone is not enough without a page.
+  redirect(
+    withError(
+      localeOrdersPath(input.locale, input.orderId),
+      "payment_redirect_unavailable"
+    )
+  );
+}
+
 /**
  * Ticket-only checkout. Never trusts client price — RPC uses DB catalog price.
- * Double-submit: checkout_ticket_only_atomic resumes active pending for same event.
+ * When Sandbox iyzico is configured, continues into PaymentService.startPayment.
  */
-export async function checkoutTicketOnlyAction(formData: FormData): Promise<void> {
+export async function checkoutTicketOnlyAction(
+  formData: FormData
+): Promise<void> {
   const locale = String(formData.get("locale") ?? "tr").trim() || "tr";
   const eventId = String(formData.get("event_id") ?? "").trim();
   const zoneId = String(formData.get("zone_id") ?? "").trim();
   const ticketTypeId = String(formData.get("ticket_type_id") ?? "").trim();
   const quantityRaw = String(formData.get("quantity") ?? "").trim();
   const quantity = Number.parseInt(quantityRaw, 10);
+  // Deliberately ignored if present — never trusted.
+  const clientPriceRaw = formData.get("price");
+  const clientPrice =
+    clientPriceRaw != null && String(clientPriceRaw).trim() !== ""
+      ? Number(clientPriceRaw)
+      : null;
 
   const checkoutPath = localeCheckoutPath(locale, eventId, ticketTypeId);
   const loginPath = localeLoginPath(locale, checkoutPath);
@@ -63,7 +129,7 @@ export async function checkoutTicketOnlyAction(formData: FormData): Promise<void
     redirect(withError(checkoutPath, "config"));
   }
 
-  await requireCustomer(loginPath);
+  const customer = await requireCustomer(loginPath);
 
   if (!eventId || !zoneId || !ticketTypeId) {
     redirect(withError(checkoutPath, "missing"));
@@ -89,7 +155,6 @@ export async function checkoutTicketOnlyAction(formData: FormData): Promise<void
     p_ticket_type_id: ticketTypeId,
     p_quantity: quantity,
   };
-  // Hand-maintained Database RPC generics collapse Args to never (same as publish_event).
   const { data, error } = await (
     supabase.rpc as unknown as (
       fn: "checkout_ticket_only_atomic",
@@ -107,5 +172,44 @@ export async function checkoutTicketOnlyAction(formData: FormData): Promise<void
     redirect(withError(checkoutPath, code));
   }
 
-  redirect(localeOrdersPath(locale, result.order_id));
+  await redirectToPaymentOrOrder({
+    locale,
+    orderId: result.order_id,
+    customerId: customer.userId,
+    errorPath: checkoutPath,
+    clientPrice,
+  });
+}
+
+/**
+ * Resume payment for an existing pending_payment order (order detail CTA).
+ */
+export async function startOrderPaymentAction(
+  formData: FormData
+): Promise<void> {
+  const locale = String(formData.get("locale") ?? "tr").trim() || "tr";
+  const orderId = String(formData.get("order_id") ?? "").trim();
+  const orderPath = localeOrdersPath(locale, orderId || undefined);
+  const loginPath = localeLoginPath(locale, orderPath);
+
+  if (!orderId) {
+    redirect(withError(localeOrdersPath(locale), "order_not_found"));
+  }
+
+  if (!getSupabasePublicEnv()) {
+    redirect(withError(orderPath, "config"));
+  }
+
+  const customer = await requireCustomer(loginPath);
+
+  if (!isIyzicoCheckoutConfigured()) {
+    redirect(withError(orderPath, "payment_config_missing"));
+  }
+
+  await redirectToPaymentOrOrder({
+    locale,
+    orderId,
+    customerId: customer.userId,
+    errorPath: orderPath,
+  });
 }

@@ -20,8 +20,7 @@ export function getPaymentProvider(
     case "iyzico":
       return new IyzicoPaymentProvider();
     case "stub":
-      // Same adapter class; createPaymentSession remains stub through B2.1.
-      return new IyzicoPaymentProvider({ client: null });
+      return new IyzicoPaymentProvider({ client: null, stubMode: true });
     default: {
       const _exhaustive: never = code;
       throw new Error(`Unknown payment provider: ${_exhaustive}`);

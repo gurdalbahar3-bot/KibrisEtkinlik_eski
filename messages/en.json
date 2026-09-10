@@ -271,8 +271,8 @@
     "unitPrice": "Unit price",
     "total": "Total",
     "priceNote": "Price is taken from the server catalog; any client amount is ignored.",
-    "submit": "Create reservation",
-    "submitting": "Creating…",
+    "submit": "Continue to payment",
+    "submitting": "Starting payment…",
     "emptyOffers": "No purchasable ticket types.",
     "errorConfig": "Checkout is not configured.",
     "errorMissing": "Missing ticket details.",
@@ -283,7 +283,13 @@
     "errorMaxPerOrder": "Quantity exceeds the per-order limit.",
     "errorCapacity": "Not enough capacity.",
     "errorZone": "Invalid zone or sale mode.",
-    "errorGeneric": "Could not create the reservation."
+    "errorGeneric": "Could not create the reservation.",
+    "errorPaymentConfig": "Sandbox payment is not configured.",
+    "errorPaymentProvider": "Payment provider did not respond.",
+    "errorMissingCustomer": "Profile name, email, and phone are required for payment.",
+    "errorOrderExpired": "This order has expired.",
+    "errorOrderNotPayable": "This order cannot be paid.",
+    "errorPaymentRedirect": "Could not obtain a payment redirect."
   },
   "accountOrders": {
     "title": "My orders",
@@ -305,7 +311,16 @@
     "expiresAt": "Hold expires",
     "total": "Total",
     "items": "Items",
-    "paymentPendingNote": "Payment pending. Online payment is not open yet."
+    "paymentPendingNote": "Payment pending. You can start Sandbox payment.",
+    "payNow": "Continue to payment",
+    "paying": "Redirecting…",
+    "errorPaymentConfig": "Sandbox payment is not configured.",
+    "errorPaymentProvider": "Payment provider did not respond.",
+    "errorMissingCustomer": "Profile name, email, and phone are required for payment.",
+    "errorOrderExpired": "This order has expired.",
+    "errorOrderNotPayable": "This order cannot be paid.",
+    "errorPaymentRedirect": "Could not obtain a payment redirect.",
+    "errorGeneric": "Could not start payment."
   },
   "accountTickets": {
     "title": "My tickets",

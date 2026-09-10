@@ -95,3 +95,55 @@ export function loadIyzicoSandboxConfig(
 
   return { apiKey, secretKey, baseUrl, timeoutMs };
 }
+
+/**
+ * Absolute HTTPS callback URL for CF initialize.
+ * Route itself is implemented in a later B2 step — URL must still be configured.
+ */
+export function resolveIyzicoCallbackUrl(
+  env: NodeJS.ProcessEnv = process.env
+): string {
+  const raw = env.IYZICO_CALLBACK_URL?.trim() ?? "";
+  if (!raw) {
+    throw new IyzicoProviderError(
+      "IYZICO_CONFIG_MISSING",
+      "Missing IYZICO_CALLBACK_URL"
+    );
+  }
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new IyzicoProviderError(
+      "IYZICO_INVALID_BASE_URL",
+      "IYZICO_CALLBACK_URL is not a valid URL"
+    );
+  }
+  if (url.protocol !== "https:") {
+    throw new IyzicoProviderError(
+      "IYZICO_INVALID_BASE_URL",
+      "IYZICO_CALLBACK_URL must use https"
+    );
+  }
+  // Never point callback at iyzico production hosts by mistake.
+  if (url.hostname.toLowerCase() === "api.iyzipay.com") {
+    throw new IyzicoProviderError(
+      "IYZICO_PRODUCTION_URL_FORBIDDEN",
+      "IYZICO_CALLBACK_URL must not use production iyzico host"
+    );
+  }
+  return raw;
+}
+
+/** True when sandbox payment credentials + callback URL are configured. */
+export function isIyzicoCheckoutConfigured(
+  env: NodeJS.ProcessEnv = process.env
+): boolean {
+  try {
+    loadIyzicoSandboxConfig(env);
+    resolveIyzicoCallbackUrl(env);
+    return true;
+  } catch {
+    return false;
+  }
+}

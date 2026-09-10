@@ -7,6 +7,36 @@ export type PaymentProviderCode = "iyzico" | "stub";
 
 export type PaymentOutcome = "succeeded" | "failed" | "pending";
 
+/** Server-built buyer for hosted checkout (never from client form). */
+export type PaymentBuyerInput = {
+  id: string;
+  name: string;
+  surname: string;
+  email: string;
+  gsmNumber: string;
+  identityNumber: string;
+  registrationAddress: string;
+  city: string;
+  country: string;
+  ip?: string;
+};
+
+export type PaymentAddressInput = {
+  address: string;
+  contactName: string;
+  city: string;
+  country: string;
+  zipCode?: string;
+};
+
+export type PaymentBasketItemInput = {
+  id: string;
+  name: string;
+  category1: string;
+  itemType: "PHYSICAL" | "VIRTUAL";
+  price: string;
+};
+
 export type CreatePaymentSessionInput = {
   orderId: string;
   conversationId: string;
@@ -15,17 +45,24 @@ export type CreatePaymentSessionInput = {
   customerEmail?: string | null;
   returnUrl: string;
   callbackUrl: string;
+  locale?: "tr" | "en";
+  basketId: string;
+  buyer: PaymentBuyerInput;
+  billingAddress: PaymentAddressInput;
+  shippingAddress?: PaymentAddressInput;
+  basketItems: PaymentBasketItemInput[];
 };
 
 export type CreatePaymentSessionResult = {
   provider: PaymentProviderCode;
   providerToken: string;
   conversationId: string;
-  /** Hosted checkout URL when applicable; stub may return a local placeholder. */
+  /** Hosted checkout URL when applicable. */
   paymentPageUrl: string | null;
-  /** Base64 CF HTML from iyzico when using embed mode (B2.3+). */
+  /** Base64 CF HTML from iyzico when using embed mode. */
   checkoutFormContent?: string | null;
   expiresAt: string;
+  /** Provider debug blob — never send to the browser. */
   raw?: unknown;
 };
 

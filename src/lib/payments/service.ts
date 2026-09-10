@@ -1,9 +1,19 @@
 import "server-only";
 
 import { getPaymentProvider } from "@/lib/payments/factory";
+import {
+  buildBasketItemsFromOrderItems,
+  formatIyzicoMoney,
+  splitFullName,
+  toStartPaymentPublicDto,
+  type StartPaymentPublicDto,
+} from "@/lib/payments/mapping";
 import type { PaymentProvider } from "@/lib/payments/provider";
+import {
+  resolveIyzicoCallbackUrl,
+} from "@/lib/payments/providers/iyzico-config.ts";
+import { IyzicoProviderError } from "@/lib/payments/providers/iyzico-types.ts";
 import type {
-  CreatePaymentSessionResult,
   PaymentProviderCode,
   SettleResult,
   VerifiedSettlement,
@@ -23,16 +33,30 @@ type OrderLedger = {
   expires_at: string;
 };
 
+type OrderItemRow = {
+  id: string;
+  snapshot_label: string | null;
+  item_type: string;
+  quantity: number;
+  unit_price: number | string;
+  total_price: number | string;
+};
+
+type ProfileRow = {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  phone: string | null;
+};
+
 type PaymentSessionInsert =
   Database["public"]["Tables"]["payment_sessions"]["Insert"];
 type PaymentSessionUpdate =
   Database["public"]["Tables"]["payment_sessions"]["Update"];
 
-/**
- * Hand-maintained Database Row interfaces do not satisfy supabase-js GenericTable
- * (Schema collapses to never). Cast write builders the same way other app code does.
- */
-function paymentSessionsWriter(supabase: ReturnType<typeof createSupabaseServiceRoleClient>) {
+type SupabaseService = ReturnType<typeof createSupabaseServiceRoleClient>;
+
+function paymentSessionsWriter(supabase: SupabaseService) {
   return supabase.from("payment_sessions") as unknown as {
     update: (values: PaymentSessionUpdate) => {
       eq: (column: string, value: string) => {
@@ -68,7 +92,10 @@ function assertSettlementMatchesOrder(
   if (!order.currency || !order.currency.trim()) {
     return { ok: false, errorCode: "ORDER_CURRENCY_MISSING" };
   }
-  if (settlement.currency.trim().toUpperCase() !== order.currency.trim().toUpperCase()) {
+  if (
+    settlement.currency.trim().toUpperCase() !==
+    order.currency.trim().toUpperCase()
+  ) {
     return { ok: false, errorCode: "CURRENCY_MISMATCH" };
   }
   if (settlement.amount !== asNumber(order.total_amount)) {
@@ -83,25 +110,101 @@ function assertSettlementMatchesOrder(
   return { ok: true };
 }
 
+function mapProviderError(err: unknown): string {
+  if (err instanceof IyzicoProviderError) {
+    switch (err.code) {
+      case "IYZICO_CONFIG_MISSING":
+        return "PAYMENT_CONFIG_MISSING";
+      case "IYZICO_PRODUCTION_URL_FORBIDDEN":
+      case "IYZICO_INVALID_BASE_URL":
+        return "PAYMENT_CONFIG_INVALID";
+      case "IYZICO_TIMEOUT":
+        return "PAYMENT_PROVIDER_TIMEOUT";
+      case "IYZICO_HTTP_ERROR":
+      case "IYZICO_API_FAILURE":
+        return "PAYMENT_PROVIDER_ERROR";
+      case "IYZICO_MALFORMED_RESPONSE":
+      case "IYZICO_MISSING_TOKEN":
+        return "PAYMENT_PROVIDER_MALFORMED";
+      default:
+        return "PAYMENT_PROVIDER_ERROR";
+    }
+  }
+  if (err instanceof Error) {
+    switch (err.message) {
+      case "INVALID_ORDER_TOTAL":
+        return "INVALID_ORDER_TOTAL";
+      case "ORDER_ITEMS_MISSING":
+        return "ORDER_ITEMS_MISSING";
+      case "BASKET_TOTAL_MISMATCH":
+        return "BASKET_TOTAL_MISMATCH";
+      case "INVALID_ORDER_ITEM_PRICE":
+        return "INVALID_ORDER_TOTAL";
+      default:
+        break;
+    }
+  }
+  return "PAYMENT_START_FAILED";
+}
+
+/** Sandbox-only buyer fields not on profiles yet (no B2.2 migration). */
+function sandboxBuyerDefaults(env: NodeJS.ProcessEnv = process.env): {
+  identityNumber: string;
+  address: string;
+  city: string;
+  country: string;
+} {
+  return {
+    identityNumber:
+      env.IYZICO_SANDBOX_IDENTITY_NUMBER?.trim() || "11111111111",
+    address:
+      env.IYZICO_SANDBOX_BUYER_ADDRESS?.trim() || "Staging Address, Lefkosa",
+    city: env.IYZICO_SANDBOX_BUYER_CITY?.trim() || "Lefkosa",
+    country: env.IYZICO_SANDBOX_BUYER_COUNTRY?.trim() || "Cyprus",
+  };
+}
+
+export type StartPaymentResult =
+  | { ok: true; dto: StartPaymentPublicDto }
+  | { ok: false; errorCode: string };
+
 export class PaymentService {
-  constructor(private readonly provider: PaymentProvider = getPaymentProvider()) {}
+  constructor(
+    private readonly provider: PaymentProvider = getPaymentProvider(),
+    private readonly deps: {
+      createSupabase?: () => SupabaseService;
+      resolveCallbackUrl?: () => string;
+      env?: NodeJS.ProcessEnv;
+    } = {}
+  ) {}
+
+  private supabase(): SupabaseService {
+    return (this.deps.createSupabase ?? createSupabaseServiceRoleClient)();
+  }
+
+  private callbackUrl(): string {
+    const fn =
+      this.deps.resolveCallbackUrl ??
+      (() => resolveIyzicoCallbackUrl(this.deps.env ?? process.env));
+    return fn();
+  }
 
   /**
-   * Start a payment session for a pending order.
-   * Amount/currency are read from DB — never from the client.
+   * Start a Sandbox Checkout Form session for a pending order.
+   * Amount/currency/buyer come from DB — never from the client.
+   * Does NOT settle payment / call confirm_payment_atomic.
    */
   async startPayment(input: {
     orderId: string;
     customerId: string;
     returnUrl: string;
-    callbackUrl: string;
-    customerEmail?: string | null;
-  }): Promise<
-    | { ok: true; sessionId: string; session: CreatePaymentSessionResult }
-    | { ok: false; errorCode: string }
-  > {
+    locale?: "tr" | "en";
+    /** Ignored — never trusted as amount source. */
+    clientPrice?: number | null;
+  }): Promise<StartPaymentResult> {
+    void input.clientPrice;
     assertStagingSupabaseHostForPayments();
-    const supabase = createSupabaseServiceRoleClient();
+    const supabase = this.supabase();
 
     const { data: order, error } = await supabase
       .from("orders")
@@ -126,26 +229,119 @@ export class PaymentService {
     if (!row.currency?.trim()) {
       return { ok: false, errorCode: "ORDER_CURRENCY_MISSING" };
     }
+    if (row.currency.trim().toUpperCase() !== "TRY") {
+      return { ok: false, errorCode: "CURRENCY_MISMATCH" };
+    }
 
-    const amount = asNumber(row.total_amount);
+    let amount: number;
+    try {
+      amount = asNumber(row.total_amount);
+      if (amount <= 0) {
+        return { ok: false, errorCode: "INVALID_ORDER_TOTAL" };
+      }
+      formatIyzicoMoney(amount);
+    } catch {
+      return { ok: false, errorCode: "INVALID_ORDER_TOTAL" };
+    }
+
+    const { data: itemsRaw, error: itemsErr } = await supabase
+      .from("order_items")
+      .select(
+        "id, snapshot_label, item_type, quantity, unit_price, total_price"
+      )
+      .eq("order_id", row.id);
+
+    if (itemsErr || !itemsRaw?.length) {
+      return { ok: false, errorCode: "ORDER_ITEMS_MISSING" };
+    }
+    const items = itemsRaw as OrderItemRow[];
+
+    let basketItems;
+    try {
+      basketItems = buildBasketItemsFromOrderItems(items, amount);
+    } catch (err) {
+      return { ok: false, errorCode: mapProviderError(err) };
+    }
+
+    const { data: profileRaw, error: profileErr } = await supabase
+      .from("profiles")
+      .select("id, email, full_name, phone")
+      .eq("id", input.customerId)
+      .maybeSingle();
+
+    if (profileErr || !profileRaw) {
+      return { ok: false, errorCode: "MISSING_CUSTOMER_INFO" };
+    }
+    const profile = profileRaw as ProfileRow;
+    const email = profile.email?.trim() ?? "";
+    const fullName = profile.full_name?.trim() ?? "";
+    const phone = profile.phone?.trim() ?? "";
+    if (!email || !fullName || !phone) {
+      return { ok: false, errorCode: "MISSING_CUSTOMER_INFO" };
+    }
+
+    const { name, surname } = splitFullName(fullName);
+    const defaults = sandboxBuyerDefaults(this.deps.env ?? process.env);
+    const contactName = `${name} ${surname}`.trim();
+
+    let callbackUrl: string;
+    try {
+      callbackUrl = this.callbackUrl();
+    } catch (err) {
+      return { ok: false, errorCode: mapProviderError(err) };
+    }
+
     const conversationId = row.id;
-
-    // Expire prior in-flight sessions for this order (unique active index).
     const sessions = paymentSessionsWriter(supabase);
+
+    // Idempotency: cancel prior in-flight sessions (no payment_page_url column
+    // to resume redirect without re-initialize).
     await sessions
       .update({ status: "cancelled", updated_at: new Date().toISOString() })
       .eq("order_id", row.id)
       .in("status", ["created", "redirected", "awaiting_provider"]);
 
-    const session = await this.provider.createPaymentSession({
-      orderId: row.id,
-      conversationId,
-      amount,
-      currency: row.currency,
-      customerEmail: input.customerEmail,
-      returnUrl: input.returnUrl,
-      callbackUrl: input.callbackUrl,
-    });
+    let session;
+    try {
+      session = await this.provider.createPaymentSession({
+        orderId: row.id,
+        conversationId,
+        amount,
+        currency: "TRY",
+        customerEmail: email,
+        returnUrl: input.returnUrl,
+        callbackUrl,
+        locale: input.locale ?? "tr",
+        basketId: row.id,
+        buyer: {
+          id: profile.id,
+          name,
+          surname,
+          email,
+          gsmNumber: phone,
+          identityNumber: defaults.identityNumber,
+          registrationAddress: defaults.address,
+          city: defaults.city,
+          country: defaults.country,
+        },
+        billingAddress: {
+          address: defaults.address,
+          contactName,
+          city: defaults.city,
+          country: defaults.country,
+        },
+        basketItems,
+      });
+    } catch (err) {
+      return { ok: false, errorCode: mapProviderError(err) };
+    }
+
+    if (!session.providerToken?.trim()) {
+      return { ok: false, errorCode: "PAYMENT_PROVIDER_MALFORMED" };
+    }
+    if (!session.paymentPageUrl && !session.checkoutFormContent) {
+      return { ok: false, errorCode: "PAYMENT_REDIRECT_UNAVAILABLE" };
+    }
 
     const { data: inserted, error: insertError } = await sessions
       .insert({
@@ -153,9 +349,9 @@ export class PaymentService {
         provider: session.provider,
         provider_token: session.providerToken,
         conversation_id: session.conversationId,
-        status: "created",
+        status: "redirected",
         amount,
-        currency: row.currency,
+        currency: "TRY",
         expires_at: session.expiresAt,
       })
       .select("id")
@@ -167,21 +363,22 @@ export class PaymentService {
 
     return {
       ok: true,
-      sessionId: inserted.id,
-      session,
+      dto: toStartPaymentPublicDto({
+        orderId: row.id,
+        sessionId: inserted.id,
+        providerToken: session.providerToken,
+        paymentPageUrl: session.paymentPageUrl,
+        checkoutFormContent: session.checkoutFormContent,
+      }),
     };
   }
 
-  /**
-   * Settle a VerifiedSettlement built by server code after provider verification.
-   * Never call with client-supplied amount/currency as trust source — those must
-   * already be verified against the provider retrieve + order ledger.
-   */
+  /** Not used by B2.2 initialize path. */
   async settleVerifiedPayment(
     settlement: VerifiedSettlement
   ): Promise<SettleResult> {
     assertStagingSupabaseHostForPayments();
-    const supabase = createSupabaseServiceRoleClient();
+    const supabase = this.supabase();
 
     const { data: order, error } = await supabase
       .from("orders")
@@ -287,14 +484,12 @@ export class PaymentService {
     };
   }
 
-  /** B2+: callback path — not wired in B1. */
   async handleProviderCallback(): Promise<SettleResult> {
-    return { success: false, errorCode: "CALLBACK_NOT_IMPLEMENTED_B1" };
+    return { success: false, errorCode: "CALLBACK_NOT_IMPLEMENTED_B2_3" };
   }
 
-  /** B3+: webhook path — not wired in B1. */
   async handleProviderWebhook(): Promise<SettleResult> {
-    return { success: false, errorCode: "WEBHOOK_NOT_IMPLEMENTED_B1" };
+    return { success: false, errorCode: "WEBHOOK_NOT_IMPLEMENTED_B3" };
   }
 }
 
@@ -304,10 +499,6 @@ export function createPaymentService(
   return new PaymentService(getPaymentProvider(providerCode));
 }
 
-/**
- * Build a VerifiedSettlement for B1 stub tests only.
- * Production paths must obtain amount/currency from provider retrieve + DB.
- */
 export function buildStubVerifiedSettlement(input: {
   orderId: string;
   amount: number;

@@ -10,7 +10,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test scripts/assert-051-scope.mjs scripts/assert-052-scope.mjs scripts/assert-053-scope.mjs scripts/assert-054-scope.mjs scripts/assert-055-scope.mjs scripts/assert-055-jsonld.mjs scripts/assert-sa-real-publish.mjs scripts/assert-production-data-source.mjs scripts/assert-live-jwt-publish-e2e.mjs scripts/assert-b1-payment-foundation.mjs scripts/assert-b2.1-iyzico-auth.mjs",
+    "test": "node --experimental-strip-types --test scripts/assert-051-scope.mjs scripts/assert-052-scope.mjs scripts/assert-053-scope.mjs scripts/assert-054-scope.mjs scripts/assert-055-scope.mjs scripts/assert-055-jsonld.mjs scripts/assert-sa-real-publish.mjs scripts/assert-production-data-source.mjs scripts/assert-live-jwt-publish-e2e.mjs scripts/assert-b1-payment-foundation.mjs scripts/assert-b2.1-iyzico-auth.mjs scripts/assert-b2.2-iyzico-checkout.mjs",
     "test:b2.1": "node --experimental-strip-types --test scripts/assert-b2.1-iyzico-auth.mjs",
     "test:e2e": "playwright test",
     "test:e2e:sprint1": "playwright test e2e/sprint1-sa-publish.spec.ts",
@@ -21,7 +21,8 @@
     "test:e2e:sprint2:artists": "playwright test e2e/sprint2-organizer-artists.spec.ts",
     "test:e2e:sprint2:ticket-commerce": "playwright test e2e/sprint2-organizer-ticket-commerce.spec.ts",
     "test:e2e:sprint3": "playwright test e2e/sprint3-customer-checkout.spec.ts",
-    "backup:staging:preflight": "node scripts/staging-backup-preflight.mjs"
+    "backup:staging:preflight": "node scripts/staging-backup-preflight.mjs",
+    "test:b2.2": "node --experimental-strip-types --test scripts/assert-b2.2-iyzico-checkout.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

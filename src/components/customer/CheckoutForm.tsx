@@ -92,6 +92,22 @@ export function CheckoutForm({
       case "zone_not_found":
       case "wrong_sale_mode":
         return t("errorZone");
+      case "payment_config_missing":
+      case "payment_config_invalid":
+        return t("errorPaymentConfig");
+      case "payment_provider_error":
+      case "payment_provider_timeout":
+      case "payment_provider_malformed":
+      case "payment_start_failed":
+        return t("errorPaymentProvider");
+      case "missing_customer_info":
+        return t("errorMissingCustomer");
+      case "order_expired":
+        return t("errorOrderExpired");
+      case "order_not_payable":
+        return t("errorOrderNotPayable");
+      case "payment_redirect_unavailable":
+        return t("errorPaymentRedirect");
       case "checkout_failed":
       default:
         return t("errorGeneric");

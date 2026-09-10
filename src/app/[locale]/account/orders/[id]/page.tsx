@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound, redirect as nextRedirect } from "next/navigation";
 
+import { OrderPayButton } from "@/components/customer/OrderPayButton";
 import { getCustomerSession } from "@/lib/customer/auth";
 import { getCustomerOrder } from "@/lib/customer/orders";
 import { formatTicketPrice } from "@/lib/discovery/format-price";
@@ -8,6 +9,7 @@ import { Link } from "@/lib/i18n/navigation";
 
 type Props = {
   params: Promise<{ locale: string; id: string }>;
+  searchParams: Promise<{ error?: string }>;
 };
 
 function statusLabel(
@@ -30,8 +32,41 @@ function statusLabel(
   }
 }
 
-export default async function AccountOrderDetailPage({ params }: Props) {
+function paymentErrorMessage(
+  code: string | undefined,
+  t: Awaited<ReturnType<typeof getTranslations>>
+): string | null {
+  if (!code) return null;
+  switch (code) {
+    case "payment_config_missing":
+    case "payment_config_invalid":
+    case "config":
+      return t("errorPaymentConfig");
+    case "payment_provider_error":
+    case "payment_provider_timeout":
+    case "payment_provider_malformed":
+    case "payment_start_failed":
+      return t("errorPaymentProvider");
+    case "missing_customer_info":
+      return t("errorMissingCustomer");
+    case "order_expired":
+      return t("errorOrderExpired");
+    case "order_not_payable":
+    case "forbidden":
+      return t("errorOrderNotPayable");
+    case "payment_redirect_unavailable":
+      return t("errorPaymentRedirect");
+    default:
+      return t("errorGeneric");
+  }
+}
+
+export default async function AccountOrderDetailPage({
+  params,
+  searchParams,
+}: Props) {
   const { locale: localeRaw, id } = await params;
+  const { error } = await searchParams;
   const locale = localeRaw === "en" ? "en" : "tr";
   setRequestLocale(locale);
   const t = await getTranslations("accountOrders");
@@ -56,6 +91,8 @@ export default async function AccountOrderDetailPage({ params }: Props) {
     timeStyle: "short",
   }).format(new Date(order.expiresAt));
 
+  const payError = paymentErrorMessage(error, t);
+
   return (
     <div className="section-container py-10">
       <div className="mx-auto max-w-2xl">
@@ -66,8 +103,21 @@ export default async function AccountOrderDetailPage({ params }: Props) {
           ← {t("backToList")}
         </Link>
 
-        <article className="mt-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-card" data-testid="order-detail">
+        <article
+          className="mt-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-card"
+          data-testid="order-detail"
+        >
           <h1 className="text-2xl font-bold text-slate-900">{t("detailTitle")}</h1>
+
+          {payError ? (
+            <p
+              className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800"
+              role="alert"
+              data-testid="order-payment-error"
+            >
+              {payError}
+            </p>
+          ) : null}
 
           <dl className="mt-6 space-y-3 text-sm">
             <div className="flex justify-between gap-4">
@@ -92,7 +142,10 @@ export default async function AccountOrderDetailPage({ params }: Props) {
               </dd>
             </div>
             {order.status === "pending_payment" ? (
-              <div className="rounded-lg bg-amber-50 px-3 py-2 text-amber-900" data-testid="payment-pending-note">
+              <div
+                className="rounded-lg bg-amber-50 px-3 py-2 text-amber-900"
+                data-testid="payment-pending-note"
+              >
                 {t("paymentPendingNote")}
               </div>
             ) : null}
@@ -104,18 +157,35 @@ export default async function AccountOrderDetailPage({ params }: Props) {
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-slate-500">{t("total")}</dt>
-              <dd className="text-lg font-bold text-slate-900" data-testid="order-total">
+              <dd
+                className="text-lg font-bold text-slate-900"
+                data-testid="order-total"
+              >
                 {formatTicketPrice(order.totalAmount, locale)}
               </dd>
             </div>
           </dl>
+
+          {order.status === "pending_payment" ? (
+            <div className="mt-6">
+              <OrderPayButton
+                locale={locale}
+                orderId={order.id}
+                label={t("payNow")}
+                pendingLabel={t("paying")}
+              />
+            </div>
+          ) : null}
 
           <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-slate-500">
             {t("items")}
           </h2>
           <ul className="mt-3 divide-y divide-slate-100">
             {order.items.map((item) => (
-              <li key={item.id} className="flex justify-between gap-3 py-3 text-sm">
+              <li
+                key={item.id}
+                className="flex justify-between gap-3 py-3 text-sm"
+              >
                 <div>
                   <p className="font-medium text-slate-900">
                     {item.snapshotLabel ?? item.itemType}
