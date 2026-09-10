@@ -54,6 +54,13 @@ export default async function CheckoutFailurePage({
     case "PAYMENT_NOT_VERIFIED":
       message = t("failureNotVerified");
       break;
+    case "PAID_WITHOUT_TICKETS":
+    case "PAID_TICKETS_INCOMPLETE":
+      message = t("failureTicketsIncomplete");
+      break;
+    case "ORDER_ALREADY_PAID":
+      message = t("failureAlreadyPaid");
+      break;
     default:
       break;
   }

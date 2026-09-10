@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 
 import { requireCustomer } from "@/lib/customer/auth";
+import { evaluateCheckoutOrderGate } from "@/lib/customer/checkout-safety";
 import { isIyzicoCheckoutConfigured } from "@/lib/payments/providers/iyzico-config.ts";
 import { createPaymentService } from "@/lib/payments/service";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -204,6 +205,51 @@ export async function startOrderPaymentAction(
 
   if (!isIyzicoCheckoutConfigured()) {
     redirect(withError(orderPath, "payment_config_missing"));
+  }
+
+  // B5: ignore any client amount/currency; re-validate ownership + payable from DB.
+  const supabase = await createSupabaseServerClient();
+  await supabase.rpc("expire_due_pending_orders_atomic");
+
+  const { data: orderRaw, error: orderErr } = await supabase
+    .from("orders")
+    .select("id, customer_id, status, expires_at, currency, total_amount")
+    .eq("id", orderId)
+    .maybeSingle();
+
+  if (orderErr || !orderRaw) {
+    redirect(withError(orderPath, "order_not_found"));
+  }
+
+  const order = orderRaw as {
+    id: string;
+    customer_id: string;
+    status: string;
+    expires_at: string;
+    currency: string | null;
+    total_amount: number | string;
+  };
+
+  const clientPriceRaw = formData.get("price");
+  const clientCurrencyRaw = formData.get("currency");
+  const gate = evaluateCheckoutOrderGate({
+    orderId: order.id,
+    customerId: customer.userId,
+    orderCustomerId: order.customer_id,
+    status: order.status,
+    expiresAt: order.expires_at,
+    currency: order.currency,
+    totalAmount: order.total_amount,
+    clientPrice:
+      clientPriceRaw != null && String(clientPriceRaw).trim() !== ""
+        ? Number(clientPriceRaw)
+        : null,
+    clientCurrency:
+      clientCurrencyRaw != null ? String(clientCurrencyRaw) : null,
+  });
+
+  if (!gate.ok) {
+    redirect(withError(orderPath, mapPaymentError(gate.errorCode)));
   }
 
   await redirectToPaymentOrOrder({

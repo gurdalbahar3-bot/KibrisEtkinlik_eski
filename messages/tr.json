@@ -348,6 +348,8 @@
     "failureStatus": "Ödeme başarılı olarak doğrulanamadı.",
     "failureSession": "Ödeme oturumu bulunamadı veya geçersiz.",
     "failureNotVerified": "Ödeme henüz sunucu tarafında doğrulanmadı.",
+    "failureTicketsIncomplete": "Ödeme göründü ancak bilet/QR henüz hazır değil. Destek için siparişini kontrol et.",
+    "failureAlreadyPaid": "Bu sipariş zaten ödenmiş.",
     "expiryReconciliationNote": "Geç ödeme alındıysa otomatik iade yok; operasyonel mutabakat gerekir (B3).",
     "orderLabel": "Sipariş",
     "errorCode": "Kod",

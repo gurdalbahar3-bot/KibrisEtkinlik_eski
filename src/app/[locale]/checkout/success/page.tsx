@@ -2,6 +2,7 @@ import { redirect as nextRedirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { getCustomerSession } from "@/lib/customer/auth";
+import { evaluatePaidTicketIntegrity } from "@/lib/customer/checkout-safety";
 import { Link } from "@/lib/i18n/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -15,8 +16,8 @@ type Props = {
 };
 
 /**
- * Success UX — only after server-side settlement.
- * Never trusts browser `status=success`; verifies order is paid in DB.
+ * Success UX — only after server-side settlement + ticket/QR integrity.
+ * Never trusts browser `status=success`.
  */
 export default async function CheckoutSuccessPage({
   params,
@@ -40,8 +41,8 @@ export default async function CheckoutSuccessPage({
     nextRedirect(`${loginBase}?next=${encodeURIComponent(next)}`);
   }
 
-  let paid = false;
   const verifiedOrderId: string | null = orderId?.trim() || null;
+  let integrityError: string | null = "PAYMENT_NOT_VERIFIED";
 
   if (verifiedOrderId) {
     const supabase = await createSupabaseServerClient();
@@ -57,22 +58,42 @@ export default async function CheckoutSuccessPage({
       customer_id: string;
     } | null;
 
-    if (row && row.customer_id === session.userId && row.status === "paid") {
-      paid = true;
-    } else {
-      paid = false;
+    if (row && row.customer_id === session.userId) {
+      const { data: ticketsRaw } = await supabase
+        .from("tickets")
+        .select("status, qr_code_id")
+        .eq("order_id", verifiedOrderId);
+
+      const tickets = (ticketsRaw ?? []) as Array<{
+        status: string;
+        qr_code_id: string | null;
+      }>;
+
+      const integrity = evaluatePaidTicketIntegrity({
+        orderStatus: row.status,
+        tickets: tickets.map((t) => ({
+          status: t.status,
+          qrCodeId: t.qr_code_id,
+        })),
+      });
+
+      if (integrity.showSuccess) {
+        integrityError = null;
+      } else {
+        integrityError = integrity.errorCode ?? "PAYMENT_NOT_VERIFIED";
+      }
     }
   }
 
-  if (!paid) {
+  if (integrityError) {
     const failPath =
       locale === "tr"
-        ? `/tr/odeme/basarisiz?code=${encodeURIComponent("PAYMENT_NOT_VERIFIED")}${
+        ? `/tr/odeme/basarisiz?code=${encodeURIComponent(integrityError)}${
             verifiedOrderId
               ? `&orderId=${encodeURIComponent(verifiedOrderId)}`
               : ""
           }`
-        : `/en/checkout/failure?code=${encodeURIComponent("PAYMENT_NOT_VERIFIED")}${
+        : `/en/checkout/failure?code=${encodeURIComponent(integrityError)}${
             verifiedOrderId
               ? `&orderId=${encodeURIComponent(verifiedOrderId)}`
               : ""

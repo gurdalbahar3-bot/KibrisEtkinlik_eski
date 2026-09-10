@@ -348,6 +348,8 @@
     "failureStatus": "Payment was not confirmed as successful.",
     "failureSession": "Payment session was missing or invalid.",
     "failureNotVerified": "Payment has not been verified on the server yet.",
+    "failureTicketsIncomplete": "Payment is recorded but tickets/QR are not ready yet. Check your order or contact support.",
+    "failureAlreadyPaid": "This order is already paid.",
     "expiryReconciliationNote": "Late successful charges are not auto-refunded; operational reconciliation is required (B3).",
     "orderLabel": "Order",
     "errorCode": "Code",
