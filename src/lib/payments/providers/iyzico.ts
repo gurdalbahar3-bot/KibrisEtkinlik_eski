@@ -183,10 +183,17 @@ export class IyzicoPaymentProvider implements PaymentProvider {
       conversationId: reference.conversationId,
     });
 
-    const paid = detail.paidPrice ?? detail.price;
-    const amount =
-      typeof paid === "number" ? paid : Number.parseFloat(String(paid ?? "NaN"));
-    if (!Number.isFinite(amount)) {
+    const parseMoney = (value: unknown): number | null => {
+      if (value == null || value === "") return null;
+      const n =
+        typeof value === "number" ? value : Number.parseFloat(String(value));
+      return Number.isFinite(n) ? n : null;
+    };
+
+    const paidAmount = parseMoney(detail.paidPrice);
+    const listPrice = parseMoney(detail.price);
+    const amount = paidAmount ?? listPrice;
+    if (amount == null) {
       throw new IyzicoProviderError(
         "IYZICO_MALFORMED_RESPONSE",
         "retrievePayment missing paidPrice/price"
@@ -210,12 +217,20 @@ export class IyzicoPaymentProvider implements PaymentProvider {
       providerPaymentId: detail.paymentId ?? "",
       conversationId: detail.conversationId ?? reference.conversationId ?? "",
       amount,
+      price: listPrice,
       currency: detail.currency ?? "",
       outcome,
       fraudStatus:
         detail.fraudStatus == null ? null : String(detail.fraudStatus),
       paymentStatus: detail.paymentStatus ?? null,
-      raw: detail,
+      raw: {
+        status: detail.status,
+        paymentStatus: detail.paymentStatus,
+        fraudStatus: detail.fraudStatus,
+        currency: detail.currency,
+        hasPaymentId: Boolean(detail.paymentId),
+        // Never echo secrets; omit signature from persisted/debug shape.
+      },
     };
   }
 

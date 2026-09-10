@@ -46,6 +46,14 @@ export const routing = defineRouting({
       tr: "/odeme",
       en: "/checkout",
     },
+    "/checkout/success": {
+      tr: "/odeme/basarili",
+      en: "/checkout/success",
+    },
+    "/checkout/failure": {
+      tr: "/odeme/basarisiz",
+      en: "/checkout/failure",
+    },
     "/account/orders": {
       tr: "/hesap/siparisler",
       en: "/account/orders",

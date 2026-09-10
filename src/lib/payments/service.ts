@@ -9,10 +9,9 @@ import {
   type StartPaymentPublicDto,
 } from "@/lib/payments/mapping";
 import type { PaymentProvider } from "@/lib/payments/provider";
-import {
-  resolveIyzicoCallbackUrl,
-} from "@/lib/payments/providers/iyzico-config.ts";
+import { resolveIyzicoCallbackUrl } from "@/lib/payments/providers/iyzico-config.ts";
 import { IyzicoProviderError } from "@/lib/payments/providers/iyzico-types.ts";
+import { buildVerifiedSettlementFromRetrieve } from "@/lib/payments/settlement";
 import type {
   PaymentProviderCode,
   SettleResult,
@@ -56,6 +55,16 @@ type PaymentSessionUpdate =
 
 type SupabaseService = ReturnType<typeof createSupabaseServiceRoleClient>;
 
+const ALL_SESSION_STATUSES = [
+  "created",
+  "redirected",
+  "awaiting_provider",
+  "succeeded",
+  "failed",
+  "expired",
+  "cancelled",
+] as const;
+
 function paymentSessionsWriter(supabase: SupabaseService) {
   return supabase.from("payment_sessions") as unknown as {
     update: (values: PaymentSessionUpdate) => {
@@ -75,6 +84,17 @@ function paymentSessionsWriter(supabase: SupabaseService) {
       };
     };
   };
+}
+
+async function updateSessionStatus(
+  supabase: SupabaseService,
+  sessionId: string,
+  status: NonNullable<PaymentSessionUpdate["status"]>
+): Promise<void> {
+  await paymentSessionsWriter(supabase)
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("id", sessionId)
+    .in("status", [...ALL_SESSION_STATUSES]);
 }
 
 function asNumber(value: number | string): number {
@@ -98,11 +118,11 @@ function assertSettlementMatchesOrder(
   ) {
     return { ok: false, errorCode: "CURRENCY_MISMATCH" };
   }
-  if (settlement.amount !== asNumber(order.total_amount)) {
+  if (Math.abs(settlement.amount - asNumber(order.total_amount)) >= 0.005) {
     return { ok: false, errorCode: "AMOUNT_MISMATCH" };
   }
   if (settlement.orderId !== order.id) {
-    return { ok: false, errorCode: "ORDER_MISMATCH" };
+    return { ok: false, errorCode: "PAYMENT_ORDER_MISMATCH" };
   }
   if (!settlement.providerPaymentId?.trim()) {
     return { ok: false, errorCode: "PROVIDER_PAYMENT_ID_REQUIRED" };
@@ -373,7 +393,7 @@ export class PaymentService {
     };
   }
 
-  /** Not used by B2.2 initialize path. */
+  /** Settle only after provider retrieve → VerifiedSettlement (never from client). */
   async settleVerifiedPayment(
     settlement: VerifiedSettlement
   ): Promise<SettleResult> {
@@ -396,7 +416,17 @@ export class PaymentService {
       return { success: false, errorCode: gate.errorCode };
     }
 
+    // P0: late provider success after expiry — never mark paid (refund/recon in B3+).
     if (row.status === "expired") {
+      return { success: false, errorCode: "PAYMENT_AFTER_EXPIRY" };
+    }
+    if (
+      row.status === "pending_payment" &&
+      new Date(row.expires_at).getTime() < Date.now()
+    ) {
+      return { success: false, errorCode: "PAYMENT_AFTER_EXPIRY" };
+    }
+    if (row.status !== "pending_payment" && row.status !== "paid") {
       return { success: false, errorCode: "ORDER_NOT_PAYABLE" };
     }
 
@@ -470,10 +500,11 @@ export class PaymentService {
     } | null;
 
     if (!parsed?.success) {
-      return {
-        success: false,
-        errorCode: parsed?.error_code ?? "CONFIRM_FAILED",
-      };
+      const code = parsed?.error_code ?? "CONFIRM_FAILED";
+      if (code === "ORDER_NOT_PAYABLE") {
+        return { success: false, errorCode: "PAYMENT_AFTER_EXPIRY" };
+      }
+      return { success: false, errorCode: code };
     }
 
     return {
@@ -484,8 +515,129 @@ export class PaymentService {
     };
   }
 
-  async handleProviderCallback(): Promise<SettleResult> {
-    return { success: false, errorCode: "CALLBACK_NOT_IMPLEMENTED_B2_3" };
+  /**
+   * iyzico Checkout Form callback. Trust only provider retrieve/detail —
+   * never browser callback params (status, paymentId, amount, etc.).
+   */
+  async handleProviderCallback(input: {
+    token: string;
+    /** Redirect locale only — not used for settlement trust. */
+    locale?: string;
+  }): Promise<SettleResult> {
+    void input.locale;
+    assertStagingSupabaseHostForPayments();
+
+    const token = input.token?.trim() ?? "";
+    if (!token) {
+      return { success: false, errorCode: "CALLBACK_TOKEN_REQUIRED" };
+    }
+
+    const supabase = this.supabase();
+
+    const { data: sessionRaw, error: sessionError } = await supabase
+      .from("payment_sessions")
+      .select(
+        "id, order_id, provider, status, provider_token, conversation_id, amount, currency, expires_at"
+      )
+      .eq("provider", "iyzico")
+      .eq("provider_token", token)
+      .maybeSingle();
+
+    if (sessionError || !sessionRaw) {
+      return { success: false, errorCode: "PAYMENT_SESSION_NOT_FOUND" };
+    }
+
+    const session = sessionRaw as {
+      id: string;
+      order_id: string;
+      provider: string;
+      status: string;
+      provider_token: string | null;
+      conversation_id: string;
+      amount: number | string;
+      currency: string;
+      expires_at: string;
+    };
+
+    const orderId = String(session.order_id);
+    const expectedConversationId = String(session.conversation_id);
+
+    const { data: orderRaw, error: orderError } = await supabase
+      .from("orders")
+      .select("id, customer_id, status, total_amount, currency, expires_at")
+      .eq("id", orderId)
+      .maybeSingle();
+
+    if (orderError || !orderRaw) {
+      return { success: false, errorCode: "ORDER_NOT_FOUND", orderId };
+    }
+
+    const order = orderRaw as OrderLedger;
+
+    // Idempotent: already paid → success noop (no new tickets).
+    if (order.status === "paid") {
+      await updateSessionStatus(supabase, session.id, "succeeded");
+      return {
+        success: true,
+        orderId,
+        paymentId: null,
+        noop: true,
+      };
+    }
+
+    let retrieved;
+    try {
+      retrieved = await this.provider.retrievePayment({
+        providerToken: token,
+        conversationId: expectedConversationId,
+      });
+    } catch (err) {
+      await updateSessionStatus(supabase, session.id, "failed");
+      return {
+        success: false,
+        errorCode: mapProviderError(err),
+        orderId,
+      };
+    }
+
+    const built = buildVerifiedSettlementFromRetrieve({
+      orderId,
+      retrieved,
+      expectedConversationId,
+    });
+
+    if (!built.ok) {
+      await updateSessionStatus(supabase, session.id, "failed");
+      return { success: false, errorCode: built.errorCode, orderId };
+    }
+
+    try {
+      if (
+        Math.abs(asNumber(session.amount) - built.settlement.amount) >= 0.005
+      ) {
+        await updateSessionStatus(supabase, session.id, "failed");
+        return { success: false, errorCode: "AMOUNT_MISMATCH", orderId };
+      }
+    } catch {
+      return { success: false, errorCode: "AMOUNT_MISMATCH", orderId };
+    }
+
+    const settled = await this.settleVerifiedPayment(built.settlement);
+
+    if (!settled.success) {
+      const expiredish =
+        settled.errorCode === "PAYMENT_AFTER_EXPIRY" ||
+        settled.errorCode === "ORDER_NOT_PAYABLE";
+      await updateSessionStatus(
+        supabase,
+        session.id,
+        expiredish ? "expired" : "failed"
+      );
+      return { ...settled, orderId: settled.orderId ?? orderId };
+    }
+
+    await updateSessionStatus(supabase, session.id, "succeeded");
+    return settled;
   }
 
   async handleProviderWebhook(): Promise<SettleResult> {

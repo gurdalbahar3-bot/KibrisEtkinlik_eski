@@ -335,5 +335,24 @@
     "statusCancelled": "Cancelled",
     "pendingNote": "This ticket becomes active after payment.",
     "viewOrder": "View order"
+  },
+  "paymentResult": {
+    "successTitle": "Payment verified",
+    "successBody": "Your payment was verified server-side with iyzico. Your tickets are active.",
+    "failureTitle": "Payment could not be completed",
+    "failureGeneric": "Payment could not be verified. The order was not marked paid.",
+    "failureAmount": "The paid amount does not match the order total.",
+    "failureCurrency": "Currency could not be verified.",
+    "failureExpired": "The order expired, so payment was not accepted. Refund/reconciliation may be required.",
+    "failureFraud": "Payment was held for fraud review.",
+    "failureStatus": "Payment was not confirmed as successful.",
+    "failureSession": "Payment session was missing or invalid.",
+    "failureNotVerified": "Payment has not been verified on the server yet.",
+    "expiryReconciliationNote": "Late successful charges are not auto-refunded; operational reconciliation is required (B3).",
+    "orderLabel": "Order",
+    "errorCode": "Code",
+    "viewTickets": "My tickets",
+    "viewOrder": "View order",
+    "viewOrders": "My orders"
   }
 }

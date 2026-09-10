@@ -76,7 +76,10 @@ export type RetrievePaymentResult = {
   provider: PaymentProviderCode;
   providerPaymentId: string;
   conversationId: string;
+  /** Trusted paid amount (iyzico paidPrice). */
   amount: number;
+  /** Optional list/catalog price from provider when present. */
+  price?: number | null;
   currency: string;
   outcome: PaymentOutcome;
   fraudStatus?: string | null;

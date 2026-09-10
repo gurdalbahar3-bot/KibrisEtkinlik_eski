@@ -335,5 +335,24 @@
     "statusCancelled": "İptal",
     "pendingNote": "Bu bilet ödeme tamamlanınca aktif olur.",
     "viewOrder": "Siparişi gör"
+  },
+  "paymentResult": {
+    "successTitle": "Ödeme doğrulandı",
+    "successBody": "Ödemen sunucu tarafında iyzico üzerinden doğrulandı. Biletlerin aktif.",
+    "failureTitle": "Ödeme tamamlanamadı",
+    "failureGeneric": "Ödeme doğrulanamadı. Siparişin ödenmiş sayılmadı.",
+    "failureAmount": "Ödeme tutarı sipariş tutarıyla eşleşmiyor.",
+    "failureCurrency": "Para birimi doğrulanamadı.",
+    "failureExpired": "Sipariş süresi dolduğu için ödeme kabul edilmedi. Gerekirse iade/mutabakat gerekir.",
+    "failureFraud": "Ödeme güvenlik incelemesine takıldı.",
+    "failureStatus": "Ödeme başarılı olarak doğrulanamadı.",
+    "failureSession": "Ödeme oturumu bulunamadı veya geçersiz.",
+    "failureNotVerified": "Ödeme henüz sunucu tarafında doğrulanmadı.",
+    "expiryReconciliationNote": "Geç ödeme alındıysa otomatik iade yok; operasyonel mutabakat gerekir (B3).",
+    "orderLabel": "Sipariş",
+    "errorCode": "Kod",
+    "viewTickets": "Biletlerim",
+    "viewOrder": "Siparişi gör",
+    "viewOrders": "Siparişlerim"
   }
 }
