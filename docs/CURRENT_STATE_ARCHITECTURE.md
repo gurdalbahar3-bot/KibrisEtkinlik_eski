@@ -190,6 +190,20 @@ Social channels are **not** inventory sources of truth.
 
 ---
 
+## 9c. Public discovery (B8–B12)
+
+| Topic | Rule |
+|-------|------|
+| Public list pool | `published` \| `postponed` only (`DISCOVERY_LIST_STATUSES`) + Cyprus date ≥ today. |
+| Detail deep-link | Also allows `completed` (`PUBLIC_EVENT_STATUSES`). Draft / in_review / approved / unpublished / cancelled never public. |
+| District hubs | Canonical 6 slugs under `/tr/etkinlikler/{district}` and `/en/events/{district}`. |
+| Filters | Server-side over discovery pool: q, date presets, from/to, district, category, venue slug, free/paid, tickets/reservation, page. |
+| Commerce enrichment | One batched ticket + package index per request (`loadDiscoveryCommerceIndex`) — no N+1 per card. |
+| CTAs | Safe detail/checkout links only; ledger/payment never client-trusted. Hybrid = ticket + reservation. |
+| SEO | Per-event + district canonical, hreflang, OG/Twitter, JSON-LD Event; sitemap from discovery facade only. |
+
+---
+
 ## 10. Historical reference
 
 [`FAZ_0_v1.3_FINAL_LOCKED_SPEC.md`](FAZ_0_v1.3_FINAL_LOCKED_SPEC.md) documents the original 034-era design. Treat it as historical unless explicitly superseded by [`MASTER_ARCHITECTURE_V1_GOVERNANCE.md`](MASTER_ARCHITECTURE_V1_GOVERNANCE.md).

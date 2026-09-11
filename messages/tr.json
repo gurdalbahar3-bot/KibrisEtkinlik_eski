@@ -90,7 +90,13 @@
   },
   "eventCard": {
     "free": "Ücretsiz",
-    "details": "Detaylar"
+    "details": "Detaylar",
+    "viewDetails": "Detayları Gör",
+    "buyTickets": "Bilet Al",
+    "reserveTable": "Rezervasyon Yap",
+    "buyOrReserve": "Bilet & Rezervasyon",
+    "joinFree": "Etkinliğe Katıl",
+    "fromPrice": "{price} itibarıyla"
   },
   "categories": {
     "concert": "Konser",
@@ -144,11 +150,14 @@
     "date": "Tarih",
     "time": "Saat",
     "venue": "Mekan",
+    "address": "Adres",
     "district": "İlçe",
     "category": "Kategori",
     "artist": "Sanatçı",
+    "organizer": "Organizatör",
     "free": "Ücretsiz",
     "freeEntry": "Ücretsiz giriş",
+    "joinEvent": "Etkinliğe Katıl",
     "officialTickets": "Bilet Al / Resmi Bilet",
     "comingSoon": "Yakında",
     "ticketsTitle": "Biletler",
@@ -160,9 +169,19 @@
     "buyTickets": "Bilet Al",
     "tablesTitle": "Masa paketleri",
     "remainingSeats": "{count} koltuk kaldı",
-    "reserveTable": "Masa rezerve et",
+    "reserveTable": "Rezervasyon Yap",
     "relatedTitle": "Benzer etkinlikler",
-    "relatedSubtitle": "Aynı kategori veya ilçeden diğer etkinlikler"
+    "relatedSubtitle": "Aynı kategori veya ilçeden diğer etkinlikler",
+    "cancelledNotice": "Bu etkinlik iptal edildi."
+  },
+  "eventShare": {
+    "title": "Paylaş",
+    "whatsapp": "WhatsApp",
+    "facebook": "Facebook",
+    "copyForInstagram": "Instagram için bağlantıyı kopyala",
+    "copyForTiktok": "TikTok için bağlantıyı kopyala",
+    "copied": "Bağlantı kopyalandı",
+    "hint": "Instagram ve TikTok için bağlantıyı kopyalayıp gönderinize veya biyonuza yapıştırın."
   },
   "listing": {
     "title": "Etkinlikleri Keşfet",
@@ -173,8 +192,16 @@
     "searchLabel": "Ara",
     "searchPlaceholder": "Etkinlik, sanatçı veya mekan ara...",
     "dateLabel": "Tarih",
+    "fromLabel": "Başlangıç",
+    "toLabel": "Bitiş",
     "districtLabel": "İlçe",
     "categoryLabel": "Kategori",
+    "priceLabel": "Ücret",
+    "priceFree": "Ücretsiz",
+    "pricePaid": "Ücretli",
+    "availabilityLabel": "Uygunluk",
+    "availabilityTickets": "Bilet mevcut",
+    "availabilityReservation": "Rezervasyon mevcut",
     "all": "Tümü",
     "dateToday": "Bugün",
     "dateTomorrow": "Yarın",
@@ -184,7 +211,10 @@
     "applyFilters": "Filtrele",
     "resultCount": "{count} etkinlik bulundu",
     "emptyTitle": "Etkinlik bulunamadı",
-    "emptyHint": "Farklı bir arama veya filtre deneyin."
+    "emptyHint": "Farklı bir arama veya filtre deneyin.",
+    "prevPage": "Önceki",
+    "nextPage": "Sonraki",
+    "pageLabel": "Sayfa {page} / {pageCount}"
   },
   "categoriesPage": {
     "title": "Kategoriler",
@@ -225,6 +255,11 @@
     "subtitle": "KKTC'nin 6 ilçesinde etkinlikleri keşfet",
     "metaTitle": "İlçelere Göre Etkinlikler | Global Event Discovery",
     "metaDescription": "Lefkoşa, Girne, Gazimağusa, Güzelyurt, Lefke ve İskele etkinlikleri.",
+    "metaDistrictTitle": "{district} Etkinlikleri | Global Event Discovery",
+    "metaDistrictDescription": "{district} ilçesindeki yaklaşan etkinlikler ve mekanlar.",
+    "venueRefs": "Bu ilçede {count} mekan",
+    "emptyTitle": "Yaklaşan etkinlik yok",
+    "emptyHint": "Daha sonra tekrar bakın veya tüm etkinlikleri gezin.",
     "backHome": "Ana sayfa"
   },
   "featuredSection": {
@@ -239,6 +274,16 @@
     "viewAll": "Tümünü gör",
     "emptyTitle": "Bu hafta sonu etkinlik yok",
     "emptyHint": "Yaklaşan etkinliklere göz atın."
+  },
+  "thisWeekSection": {
+    "title": "Bu Hafta",
+    "subtitle": "Önümüzdeki 7 günün etkinlikleri",
+    "viewAll": "Tümünü gör"
+  },
+  "startingSoonSection": {
+    "title": "Yakında başlayacak",
+    "subtitle": "Tarih ve saate göre en yakın etkinlikler",
+    "viewAll": "Bugünü gör"
   },
   "customerAuth": {
     "loginTitle": "Giriş yap",

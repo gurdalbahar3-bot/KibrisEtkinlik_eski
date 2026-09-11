@@ -90,7 +90,13 @@
   },
   "eventCard": {
     "free": "Free",
-    "details": "Details"
+    "details": "Details",
+    "viewDetails": "View details",
+    "buyTickets": "Buy tickets",
+    "reserveTable": "Reserve a table",
+    "buyOrReserve": "Tickets & tables",
+    "joinFree": "Join event",
+    "fromPrice": "From {price}"
   },
   "categories": {
     "concert": "Concert",
@@ -144,11 +150,14 @@
     "date": "Date",
     "time": "Time",
     "venue": "Venue",
+    "address": "Address",
     "district": "District",
     "category": "Category",
     "artist": "Artist",
+    "organizer": "Organizer",
     "free": "Free",
     "freeEntry": "Free entry",
+    "joinEvent": "Join event",
     "officialTickets": "Official tickets",
     "comingSoon": "Coming soon",
     "ticketsTitle": "Tickets",
@@ -162,7 +171,17 @@
     "remainingSeats": "{count} seats left",
     "reserveTable": "Reserve a table",
     "relatedTitle": "Related events",
-    "relatedSubtitle": "More events in the same category or district"
+    "relatedSubtitle": "More events in the same category or district",
+    "cancelledNotice": "This event has been cancelled."
+  },
+  "eventShare": {
+    "title": "Share",
+    "whatsapp": "WhatsApp",
+    "facebook": "Facebook",
+    "copyForInstagram": "Copy link for Instagram",
+    "copyForTiktok": "Copy link for TikTok",
+    "copied": "Link copied",
+    "hint": "Instagram and TikTok use copy-link sharing — paste the event URL in your post or bio."
   },
   "listing": {
     "title": "Discover Events",
@@ -173,8 +192,16 @@
     "searchLabel": "Search",
     "searchPlaceholder": "Search events, artists or venues...",
     "dateLabel": "Date",
+    "fromLabel": "From",
+    "toLabel": "To",
     "districtLabel": "District",
     "categoryLabel": "Category",
+    "priceLabel": "Price",
+    "priceFree": "Free",
+    "pricePaid": "Paid",
+    "availabilityLabel": "Availability",
+    "availabilityTickets": "Tickets available",
+    "availabilityReservation": "Reservation available",
     "all": "All",
     "dateToday": "Today",
     "dateTomorrow": "Tomorrow",
@@ -184,7 +211,10 @@
     "applyFilters": "Apply filters",
     "resultCount": "{count} events found",
     "emptyTitle": "No events found",
-    "emptyHint": "Try a different search or filter."
+    "emptyHint": "Try a different search or filter.",
+    "prevPage": "Previous",
+    "nextPage": "Next",
+    "pageLabel": "Page {page} of {pageCount}"
   },
   "categoriesPage": {
     "title": "Categories",
@@ -225,6 +255,11 @@
     "subtitle": "Discover events across all 6 districts",
     "metaTitle": "Events by District | Global Event Discovery",
     "metaDescription": "Events in Nicosia, Kyrenia, Famagusta, Güzelyurt, Lefke and İskele.",
+    "metaDistrictTitle": "{district} Events | Global Event Discovery",
+    "metaDistrictDescription": "Upcoming events and venues in {district}, Northern Cyprus.",
+    "venueRefs": "{count} venues in this district",
+    "emptyTitle": "No upcoming events",
+    "emptyHint": "Check back soon or browse all events.",
     "backHome": "Home"
   },
   "featuredSection": {
@@ -239,6 +274,16 @@
     "viewAll": "View all",
     "emptyTitle": "No events this weekend",
     "emptyHint": "Check upcoming events."
+  },
+  "thisWeekSection": {
+    "title": "This Week",
+    "subtitle": "Events over the next 7 days",
+    "viewAll": "View all"
+  },
+  "startingSoonSection": {
+    "title": "Starting soon",
+    "subtitle": "The next events by date and time",
+    "viewAll": "View today"
   },
   "customerAuth": {
     "loginTitle": "Log in",
