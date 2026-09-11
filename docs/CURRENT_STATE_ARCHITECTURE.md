@@ -175,6 +175,21 @@ Social channels are **not** inventory sources of truth.
 
 ---
 
+## 9b. Reservation MVP (tables) — locked product rules
+
+| Topic | Rule |
+|-------|------|
+| Online hold | **Exclusive** per `(event, table)` via active `resource_locks`. Second concurrent hold → `TABLE_LOCKED`. |
+| Shared table capacity | Applies **after confirmation** using `entry_passes` on confirmed/used reservations (effective capacity = `event_tables.max_guests` ?? `venue_tables.capacity`). Example: capacity 10 with groups 3+4+2+1 = full. |
+| Concurrent shared holds | **Not** in MVP (would need capacity-aware locks / migration). |
+| Package soft deactivate | `table_packages.is_active=false` via `upsert_table_package_atomic`. Catalog edits do **not** rewrite historical `order_items` snapshot prices. Inactive packages are excluded from new checkout (`is_active=true` filter). |
+| Event table / package mutations | **Draft-only** in the app (same gate as ticket commerce via `requireOwnedDraftEvent`). RPCs remain `can_manage_event`; published events reject enable/edit with `not_draft`. |
+| Customer capacity display | Prefer `entry_passes` when the read succeeds; otherwise fall back to confirmed/used `table_reservations.guest_count`. Source is exposed as `capacitySource`. Guest count is never trusted for inventory — `reserve_table_atomic` / `check_table_capacity_available` enforce limits. |
+| Concurrency | DB `FOR UPDATE` + unique active lock + capacity check. Client availability is advisory only. |
+| Currency | TRY/TL primary; deposit `amount_due_now` from package catalog. |
+
+---
+
 ## 10. Historical reference
 
 [`FAZ_0_v1.3_FINAL_LOCKED_SPEC.md`](FAZ_0_v1.3_FINAL_LOCKED_SPEC.md) documents the original 034-era design. Treat it as historical unless explicitly superseded by [`MASTER_ARCHITECTURE_V1_GOVERNANCE.md`](MASTER_ARCHITECTURE_V1_GOVERNANCE.md).
