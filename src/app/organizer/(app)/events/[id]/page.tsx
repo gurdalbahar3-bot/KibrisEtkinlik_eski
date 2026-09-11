@@ -6,12 +6,14 @@ import {
   updateOrganizerDraftEventAction,
 } from "@/app/organizer/(app)/events/actions";
 import { EventArtistsPanel } from "@/components/organizer/EventArtistsPanel";
+import { EventLayoutCommercePanel } from "@/components/organizer/EventLayoutCommercePanel";
 import { EventMetadataPanels } from "@/components/organizer/EventMetadataPanels";
 import { EventTicketCommercePanel } from "@/components/organizer/EventTicketCommercePanel";
 import { OfficialTicketUrlPanel } from "@/components/organizer/OfficialTicketUrlPanel";
 import { CATEGORY_KEYS } from "@/lib/data/categories";
 import { requireOrganizer } from "@/lib/organizer/auth";
 import { getOrganizerEventArtists } from "@/lib/organizer/data/artists";
+import { getOrganizerEventLayoutCommerce } from "@/lib/organizer/data/event-layout";
 import { getOrganizerEventMetadata } from "@/lib/organizer/data/event-metadata";
 import { getOrganizerEvent } from "@/lib/organizer/data/events";
 import { getOrganizerEventTicketCommerce } from "@/lib/organizer/data/ticket-commerce";
@@ -39,6 +41,8 @@ type Props = {
     artists_error?: string;
     commerce?: string;
     commerce_error?: string;
+    layout?: string;
+    layout_error?: string;
   }>;
 };
 
@@ -129,13 +133,14 @@ export default async function OrganizerEventEditPage({ params, searchParams }: P
     notFound();
   }
 
-  const [locale, metadata, districts, artistsBundle, ticketCommerce] =
+  const [locale, metadata, districts, artistsBundle, ticketCommerce, layoutCommerce] =
     await Promise.all([
       resolveOrganizerLocale(),
       getOrganizerEventMetadata(id),
       listActiveDistrictOptions(),
       getOrganizerEventArtists(id),
       getOrganizerEventTicketCommerce(id),
+      getOrganizerEventLayoutCommerce(event.id, event.venueId),
     ]);
   const messages = getOrganizerMessages(locale);
   const t = createOrganizerTranslator(messages);
@@ -400,6 +405,40 @@ export default async function OrganizerEventEditPage({ params, searchParams }: P
           errInvalidMaxPerOrder: t("errCommerceInvalidMaxPerOrder"),
           errTicketTypeNotFound: t("errCommerceTicketTypeNotFound"),
           errSaveFailed: t("errCommerceSaveFailed"),
+        }}
+      />
+
+      <EventLayoutCommercePanel
+        eventId={event.id}
+        locale={locale}
+        bundle={layoutCommerce}
+        layoutOk={query.layout ?? null}
+        layoutError={query.layout_error ?? null}
+        labels={{
+          title: t("eventLayoutTitle"),
+          subtitle: t("eventLayoutSubtitle"),
+          canvasHint: t("eventLayoutCanvasHint"),
+          empty: t("eventLayoutEmpty"),
+          enableTable: t("eventLayoutEnableTable"),
+          saving: t("eventLayoutSaving"),
+          fieldTable: t("eventLayoutFieldTable"),
+          fieldMaxGuests: t("eventLayoutFieldMaxGuests"),
+          fieldPackageName: t("eventLayoutFieldPackageName"),
+          fieldBasePrice: t("eventLayoutFieldBasePrice"),
+          fieldDeposit: t("eventLayoutFieldDeposit"),
+          fieldSaleCategory: t("eventLayoutFieldSaleCategory"),
+          fieldDescription: t("eventLayoutFieldDescription"),
+          addPackage: t("eventLayoutAddPackage"),
+          sellableHeading: t("eventLayoutSellableHeading"),
+          packagesHeading: t("eventLayoutPackagesHeading"),
+          reservationsHeading: t("eventLayoutReservationsHeading"),
+          remainingLabel: t("eventLayoutRemainingLabel"),
+          guestsLabel: t("eventLayoutGuestsLabel"),
+          statusLabel: t("eventLayoutStatusLabel"),
+          msgTableEnabled: t("msgEventLayoutTableEnabled"),
+          msgPackageSaved: t("msgEventLayoutPackageSaved"),
+          errFailed: t("errEventLayoutFailed"),
+          noSellable: t("eventLayoutNoSellable"),
         }}
       />
 

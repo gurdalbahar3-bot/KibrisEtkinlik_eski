@@ -6,7 +6,9 @@ import {
   updateOrganizerVenueAction,
 } from "@/app/organizer/(app)/venues/actions";
 import { OrganizerSubmitButton } from "@/components/organizer/OrganizerSubmitButton";
+import { VenueLayoutPanel } from "@/components/organizer/VenueLayoutPanel";
 import { requireOrganizer } from "@/lib/organizer/auth";
+import { getOrganizerVenueLayout } from "@/lib/organizer/data/venue-layout";
 import {
   getOrganizerVenue,
   listActiveDistrictOptions,
@@ -26,6 +28,8 @@ type Props = {
     created?: string;
     saved?: string;
     deactivated?: string;
+    layout?: string;
+    layout_error?: string;
   }>;
 };
 
@@ -97,7 +101,10 @@ export default async function OrganizerVenueDetailPage({ params, searchParams }:
   const locale = await resolveOrganizerLocale();
   const messages = getOrganizerMessages(locale);
   const t = createOrganizerTranslator(messages);
-  const districts = await listActiveDistrictOptions();
+  const [districts, layout] = await Promise.all([
+    listActiveDistrictOptions(),
+    getOrganizerVenueLayout(id),
+  ]);
   const errorMessage = mapEditError(query.error, t);
   const isActive = venue.status === "active";
   const isInactive = venue.status === "inactive";
@@ -108,7 +115,7 @@ export default async function OrganizerVenueDetailPage({ params, searchParams }:
   else if (query.deactivated === "1") successMessage = t("msgVenueDeactivated");
 
   return (
-    <div className="mx-auto max-w-xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-6">
       <div className="space-y-1">
         <Link
           href="/organizer/venues"
@@ -368,6 +375,35 @@ export default async function OrganizerVenueDetailPage({ params, searchParams }:
           variant="secondary"
         />
       </form>
+
+      <VenueLayoutPanel
+        venueId={venue.id}
+        areas={layout.areas}
+        tables={layout.tables}
+        layoutOk={query.layout ?? null}
+        layoutError={query.layout_error ?? null}
+        labels={{
+          title: t("layoutTitle"),
+          subtitle: t("layoutSubtitle"),
+          empty: t("layoutEmpty"),
+          canvasHint: t("layoutCanvasHint"),
+          areasHeading: t("layoutAreasHeading"),
+          tablesHeading: t("layoutTablesHeading"),
+          addArea: t("layoutAddArea"),
+          addTable: t("layoutAddTable"),
+          saving: t("layoutSaving"),
+          fieldName: t("layoutFieldName"),
+          fieldCapacity: t("layoutFieldCapacity"),
+          fieldTableNumber: t("layoutFieldTableNumber"),
+          fieldPosX: t("layoutFieldPosX"),
+          fieldPosY: t("layoutFieldPosY"),
+          noArea: t("layoutNoArea"),
+          capacityLabel: t("layoutCapacityLabel"),
+          msgAreaSaved: t("msgLayoutAreaSaved"),
+          msgTableSaved: t("msgLayoutTableSaved"),
+          errFailed: t("errLayoutFailed"),
+        }}
+      />
     </div>
   );
 }
