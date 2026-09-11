@@ -160,6 +160,13 @@ export default async function OrganizerEventEditPage({ params, searchParams }: P
           </span>
         </div>
         <p className="text-sm text-slate-600">{t("editSubtitle")}</p>
+        <Link
+          href={`/organizer/events/${event.id}/check-in`}
+          className="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+          data-testid="organizer-checkin-link"
+        >
+          {t("checkInLink")}
+        </Link>
       </div>
 
       {successMessage ? (

@@ -1024,6 +1024,13 @@ export interface Database {
         };
         Returns: Json;
       };
+      use_qr_atomic: {
+        Args: {
+          p_token: string;
+          p_device_id?: string | null;
+        };
+        Returns: Json;
+      };
     };
     Enums: {
       event_status: DbEventStatus;
