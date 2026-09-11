@@ -10,6 +10,8 @@ export type DiscoveryTablePackageOffer = {
   eventTableId: string;
   tableId: string;
   tableNumber: string;
+  areaName: string | null;
+  venueName: string | null;
   name: string;
   description: string | null;
   saleCategory: string;
@@ -19,6 +21,8 @@ export type DiscoveryTablePackageOffer = {
   remaining: number;
   maxGuests: number;
   isSoldOut: boolean;
+  /** Deterministic capacity source used for remaining seats display. */
+  capacitySource: "entry_passes" | "reservation_guest_count";
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -46,7 +50,7 @@ export async function listActiveTablePackagesForEvent(
   const from = supabase.from.bind(supabase) as UntypedFrom;
 
   const { data: eventRow } = await from("events")
-    .select("id, status, is_wedding")
+    .select("id, status, is_wedding, venue_id")
     .eq("id", eventId)
     .maybeSingle();
 
@@ -56,6 +60,16 @@ export async function listActiveTablePackagesForEvent(
     eventRow.is_wedding
   ) {
     return [];
+  }
+
+  const venueId = eventRow.venue_id as string | null;
+  let venueName: string | null = null;
+  if (venueId) {
+    const { data: venue } = await from("venues")
+      .select("id, name")
+      .eq("id", venueId)
+      .maybeSingle();
+    venueName = venue?.name ? String(venue.name) : null;
   }
 
   const [pkgRes, etRes, resRes, passRes] = await Promise.all([
@@ -90,16 +104,33 @@ export async function listActiveTablePackagesForEvent(
   const eventTableById = new Map(eventTables.map((t) => [t.id, t]));
   const tableIds = [...new Set(eventTables.map((t) => t.table_id))];
 
-  const venueById = new Map<string, { tableNumber: string; capacity: number }>();
+  const venueById = new Map<
+    string,
+    { tableNumber: string; capacity: number; areaId: string | null }
+  >();
+  const areaNameById = new Map<string, string>();
   if (tableIds.length > 0) {
     const { data: vtRows } = await from("venue_tables")
-      .select("id, table_number, capacity")
+      .select("id, table_number, capacity, area_id")
       .in("id", tableIds);
+    const areaIds: string[] = [];
     for (const row of (vtRows ?? []) as Array<Record<string, unknown>>) {
+      const areaId = row.area_id ? String(row.area_id) : null;
+      if (areaId) areaIds.push(areaId);
       venueById.set(String(row.id), {
         tableNumber: String(row.table_number ?? ""),
         capacity: n(row.capacity),
+        areaId,
       });
+    }
+    if (areaIds.length > 0 && venueId) {
+      const { data: areas } = await from("venue_areas")
+        .select("id, name")
+        .eq("venue_id", venueId)
+        .in("id", [...new Set(areaIds)]);
+      for (const a of (areas ?? []) as Array<{ id: string; name: string }>) {
+        areaNameById.set(a.id, a.name);
+      }
     }
   }
 
@@ -120,10 +151,14 @@ export async function listActiveTablePackagesForEvent(
       }>)
     : [];
 
+  // Deterministic: successful entry_passes read → pass counts; else guest_count.
+  const resolvedSource: "entry_passes" | "reservation_guest_count" =
+    passesReadable ? "entry_passes" : "reservation_guest_count";
+
   const reservationById = new Map(reservations.map((r) => [r.id, r]));
   const usedByEventTable = new Map<string, number>();
 
-  if (passes.length > 0) {
+  if (passesReadable) {
     for (const pass of passes) {
       const res = reservationById.get(pass.parent_id);
       if (!res?.event_table_id) continue;
@@ -177,6 +212,10 @@ export async function listActiveTablePackagesForEvent(
       eventTableId,
       tableId: et.table_id,
       tableNumber: venue?.tableNumber ?? et.table_id.slice(0, 8),
+      areaName: venue?.areaId
+        ? areaNameById.get(venue.areaId) ?? null
+        : null,
+      venueName,
       name: String(row.name ?? ""),
       description: (row.description as string | null) ?? null,
       saleCategory: String(row.sale_category ?? "table"),
@@ -186,6 +225,7 @@ export async function listActiveTablePackagesForEvent(
       remaining,
       maxGuests: effective,
       isSoldOut: !capacityCheck.ok || remaining <= 0,
+      capacitySource: resolvedSource,
     });
   }
 

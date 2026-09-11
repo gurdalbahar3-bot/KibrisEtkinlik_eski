@@ -1,5 +1,6 @@
 import {
   enableEventTableAction,
+  setEventTablePackageActiveAction,
   upsertEventTablePackageAction,
 } from "@/app/organizer/(app)/events/layout-actions";
 import { OrganizerSubmitButton } from "@/components/organizer/OrganizerSubmitButton";
@@ -22,20 +23,33 @@ type Labels = {
   fieldSaleCategory: string;
   fieldDescription: string;
   addPackage: string;
+  savePackage: string;
+  deactivatePackage: string;
+  reactivatePackage: string;
+  inactiveBadge: string;
+  activeBadge: string;
   sellableHeading: string;
   packagesHeading: string;
   reservationsHeading: string;
   remainingLabel: string;
   guestsLabel: string;
   statusLabel: string;
+  capacityLabel: string;
+  reservationCountLabel: string;
+  readOnlyHint: string;
   msgTableEnabled: string;
   msgPackageSaved: string;
+  msgPackageUpdated: string;
+  msgPackageDeactivated: string;
+  msgPackageReactivated: string;
   errFailed: string;
+  errNotDraft: string;
   noSellable: string;
 };
 
 type Props = {
   eventId: string;
+  isDraft: boolean;
   locale: "tr" | "en";
   bundle: EventLayoutCommerceBundle;
   labels: Labels;
@@ -106,25 +120,53 @@ function SellableMiniMap({
   );
 }
 
+function okLabel(ok: string | null, labels: Labels): string | null {
+  switch (ok) {
+    case "table_enabled":
+      return labels.msgTableEnabled;
+    case "package_saved":
+      return labels.msgPackageSaved;
+    case "package_updated":
+      return labels.msgPackageUpdated;
+    case "package_deactivated":
+      return labels.msgPackageDeactivated;
+    case "package_reactivated":
+      return labels.msgPackageReactivated;
+    default:
+      return null;
+  }
+}
+
+function errLabel(error: string | null, labels: Labels): string | null {
+  if (!error) return null;
+  if (error === "not_draft") return labels.errNotDraft;
+  return labels.errFailed;
+}
+
 export function EventLayoutCommercePanel({
   eventId,
+  isDraft,
   locale,
   bundle,
   labels,
   layoutOk,
   layoutError,
 }: Props) {
-  const okMessage =
-    layoutOk === "table_enabled"
-      ? labels.msgTableEnabled
-      : layoutOk === "package_saved"
-        ? labels.msgPackageSaved
-        : null;
+  const okMessage = okLabel(layoutOk, labels);
+  const errorMessage = errLabel(layoutError, labels);
 
   const enabledTableIds = new Set(bundle.eventTables.map((t) => t.tableId));
   const availableVenueTables = bundle.venueTables.filter(
     (t) => !enabledTableIds.has(t.id)
   );
+
+  const reservationCountByTable = new Map<string, number>();
+  for (const res of bundle.reservations) {
+    reservationCountByTable.set(
+      res.tableId,
+      (reservationCountByTable.get(res.tableId) ?? 0) + 1
+    );
+  }
 
   return (
     <section
@@ -134,6 +176,11 @@ export function EventLayoutCommercePanel({
       <div>
         <h3 className="text-lg font-bold text-slate-900">{labels.title}</h3>
         <p className="mt-1 text-sm text-slate-600">{labels.subtitle}</p>
+        {!isDraft ? (
+          <p className="mt-2 text-xs text-amber-800" data-testid="event-layout-readonly">
+            {labels.readOnlyHint}
+          </p>
+        ) : null}
       </div>
 
       {okMessage ? (
@@ -144,61 +191,65 @@ export function EventLayoutCommercePanel({
           {okMessage}
         </p>
       ) : null}
-      {layoutError ? (
+      {errorMessage ? (
         <p
           className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800"
           role="alert"
         >
-          {labels.errFailed}
+          {errorMessage}
         </p>
       ) : null}
 
       <SellableMiniMap tables={bundle.eventTables} labels={labels} />
 
-      <form
-        action={enableEventTableAction}
-        className="space-y-2 rounded-xl border border-teal-100 bg-teal-50/40 p-3"
-      >
-        <input type="hidden" name="event_id" value={eventId} />
-        <p className="text-sm font-semibold text-teal-950">{labels.enableTable}</p>
-        <select
-          name="table_id"
-          required
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-          defaultValue=""
-          data-testid="event-enable-table-select"
+      {isDraft ? (
+        <form
+          action={enableEventTableAction}
+          className="space-y-2 rounded-xl border border-teal-100 bg-teal-50/40 p-3"
         >
-          <option value="" disabled>
-            {labels.fieldTable}
-          </option>
-          {availableVenueTables.map((table) => (
-            <option key={table.id} value={table.id}>
-              #{table.tableNumber}
-              {table.tableType ? ` · ${table.tableType}` : ""}
-              {table.areaName ? ` · ${table.areaName}` : ""} · cap{" "}
-              {table.capacity}
+          <input type="hidden" name="event_id" value={eventId} />
+          <p className="text-sm font-semibold text-teal-950">
+            {labels.enableTable}
+          </p>
+          <select
+            name="table_id"
+            required
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            defaultValue=""
+            data-testid="event-enable-table-select"
+          >
+            <option value="" disabled>
+              {labels.fieldTable}
             </option>
-          ))}
-        </select>
-        <input
-          name="max_guests"
-          type="number"
-          min={1}
-          placeholder={labels.fieldMaxGuests}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-        />
-        <input type="hidden" name="is_sellable" value="true" />
-        <OrganizerSubmitButton
-          label={labels.enableTable}
-          pendingLabel={labels.saving}
-        />
-      </form>
+            {availableVenueTables.map((table) => (
+              <option key={table.id} value={table.id}>
+                #{table.tableNumber}
+                {table.tableType ? ` · ${table.tableType}` : ""}
+                {table.areaName ? ` · ${table.areaName}` : ""} · cap{" "}
+                {table.capacity}
+              </option>
+            ))}
+          </select>
+          <input
+            name="max_guests"
+            type="number"
+            min={1}
+            placeholder={labels.fieldMaxGuests}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          />
+          <input type="hidden" name="is_sellable" value="true" />
+          <OrganizerSubmitButton
+            label={labels.enableTable}
+            pendingLabel={labels.saving}
+          />
+        </form>
+      ) : null}
 
       <div>
         <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
           {labels.sellableHeading}
         </h4>
-        <ul className="mt-2 divide-y divide-slate-100 text-sm">
+        <ul className="mt-2 divide-y divide-slate-100 text-sm" data-testid="event-enabled-tables">
           {bundle.eventTables.filter((t) => t.isSellable).length === 0 ? (
             <li className="py-2 text-slate-500">{labels.empty}</li>
           ) : (
@@ -214,8 +265,11 @@ export function EventLayoutCommercePanel({
                     {table.tableType ? ` · ${table.tableType}` : ""}
                   </span>
                   <span className="text-slate-500">
-                    {labels.remainingLabel} {table.remaining}/
-                    {table.maxGuests ?? table.venueCapacity}
+                    {labels.capacityLabel}{" "}
+                    {table.maxGuests ?? table.venueCapacity} ·{" "}
+                    {labels.remainingLabel} {table.remaining} ·{" "}
+                    {labels.reservationCountLabel}{" "}
+                    {reservationCountByTable.get(table.tableId) ?? 0}
                   </span>
                 </li>
               ))
@@ -223,103 +277,210 @@ export function EventLayoutCommercePanel({
         </ul>
       </div>
 
-      <form
-        action={upsertEventTablePackageAction}
-        className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3"
-      >
-        <input type="hidden" name="event_id" value={eventId} />
-        <p className="text-sm font-semibold text-slate-900">{labels.addPackage}</p>
-        <select
-          name="event_table_id"
-          required
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-          defaultValue=""
+      {isDraft ? (
+        <form
+          action={upsertEventTablePackageAction}
+          className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3"
+          data-testid="event-package-create-form"
         >
-          <option value="" disabled>
-            {labels.fieldTable}
-          </option>
-          {bundle.eventTables
-            .filter((t) => t.isSellable)
-            .map((table) => (
-              <option key={table.eventTableId} value={table.eventTableId}>
-                #{table.tableNumber}
+          <input type="hidden" name="event_id" value={eventId} />
+          <input type="hidden" name="is_active" value="true" />
+          <p className="text-sm font-semibold text-slate-900">
+            {labels.addPackage}
+          </p>
+          <select
+            name="event_table_id"
+            required
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            defaultValue=""
+          >
+            <option value="" disabled>
+              {labels.fieldTable}
+            </option>
+            {bundle.eventTables
+              .filter((t) => t.isSellable)
+              .map((table) => (
+                <option key={table.eventTableId} value={table.eventTableId}>
+                  #{table.tableNumber}
+                </option>
+              ))}
+          </select>
+          <input
+            name="name"
+            required
+            placeholder={labels.fieldPackageName}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          />
+          <input
+            name="base_price"
+            type="number"
+            min={0}
+            step="0.01"
+            required
+            placeholder={labels.fieldBasePrice}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          />
+          <input
+            name="deposit_amount"
+            type="number"
+            min={0}
+            step="0.01"
+            placeholder={labels.fieldDeposit}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          />
+          <select
+            name="sale_category"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            defaultValue="table"
+          >
+            {PACKAGE_SALE_CATEGORIES.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
               </option>
             ))}
-        </select>
-        <input
-          name="name"
-          required
-          placeholder={labels.fieldPackageName}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-        />
-        <input
-          name="base_price"
-          type="number"
-          min={0}
-          step="0.01"
-          required
-          placeholder={labels.fieldBasePrice}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-        />
-        <input
-          name="deposit_amount"
-          type="number"
-          min={0}
-          step="0.01"
-          placeholder={labels.fieldDeposit}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-        />
-        <select
-          name="sale_category"
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-          defaultValue="table"
-        >
-          {PACKAGE_SALE_CATEGORIES.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat}
-            </option>
-          ))}
-        </select>
-        <input
-          name="description"
-          placeholder={labels.fieldDescription}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-        />
-        <OrganizerSubmitButton
-          label={labels.addPackage}
-          pendingLabel={labels.saving}
-        />
-      </form>
+          </select>
+          <input
+            name="description"
+            placeholder={labels.fieldDescription}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          />
+          <OrganizerSubmitButton
+            label={labels.addPackage}
+            pendingLabel={labels.saving}
+          />
+        </form>
+      ) : null}
 
       <div>
         <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
           {labels.packagesHeading}
         </h4>
         <ul
-          className="mt-2 divide-y divide-slate-100 text-sm"
+          className="mt-2 space-y-4"
           data-testid="event-packages-list"
         >
           {bundle.packages.length === 0 ? (
-            <li className="py-2 text-slate-500">{labels.empty}</li>
+            <li className="py-2 text-sm text-slate-500">{labels.empty}</li>
           ) : (
             bundle.packages.map((pkg) => (
               <li
                 key={pkg.id}
-                className="flex flex-wrap justify-between gap-2 py-2"
+                className="rounded-xl border border-slate-100 p-3"
+                data-testid="event-package-row"
+                data-active={pkg.isActive ? "1" : "0"}
               >
-                <span className="font-medium text-slate-900">
-                  {pkg.name}
-                  <span className="ml-1 text-slate-500">
-                    · {pkg.saleCategory}
-                    {!pkg.isActive ? " · off" : ""}
+                <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                  <span className="font-medium text-slate-900">
+                    {pkg.name}
+                    <span className="ml-1 text-slate-500">
+                      · {pkg.saleCategory}
+                    </span>
                   </span>
-                </span>
-                <span className="text-slate-700">
+                  <span
+                    className={
+                      pkg.isActive
+                        ? "rounded-full bg-teal-50 px-2 py-0.5 text-xs font-semibold text-teal-900"
+                        : "rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600"
+                    }
+                  >
+                    {pkg.isActive ? labels.activeBadge : labels.inactiveBadge}
+                  </span>
+                </div>
+                <p className="mt-1 text-sm text-slate-700">
                   {formatTicketPrice(pkg.basePrice, locale)}
                   {pkg.depositAmount != null
                     ? ` · dep ${formatTicketPrice(pkg.depositAmount, locale)}`
                     : ""}
-                </span>
+                </p>
+
+                {isDraft ? (
+                  <div className="mt-3 space-y-2 border-t border-slate-100 pt-3">
+                    <form
+                      action={upsertEventTablePackageAction}
+                      className="space-y-2"
+                    >
+                      <input type="hidden" name="event_id" value={eventId} />
+                      <input type="hidden" name="package_id" value={pkg.id} />
+                      <input
+                        type="hidden"
+                        name="event_table_id"
+                        value={pkg.eventTableId}
+                      />
+                      <input
+                        type="hidden"
+                        name="is_active"
+                        value={pkg.isActive ? "true" : "false"}
+                      />
+                      <input
+                        name="name"
+                        required
+                        defaultValue={pkg.name}
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                      />
+                      <input
+                        name="base_price"
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        required
+                        defaultValue={pkg.basePrice}
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                      />
+                      <input
+                        name="deposit_amount"
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        defaultValue={pkg.depositAmount ?? ""}
+                        placeholder={labels.fieldDeposit}
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                      />
+                      <select
+                        name="sale_category"
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                        defaultValue={pkg.saleCategory}
+                      >
+                        {PACKAGE_SALE_CATEGORIES.map((cat) => (
+                          <option key={cat} value={cat}>
+                            {cat}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        name="description"
+                        defaultValue={pkg.description ?? ""}
+                        placeholder={labels.fieldDescription}
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                      />
+                      <OrganizerSubmitButton
+                        label={labels.savePackage}
+                        pendingLabel={labels.saving}
+                      />
+                    </form>
+                    <form action={setEventTablePackageActiveAction}>
+                      <input type="hidden" name="event_id" value={eventId} />
+                      <input type="hidden" name="package_id" value={pkg.id} />
+                      <input
+                        type="hidden"
+                        name="event_table_id"
+                        value={pkg.eventTableId}
+                      />
+                      <input
+                        type="hidden"
+                        name="is_active"
+                        value={pkg.isActive ? "false" : "true"}
+                      />
+                      <OrganizerSubmitButton
+                        label={
+                          pkg.isActive
+                            ? labels.deactivatePackage
+                            : labels.reactivatePackage
+                        }
+                        pendingLabel={labels.saving}
+                      />
+                    </form>
+                  </div>
+                ) : null}
               </li>
             ))
           )}

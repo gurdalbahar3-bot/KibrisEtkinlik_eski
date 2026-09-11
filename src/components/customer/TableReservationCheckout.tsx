@@ -136,8 +136,18 @@ export function TableReservationCheckout({
     );
   }
 
+  const deposit =
+    selected && selected.depositAmount != null && selected.depositAmount > 0
+      ? selected.depositAmount
+      : null;
+  const catalogTotal = selected?.basePrice ?? null;
+  const dueNow = selected?.amountDueNow ?? null;
+
   return (
-    <div data-testid="table-checkout-form" className="mt-8 border-t border-slate-100 pt-8">
+    <div
+      data-testid="table-checkout-form"
+      className="mt-8 border-t border-slate-100 pt-8"
+    >
       <h2 className="text-xl font-bold text-slate-900">{t("tableTitle")}</h2>
       <p className="mt-1 text-sm text-slate-600">{eventTitle}</p>
 
@@ -218,27 +228,75 @@ export function TableReservationCheckout({
           </p>
         </div>
 
-        <div className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
-          <p className="text-sm text-slate-600">{t("amountDueNow")}</p>
-          <p
-            className="text-xl font-bold text-slate-900"
-            data-testid="table-checkout-due"
-          >
-            {selected
-              ? formatTicketPrice(selected.amountDueNow, locale)
-              : "—"}
-          </p>
-          {selected &&
-          selected.depositAmount != null &&
-          selected.depositAmount > 0 ? (
-            <p className="mt-1 text-xs text-slate-500">
-              {t("basePriceNote", {
-                price: formatTicketPrice(selected.basePrice, locale),
-              })}
-            </p>
+        <dl
+          className="space-y-2 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm"
+          data-testid="table-checkout-summary"
+        >
+          <div className="flex justify-between gap-3">
+            <dt className="text-slate-500">{t("summaryEvent")}</dt>
+            <dd className="text-right font-medium text-slate-900">
+              {eventTitle}
+            </dd>
+          </div>
+          {selected?.venueName ? (
+            <div className="flex justify-between gap-3">
+              <dt className="text-slate-500">{t("summaryVenue")}</dt>
+              <dd className="text-right text-slate-900">{selected.venueName}</dd>
+            </div>
           ) : null}
-          <p className="mt-2 text-xs text-slate-500">{t("priceNote")}</p>
-        </div>
+          {selected?.areaName ? (
+            <div className="flex justify-between gap-3">
+              <dt className="text-slate-500">{t("summaryArea")}</dt>
+              <dd className="text-right text-slate-900">{selected.areaName}</dd>
+            </div>
+          ) : null}
+          <div className="flex justify-between gap-3">
+            <dt className="text-slate-500">{t("summaryTable")}</dt>
+            <dd className="text-right text-slate-900">
+              #{selected?.tableNumber ?? "—"}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-3">
+            <dt className="text-slate-500">{t("summaryPackage")}</dt>
+            <dd className="text-right text-slate-900">
+              {selected?.name ?? "—"}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-3">
+            <dt className="text-slate-500">{t("summaryGuests")}</dt>
+            <dd className="text-right text-slate-900">{guests}</dd>
+          </div>
+          {catalogTotal != null ? (
+            <div className="flex justify-between gap-3">
+              <dt className="text-slate-500">{t("summaryPrice")}</dt>
+              <dd className="text-right text-slate-900">
+                {formatTicketPrice(catalogTotal, locale)}
+              </dd>
+            </div>
+          ) : null}
+          {deposit != null ? (
+            <div className="flex justify-between gap-3">
+              <dt className="text-slate-500">{t("summaryDeposit")}</dt>
+              <dd className="text-right text-slate-900">
+                {formatTicketPrice(deposit, locale)}
+              </dd>
+            </div>
+          ) : null}
+          <div className="flex justify-between gap-3 border-t border-slate-200 pt-2">
+            <dt className="font-medium text-slate-700">{t("amountDueNow")}</dt>
+            <dd
+              className="text-right text-lg font-bold text-slate-900"
+              data-testid="table-checkout-due"
+            >
+              {dueNow != null ? formatTicketPrice(dueNow, locale) : "—"}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-3">
+            <dt className="text-slate-500">{t("summaryState")}</dt>
+            <dd className="text-right text-slate-900">{t("stateHoldPending")}</dd>
+          </div>
+          <p className="pt-1 text-xs text-slate-500">{t("priceNote")}</p>
+        </dl>
 
         <SubmitButton label={t("submit")} pendingLabel={t("submitting")} />
       </form>

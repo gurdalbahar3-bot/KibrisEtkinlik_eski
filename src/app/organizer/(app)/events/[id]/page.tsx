@@ -410,6 +410,7 @@ export default async function OrganizerEventEditPage({ params, searchParams }: P
 
       <EventLayoutCommercePanel
         eventId={event.id}
+        isDraft={isDraft}
         locale={locale}
         bundle={layoutCommerce}
         layoutOk={query.layout ?? null}
@@ -429,15 +430,27 @@ export default async function OrganizerEventEditPage({ params, searchParams }: P
           fieldSaleCategory: t("eventLayoutFieldSaleCategory"),
           fieldDescription: t("eventLayoutFieldDescription"),
           addPackage: t("eventLayoutAddPackage"),
+          savePackage: t("eventLayoutSavePackage"),
+          deactivatePackage: t("eventLayoutDeactivatePackage"),
+          reactivatePackage: t("eventLayoutReactivatePackage"),
+          inactiveBadge: t("eventLayoutInactiveBadge"),
+          activeBadge: t("eventLayoutActiveBadge"),
           sellableHeading: t("eventLayoutSellableHeading"),
           packagesHeading: t("eventLayoutPackagesHeading"),
           reservationsHeading: t("eventLayoutReservationsHeading"),
           remainingLabel: t("eventLayoutRemainingLabel"),
           guestsLabel: t("eventLayoutGuestsLabel"),
           statusLabel: t("eventLayoutStatusLabel"),
+          capacityLabel: t("eventLayoutCapacityLabel"),
+          reservationCountLabel: t("eventLayoutReservationCountLabel"),
+          readOnlyHint: t("eventLayoutReadOnlyHint"),
           msgTableEnabled: t("msgEventLayoutTableEnabled"),
           msgPackageSaved: t("msgEventLayoutPackageSaved"),
+          msgPackageUpdated: t("msgEventLayoutPackageUpdated"),
+          msgPackageDeactivated: t("msgEventLayoutPackageDeactivated"),
+          msgPackageReactivated: t("msgEventLayoutPackageReactivated"),
           errFailed: t("errEventLayoutFailed"),
+          errNotDraft: t("errEventLayoutNotDraft"),
           noSellable: t("eventLayoutNoSellable"),
         }}
       />
