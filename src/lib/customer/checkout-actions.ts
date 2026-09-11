@@ -6,8 +6,10 @@ import { requireCustomer } from "@/lib/customer/auth";
 import { evaluateCheckoutOrderGate } from "@/lib/customer/checkout-safety";
 import { isIyzicoCheckoutConfigured } from "@/lib/payments/providers/iyzico-config.ts";
 import { createPaymentService } from "@/lib/payments/service";
+import { buildMixedCartTableItem } from "@/lib/reservation/capacity";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabasePublicEnv } from "@/lib/supabase/config";
+import type { Json } from "@/types/supabase/database";
 
 function localeLoginPath(locale: string, next?: string): string {
   const base = locale === "tr" ? "/tr/giris" : "/en/login";
@@ -29,14 +31,35 @@ function localeOrdersPath(locale: string, orderId?: string): string {
 function localeCheckoutPath(
   locale: string,
   eventId: string,
-  ticketTypeId: string
+  opts?: {
+    ticketTypeId?: string;
+    packageId?: string;
+    tableId?: string;
+    guests?: number;
+  }
 ): string {
   const base = locale === "tr" ? "/tr/odeme" : "/en/checkout";
   const qs = new URLSearchParams();
   if (eventId) qs.set("event", eventId);
-  if (ticketTypeId) qs.set("type", ticketTypeId);
+  if (opts?.ticketTypeId) qs.set("type", opts.ticketTypeId);
+  if (opts?.packageId) qs.set("package", opts.packageId);
+  if (opts?.tableId) qs.set("table", opts.tableId);
+  if (opts?.guests != null && opts.guests > 0) {
+    qs.set("guests", String(opts.guests));
+  }
   const q = qs.toString();
   return q ? `${base}?${q}` : base;
+}
+
+function extractCartErrorCode(message: string | undefined): string {
+  if (!message) return "checkout_failed";
+  const cart = message.match(/CART_ITEM_FAILED:\s*([A-Z0-9_]+)/i);
+  if (cart?.[1]) return cart[1].toLowerCase();
+  const known = message.match(
+    /\b(TABLE_LOCKED|CAPACITY_EXCEEDED|GUEST_COUNT_REQUIRED|PACKAGE_NOT_FOUND|TABLE_NOT_SELLABLE|TABLE_BLOCKED|EVENT_NOT_SELLABLE|UNAUTHENTICATED|EMPTY_CART)\b/i
+  );
+  if (known?.[1]) return known[1].toLowerCase();
+  return "checkout_failed";
 }
 
 function withError(path: string, code: string): string {
@@ -123,7 +146,9 @@ export async function checkoutTicketOnlyAction(
       ? Number(clientPriceRaw)
       : null;
 
-  const checkoutPath = localeCheckoutPath(locale, eventId, ticketTypeId);
+  const checkoutPath = localeCheckoutPath(locale, eventId, {
+    ticketTypeId,
+  });
   const loginPath = localeLoginPath(locale, checkoutPath);
 
   if (!getSupabasePublicEnv()) {
@@ -165,6 +190,101 @@ export async function checkoutTicketOnlyAction(
 
   if (error) {
     redirect(withError(checkoutPath, "checkout_failed"));
+  }
+
+  const result = data as CheckoutRpcResult | null;
+  if (!result?.success || !result.order_id) {
+    const code = (result?.error_code ?? "checkout_failed").toLowerCase();
+    redirect(withError(checkoutPath, code));
+  }
+
+  await redirectToPaymentOrOrder({
+    locale,
+    orderId: result.order_id,
+    customerId: customer.userId,
+    errorPath: checkoutPath,
+    clientPrice,
+  });
+}
+
+/**
+ * Table reservation checkout via create_mixed_cart_atomic.
+ * Never trusts client price — catalog price/deposit come from DB via RPC.
+ */
+export async function checkoutTableReservationAction(
+  formData: FormData
+): Promise<void> {
+  const locale = String(formData.get("locale") ?? "tr").trim() || "tr";
+  const eventId = String(formData.get("event_id") ?? "").trim();
+  const tableId = String(formData.get("table_id") ?? "").trim();
+  const packageId = String(formData.get("package_id") ?? "").trim();
+  const guestsRaw = String(formData.get("guest_count") ?? "").trim();
+  const guestCount = Number.parseInt(guestsRaw, 10);
+  // Deliberately ignored if present — never trusted.
+  const clientPriceRaw = formData.get("price");
+  const clientPrice =
+    clientPriceRaw != null && String(clientPriceRaw).trim() !== ""
+      ? Number(clientPriceRaw)
+      : null;
+
+  const checkoutPath = localeCheckoutPath(locale, eventId, {
+    packageId,
+    tableId,
+    guests: Number.isFinite(guestCount) ? guestCount : undefined,
+  });
+  const loginPath = localeLoginPath(locale, checkoutPath);
+
+  if (!getSupabasePublicEnv()) {
+    redirect(withError(checkoutPath, "config"));
+  }
+
+  const customer = await requireCustomer(loginPath);
+
+  if (!eventId || !tableId || !packageId) {
+    redirect(withError(checkoutPath, "missing"));
+  }
+
+  let cartItem: ReturnType<typeof buildMixedCartTableItem>;
+  try {
+    cartItem = buildMixedCartTableItem({
+      tableId,
+      packageId,
+      guestCount,
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "";
+    redirect(
+      withError(
+        checkoutPath,
+        msg === "GUEST_COUNT_REQUIRED"
+          ? "invalid_guests"
+          : msg === "MISSING_TABLE_OR_PACKAGE"
+            ? "missing"
+            : "invalid_guests"
+      )
+    );
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  await supabase.rpc("expire_due_pending_orders_atomic");
+
+  type MixedCartArgs = {
+    p_event_id: string;
+    p_items: Json;
+  };
+  const { data, error } = await (
+    supabase.rpc as unknown as (
+      fn: "create_mixed_cart_atomic",
+      args: MixedCartArgs
+    ) => Promise<{ data: unknown; error: { message: string } | null }>
+  )("create_mixed_cart_atomic", {
+    p_event_id: eventId,
+    p_items: [cartItem] as unknown as Json,
+  });
+
+  if (error) {
+    redirect(withError(checkoutPath, extractCartErrorCode(error.message)));
   }
 
   const result = data as CheckoutRpcResult | null;

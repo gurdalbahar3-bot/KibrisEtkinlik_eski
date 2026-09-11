@@ -158,6 +158,9 @@
     "catalogEmpty": "No ticket types have been published for this event yet.",
     "noCheckoutHint": "Ticket types are listed. In-app checkout is not open yet.",
     "buyTickets": "Buy tickets",
+    "tablesTitle": "Table packages",
+    "remainingSeats": "{count} seats left",
+    "reserveTable": "Reserve a table",
     "relatedTitle": "Related events",
     "relatedSubtitle": "More events in the same category or district"
   },
@@ -289,7 +292,20 @@
     "errorMissingCustomer": "Profile name, email, and phone are required for payment.",
     "errorOrderExpired": "This order has expired.",
     "errorOrderNotPayable": "This order cannot be paid.",
-    "errorPaymentRedirect": "Could not obtain a payment redirect."
+    "errorPaymentRedirect": "Could not obtain a payment redirect.",
+    "tableTitle": "Table reservation",
+    "tablePackage": "Table package",
+    "guestCount": "Guests",
+    "remainingSeats": "Up to {count} guests for this table",
+    "amountDueNow": "Amount due now",
+    "depositDue": "deposit",
+    "basePriceNote": "Full package price {price} (remainder at venue if deposit applies).",
+    "emptyTableOffers": "No table packages available.",
+    "errorMissingTable": "Missing table or package details.",
+    "errorInvalidGuests": "Invalid guest count.",
+    "errorTableLocked": "This table is held by another checkout. Try again shortly.",
+    "errorTableUnavailable": "This table is not available.",
+    "errorPackage": "Package is invalid or inactive."
   },
   "accountOrders": {
     "title": "My orders",

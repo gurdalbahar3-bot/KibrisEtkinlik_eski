@@ -978,10 +978,43 @@ export interface Database {
         };
         Returns: Json;
       };
+      upsert_event_table_atomic: {
+        Args: {
+          p_event_id: string;
+          p_table_id: string;
+          p_is_sellable?: boolean;
+          p_max_guests?: number | null;
+        };
+        Returns: Json;
+      };
+      upsert_table_package_atomic: {
+        Args: {
+          p_event_id: string;
+          p_event_table_id: string;
+          p_name: string;
+          p_base_price: number;
+          p_deposit_amount?: number | null;
+          p_sale_category?: string;
+          p_description?: string | null;
+          p_is_active?: boolean;
+          p_package_id?: string | null;
+        };
+        Returns: Json;
+      };
       create_mixed_cart_atomic: {
         Args: {
           p_event_id: string;
           p_items: Json;
+        };
+        Returns: Json;
+      };
+      reserve_table_atomic: {
+        Args: {
+          p_event_id: string;
+          p_table_id: string;
+          p_package_id: string;
+          p_guest_count?: number | null;
+          p_order_id?: string | null;
         };
         Returns: Json;
       };

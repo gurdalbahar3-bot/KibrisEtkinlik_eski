@@ -158,6 +158,9 @@
     "catalogEmpty": "Bu etkinlik için henüz bilet türü yayınlanmadı.",
     "noCheckoutHint": "Bilet türleri yayınlandı. Platform içi ödeme henüz açık değil.",
     "buyTickets": "Bilet Al",
+    "tablesTitle": "Masa paketleri",
+    "remainingSeats": "{count} koltuk kaldı",
+    "reserveTable": "Masa rezerve et",
     "relatedTitle": "Benzer etkinlikler",
     "relatedSubtitle": "Aynı kategori veya ilçeden diğer etkinlikler"
   },
@@ -289,7 +292,20 @@
     "errorMissingCustomer": "Ödeme için profil bilgilerin (ad, e-posta, telefon) eksik.",
     "errorOrderExpired": "Sipariş süresi doldu.",
     "errorOrderNotPayable": "Bu sipariş ödenemez.",
-    "errorPaymentRedirect": "Ödeme sayfasına yönlendirme alınamadı."
+    "errorPaymentRedirect": "Ödeme sayfasına yönlendirme alınamadı.",
+    "tableTitle": "Masa rezervasyonu",
+    "tablePackage": "Masa paketi",
+    "guestCount": "Misafir sayısı",
+    "remainingSeats": "Bu masa için en fazla {count} kişi",
+    "amountDueNow": "Şimdi ödenecek",
+    "depositDue": "depozito",
+    "basePriceNote": "Paket fiyatı {price} (depozito varsa kalanı mekânda).",
+    "emptyTableOffers": "Satın alınabilir masa paketi yok.",
+    "errorMissingTable": "Eksik masa veya paket bilgisi.",
+    "errorInvalidGuests": "Geçersiz misafir sayısı.",
+    "errorTableLocked": "Bu masa başka bir ödeme sürecinde tutuluyor. Kısa süre sonra tekrar dene.",
+    "errorTableUnavailable": "Bu masa müsait değil.",
+    "errorPackage": "Paket geçersiz veya pasif."
   },
   "accountOrders": {
     "title": "Siparişlerim",

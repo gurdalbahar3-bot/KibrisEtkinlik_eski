@@ -3,11 +3,13 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { MapsDirectionsChooser } from "@/components/discovery/MapsDirectionsChooser";
 import { EventGrid } from "@/components/events/EventGrid";
+import { EventTableOffers } from "@/components/events/EventTableOffers";
 import { EventTicketOffers } from "@/components/events/EventTicketOffers";
 import { SectionHeader } from "@/components/home/SectionHeader";
 import { PosterImage } from "@/components/ui/PosterImage";
 import { Link } from "@/lib/i18n/navigation";
 import { DISTRICT_SLUGS } from "@/lib/data/categories";
+import { listActiveTablePackagesForEvent } from "@/lib/customer/table-offers";
 import {
   discoveryEventsRepository,
   discoveryVenuesRepository,
@@ -91,9 +93,10 @@ export default async function EventOrDistrictPage({ params }: Props) {
   const event = await discoveryEventsRepository.getBySlug(slug);
   if (!event) notFound();
 
-  const [venue, ticketOffers, relatedEvents] = await Promise.all([
+  const [venue, ticketOffers, tableOffers, relatedEvents] = await Promise.all([
     discoveryVenuesRepository.getBySlug(event.venueSlug),
     discoveryEventsRepository.getTicketOffers(event.id),
+    listActiveTablePackagesForEvent(event.id),
     discoveryEventsRepository.getRelatedEvents(event, 4),
   ]);
 
@@ -225,6 +228,8 @@ export default async function EventOrDistrictPage({ params }: Props) {
             officialTicketUrl={event.officialTicketUrl}
             eventId={event.id}
           />
+
+          <EventTableOffers offers={tableOffers} eventId={event.id} />
         </div>
       </div>
 
