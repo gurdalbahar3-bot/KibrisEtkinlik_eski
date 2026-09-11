@@ -77,15 +77,26 @@ export default async function AccountTicketsPage({ params }: Props) {
                 {ticket.status === "pending_payment" ? (
                   <p className="mt-1 text-xs text-amber-800">{t("pendingNote")}</p>
                 ) : null}
-                <Link
-                  href={{
-                    pathname: "/account/orders/[id]",
-                    params: { id: ticket.orderId },
-                  }}
-                  className="mt-2 inline-block text-sm font-medium text-brand-700 hover:underline"
-                >
-                  {t("viewOrder")}
-                </Link>
+                <div className="mt-2 flex flex-wrap gap-3">
+                  <Link
+                    href={{
+                      pathname: "/account/tickets/[id]",
+                      params: { id: ticket.id },
+                    }}
+                    className="text-sm font-medium text-brand-700 hover:underline"
+                  >
+                    {t("viewTicket")}
+                  </Link>
+                  <Link
+                    href={{
+                      pathname: "/account/orders/[id]",
+                      params: { id: ticket.orderId },
+                    }}
+                    className="text-sm font-medium text-slate-600 hover:underline"
+                  >
+                    {t("viewOrder")}
+                  </Link>
+                </div>
               </li>
             ))}
           </ul>

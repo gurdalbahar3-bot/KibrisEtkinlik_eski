@@ -3,6 +3,8 @@
  * Never trust client amount/currency; only DB ledger fields.
  */
 
+import { classifyTicketIssuance } from "../tickets/issuance.ts";
+
 export type CheckoutOrderGateInput = {
   orderId: string;
   customerId: string;
@@ -64,21 +66,29 @@ export function evaluateCheckoutOrderGate(
 export function evaluatePaidTicketIntegrity(input: {
   orderStatus: string;
   tickets: Array<{ status: string; qrCodeId: string | null }>;
+  expectedQuantity?: number;
 }): {
   showSuccess: boolean;
   errorCode?: string;
 } {
-  if (input.orderStatus !== "paid") {
+  const classified = classifyTicketIssuance({
+    orderStatus: input.orderStatus,
+    expectedQuantity: input.expectedQuantity ?? input.tickets.length,
+    tickets: input.tickets.map((t, i) => ({
+      id: `t${i}`,
+      status: t.status,
+      qrCodeId: t.qrCodeId,
+      orderItemId: null,
+    })),
+  });
+  if (classified.ok) {
+    return { showSuccess: true };
+  }
+  if (classified.code === "ORDER_NOT_PAID") {
     return { showSuccess: false, errorCode: "PAYMENT_NOT_VERIFIED" };
   }
-  if (!input.tickets.length) {
+  if (classified.code === "PAID_WITHOUT_TICKETS") {
     return { showSuccess: false, errorCode: "PAID_WITHOUT_TICKETS" };
   }
-  const allActive = input.tickets.every(
-    (t) => t.status === "active" && Boolean(t.qrCodeId)
-  );
-  if (!allActive) {
-    return { showSuccess: false, errorCode: "PAID_TICKETS_INCOMPLETE" };
-  }
-  return { showSuccess: true };
+  return { showSuccess: false, errorCode: "PAID_TICKETS_INCOMPLETE" };
 }

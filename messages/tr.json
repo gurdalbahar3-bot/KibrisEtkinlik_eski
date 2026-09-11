@@ -320,7 +320,9 @@
     "errorOrderExpired": "Sipariş süresi doldu.",
     "errorOrderNotPayable": "Bu sipariş ödenemez.",
     "errorPaymentRedirect": "Ödeme sayfasına yönlendirme alınamadı.",
-    "errorGeneric": "Ödeme başlatılamadı."
+    "errorGeneric": "Ödeme başlatılamadı.",
+    "ticketsOnOrder": "Oluşturulan biletler",
+    "viewTicket": "Bilet ve QR"
   },
   "accountTickets": {
     "title": "Biletlerim",
@@ -334,7 +336,21 @@
     "statusTransferred": "Transfer edildi",
     "statusCancelled": "İptal",
     "pendingNote": "Bu bilet ödeme tamamlanınca aktif olur.",
-    "viewOrder": "Siparişi gör"
+    "viewOrder": "Siparişi gör",
+    "viewTicket": "Bilet ve QR",
+    "backToList": "Biletlere dön",
+    "venue": "Mekan",
+    "startsAt": "Tarih ve saat",
+    "ticketType": "Bilet tipi",
+    "zone": "Bölge",
+    "quantityUnit": "Adet",
+    "qrTitle": "Giriş QR",
+    "qrAlt": "Bilet giriş QR kodu",
+    "qrHint": "Kapıda bu QR'ı göster. Yalnızca güvenli bilet token'ı içerir — kişisel veri yok.",
+    "qrUsed": "Bu bilet giriş için kullanılmış.",
+    "qrCancelled": "Bu bilet iptal edilmiş.",
+    "ticketsOnOrder": "Oluşturulan biletler",
+    "qtyOne": "1 bilet"
   },
   "paymentResult": {
     "successTitle": "Ödeme doğrulandı",

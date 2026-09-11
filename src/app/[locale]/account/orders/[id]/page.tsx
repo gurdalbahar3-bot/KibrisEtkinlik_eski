@@ -3,7 +3,10 @@ import { notFound, redirect as nextRedirect } from "next/navigation";
 
 import { OrderPayButton } from "@/components/customer/OrderPayButton";
 import { getCustomerSession } from "@/lib/customer/auth";
-import { getCustomerOrder } from "@/lib/customer/orders";
+import {
+  getCustomerOrder,
+  listCustomerTicketsForOrder,
+} from "@/lib/customer/orders";
 import { formatTicketPrice } from "@/lib/discovery/format-price";
 import { Link } from "@/lib/i18n/navigation";
 
@@ -85,6 +88,11 @@ export default async function AccountOrderDetailPage({
   if (!order) {
     notFound();
   }
+
+  const issuedTickets =
+    order.status === "paid"
+      ? await listCustomerTicketsForOrder(session.userId, order.id)
+      : [];
 
   const expiresLabel = new Intl.DateTimeFormat(locale === "tr" ? "tr-TR" : "en-GB", {
     dateStyle: "medium",
@@ -201,6 +209,33 @@ export default async function AccountOrderDetailPage({
               </li>
             ))}
           </ul>
+
+          {issuedTickets.length > 0 ? (
+            <>
+              <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-slate-500">
+                {t("ticketsOnOrder")}
+              </h2>
+              <ul className="mt-3 divide-y divide-slate-100" data-testid="order-tickets">
+                {issuedTickets.map((ticket) => (
+                  <li
+                    key={ticket.id}
+                    className="flex items-center justify-between gap-3 py-3 text-sm"
+                  >
+                    <span className="text-slate-700">{ticket.status}</span>
+                    <Link
+                      href={{
+                        pathname: "/account/tickets/[id]",
+                        params: { id: ticket.id },
+                      }}
+                      className="font-medium text-brand-700 hover:underline"
+                    >
+                      {t("viewTicket")}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
         </article>
       </div>
     </div>

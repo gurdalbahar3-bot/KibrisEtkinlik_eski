@@ -10,7 +10,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test scripts/assert-051-scope.mjs scripts/assert-052-scope.mjs scripts/assert-053-scope.mjs scripts/assert-054-scope.mjs scripts/assert-055-scope.mjs scripts/assert-055-jsonld.mjs scripts/assert-sa-real-publish.mjs scripts/assert-production-data-source.mjs scripts/assert-live-jwt-publish-e2e.mjs scripts/assert-b1-payment-foundation.mjs scripts/assert-b2.1-iyzico-auth.mjs scripts/assert-b2.2-iyzico-checkout.mjs scripts/assert-b2.3-iyzico-callback.mjs scripts/assert-b3-iyzico-webhook.mjs scripts/assert-b4-payment-reconciliation.mjs scripts/assert-b5-checkout-hardening.mjs scripts/assert-b6-payment-e2e.mjs",
+    "test": "node --experimental-strip-types --test scripts/assert-051-scope.mjs scripts/assert-052-scope.mjs scripts/assert-053-scope.mjs scripts/assert-054-scope.mjs scripts/assert-055-scope.mjs scripts/assert-055-jsonld.mjs scripts/assert-sa-real-publish.mjs scripts/assert-production-data-source.mjs scripts/assert-live-jwt-publish-e2e.mjs scripts/assert-b1-payment-foundation.mjs scripts/assert-b2.1-iyzico-auth.mjs scripts/assert-b2.2-iyzico-checkout.mjs scripts/assert-b2.3-iyzico-callback.mjs scripts/assert-b3-iyzico-webhook.mjs scripts/assert-b4-payment-reconciliation.mjs scripts/assert-b5-checkout-hardening.mjs scripts/assert-b6-payment-e2e.mjs scripts/assert-b7-real-sandbox.mjs scripts/assert-ticket-qr-checkin.mjs scripts/assert-ticket-qr-checkin-e2e.mjs",
     "test:b2.1": "node --experimental-strip-types --test scripts/assert-b2.1-iyzico-auth.mjs",
     "test:e2e": "playwright test",
     "test:e2e:sprint1": "playwright test e2e/sprint1-sa-publish.spec.ts",
@@ -27,13 +27,16 @@
     "test:b3": "node --experimental-strip-types --test scripts/assert-b3-iyzico-webhook.mjs",
     "test:b4": "node --experimental-strip-types --test scripts/assert-b4-payment-reconciliation.mjs",
     "test:b5": "node --experimental-strip-types --test scripts/assert-b5-checkout-hardening.mjs",
-    "test:b6": "node --experimental-strip-types --test scripts/assert-b6-payment-e2e.mjs"
+    "test:b6": "node --experimental-strip-types --test scripts/assert-b6-payment-e2e.mjs",
+    "test:b7": "node --experimental-strip-types --test scripts/assert-b7-real-sandbox.mjs",
+    "test:ticket-qr": "node --experimental-strip-types --test scripts/assert-ticket-qr-checkin.mjs scripts/assert-ticket-qr-checkin-e2e.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.3",
     "next": "^15.1.6",
     "next-intl": "^3.26.3",
+    "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "server-only": "^0.0.1"
@@ -42,6 +45,7 @@
     "@eslint/eslintrc": "^3.2.0",
     "@playwright/test": "^1.63.0",
     "@types/node": "^22.10.7",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
     "autoprefixer": "^10.4.20",

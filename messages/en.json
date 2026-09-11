@@ -320,7 +320,9 @@
     "errorOrderExpired": "This order has expired.",
     "errorOrderNotPayable": "This order cannot be paid.",
     "errorPaymentRedirect": "Could not obtain a payment redirect.",
-    "errorGeneric": "Could not start payment."
+    "errorGeneric": "Could not start payment.",
+    "ticketsOnOrder": "Issued tickets",
+    "viewTicket": "View ticket & QR"
   },
   "accountTickets": {
     "title": "My tickets",
@@ -334,7 +336,21 @@
     "statusTransferred": "Transferred",
     "statusCancelled": "Cancelled",
     "pendingNote": "This ticket becomes active after payment.",
-    "viewOrder": "View order"
+    "viewOrder": "View order",
+    "viewTicket": "View ticket & QR",
+    "backToList": "Back to tickets",
+    "venue": "Venue",
+    "startsAt": "Date & time",
+    "ticketType": "Ticket type",
+    "zone": "Zone",
+    "quantityUnit": "Quantity",
+    "qrTitle": "Entry QR",
+    "qrAlt": "Ticket entry QR code",
+    "qrHint": "Show this QR at the door. It contains only a secure ticket token — no personal data.",
+    "qrUsed": "This ticket has already been used for entry.",
+    "qrCancelled": "This ticket was cancelled.",
+    "ticketsOnOrder": "Issued tickets",
+    "qtyOne": "1 ticket"
   },
   "paymentResult": {
     "successTitle": "Payment verified",

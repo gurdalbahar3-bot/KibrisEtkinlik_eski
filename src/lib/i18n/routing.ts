@@ -66,6 +66,10 @@ export const routing = defineRouting({
       tr: "/hesap/biletler",
       en: "/account/tickets",
     },
+    "/account/tickets/[id]": {
+      tr: "/hesap/biletler/[id]",
+      en: "/account/tickets/[id]",
+    },
   },
 });
 
