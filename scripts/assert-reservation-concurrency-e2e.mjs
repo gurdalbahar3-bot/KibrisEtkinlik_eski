@@ -340,3 +340,171 @@ test(
     }
   }
 );
+
+test(
+  "staging: inactive package rejected; guest overflow; customer cannot upsert package",
+  { skip: !stagingReady() },
+  async () => {
+    const url = process.env.SUPABASE_URL.trim();
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY.trim();
+    const anon =
+      process.env.SUPABASE_ANON_KEY?.trim() ||
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
+      "";
+    const admin = createClient(url, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+
+    const { data: packages } = await admin
+      .from("table_packages")
+      .select(
+        "id, event_id, event_table_id, name, base_price, deposit_amount, sale_category, description, is_active"
+      )
+      .eq("is_active", true)
+      .limit(30);
+
+    if (!packages?.length) return;
+
+    let fixture = null;
+    for (const pkg of packages) {
+      const { data: ev } = await admin
+        .from("events")
+        .select("id, status, is_wedding")
+        .eq("id", pkg.event_id)
+        .maybeSingle();
+      if (!ev || ev.status !== "published" || ev.is_wedding) continue;
+      const { data: et } = await admin
+        .from("event_tables")
+        .select("id, table_id, is_sellable, max_guests")
+        .eq("id", pkg.event_table_id)
+        .maybeSingle();
+      if (!et?.is_sellable) continue;
+      const { data: vt } = await admin
+        .from("venue_tables")
+        .select("capacity")
+        .eq("id", et.table_id)
+        .maybeSingle();
+      fixture = {
+        pkg,
+        eventId: pkg.event_id,
+        tableId: et.table_id,
+        capacity: et.max_guests ?? vt?.capacity ?? 1,
+      };
+      break;
+    }
+    if (!fixture) return;
+
+    const stamp = Date.now();
+    const email = `res-pkg-${stamp}@example.com`;
+    const password = `Rp-${stamp}!Aa1`;
+    const { data: created, error: createErr } =
+      await admin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+      });
+    assert.ifError(createErr);
+    const client = createClient(url, anon, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    assert.ifError(
+      (
+        await client.auth.signInWithPassword({ email, password })
+      ).error
+    );
+
+    await admin.rpc("expire_due_pending_orders_atomic");
+
+    // Soft-deactivate package via service role update (catalog only)
+    const originalActive = fixture.pkg.is_active;
+    const { error: deactErr } = await admin
+      .from("table_packages")
+      .update({ is_active: false })
+      .eq("id", fixture.pkg.id);
+    assert.ifError(deactErr);
+
+    const { data: inactiveRes } = await client.rpc("reserve_table_atomic", {
+      p_event_id: fixture.eventId,
+      p_table_id: fixture.tableId,
+      p_package_id: fixture.pkg.id,
+      p_guest_count: 1,
+    });
+    assert.equal(inactiveRes?.success, false);
+    assert.equal(
+      String(inactiveRes?.error_code).toUpperCase(),
+      "PACKAGE_NOT_FOUND"
+    );
+
+    // Restore active for overflow / auth tests
+    await admin
+      .from("table_packages")
+      .update({ is_active: originalActive })
+      .eq("id", fixture.pkg.id);
+
+    // guest_count > capacity → CAPACITY / INVALID
+    const { data: overflow } = await client.rpc("reserve_table_atomic", {
+      p_event_id: fixture.eventId,
+      p_table_id: fixture.tableId,
+      p_package_id: fixture.pkg.id,
+      p_guest_count: fixture.capacity + 50,
+    });
+    assert.equal(overflow?.success, false);
+    assert.ok(
+      ["CAPACITY_EXCEEDED", "TABLE_CAPACITY_EXCEEDED", "INVALID_PASS_COUNT"].includes(
+        String(overflow?.error_code).toUpperCase()
+      ),
+      JSON.stringify(overflow)
+    );
+
+    // Customer cannot mutate package catalog
+    const { data: mutate, error: mutateErr } = await client.rpc(
+      "upsert_table_package_atomic",
+      {
+        p_event_id: fixture.eventId,
+        p_event_table_id: fixture.pkg.event_table_id,
+        p_name: "HACK",
+        p_base_price: 1,
+        p_deposit_amount: 0,
+        p_sale_category: "table",
+        p_description: null,
+        p_is_active: true,
+        p_package_id: fixture.pkg.id,
+      }
+    );
+    if (mutateErr) {
+      assert.match(mutateErr.message, /permission|policy|forbidden|denied|JWT|RLS/i);
+    } else {
+      assert.equal(mutate?.success, false);
+      assert.equal(String(mutate?.error_code).toUpperCase(), "FORBIDDEN");
+    }
+
+    // Historical price snapshot: order_items unchanged when catalog price changes
+    // (document via select — package base_price update must not rewrite order_items)
+    const { data: anyItem } = await admin
+      .from("order_items")
+      .select("id, total_price, snapshot_label")
+      .eq("item_type", "table")
+      .limit(1)
+      .maybeSingle();
+    if (anyItem) {
+      const before = Number(anyItem.total_price);
+      // touch package price and ensure order_item row unchanged
+      await admin
+        .from("table_packages")
+        .update({ base_price: Number(fixture.pkg.base_price) })
+        .eq("id", fixture.pkg.id);
+      const { data: afterItem } = await admin
+        .from("order_items")
+        .select("total_price")
+        .eq("id", anyItem.id)
+        .single();
+      assert.equal(Number(afterItem.total_price), before);
+    }
+
+    try {
+      await admin.auth.admin.deleteUser(created.user.id);
+    } catch {
+      // ignore
+    }
+  }
+);

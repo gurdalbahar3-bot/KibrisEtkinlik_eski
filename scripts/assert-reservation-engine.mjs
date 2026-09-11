@@ -188,3 +188,79 @@ test("source contracts: reserve_table_atomic + resource_locks + check_table_capa
 
   assert.ok(existsSync(resolve("src/lib/customer/table-offers.ts")));
 });
+
+test("package soft deactivate + draft gate + capacity source contracts", () => {
+  const layoutActions = read(
+    "src/app/organizer/(app)/events/layout-actions.ts"
+  );
+  assert.match(layoutActions, /requireOwnedDraftEvent/);
+  assert.match(layoutActions, /gateDraftLayout/);
+  assert.match(layoutActions, /setEventTablePackageActiveAction/);
+  assert.match(layoutActions, /p_is_active/);
+  assert.match(layoutActions, /upsert_table_package_atomic/);
+  assert.match(layoutActions, /upsert_event_table_atomic/);
+  // Soft deactivate via upsert — not hard delete
+  assert.doesNotMatch(layoutActions, /\.delete\(/);
+
+  const panel = read("src/components/organizer/EventLayoutCommercePanel.tsx");
+  assert.match(panel, /isDraft/);
+  assert.match(panel, /deactivatePackage/);
+  assert.match(panel, /reactivatePackage/);
+  assert.match(panel, /savePackage/);
+  assert.match(panel, /setEventTablePackageActiveAction/);
+
+  const offers = read("src/lib/customer/table-offers.ts");
+  assert.match(offers, /capacitySource/);
+  assert.match(offers, /entry_passes/);
+  assert.match(offers, /reservation_guest_count/);
+  assert.match(offers, /\.eq\("is_active", true\)/);
+
+  const checkoutUi = read(
+    "src/components/customer/TableReservationCheckout.tsx"
+  );
+  assert.match(checkoutUi, /summaryEvent/);
+  assert.match(checkoutUi, /summaryVenue/);
+  assert.match(checkoutUi, /summaryTable/);
+  assert.match(checkoutUi, /summaryDeposit/);
+  assert.match(checkoutUi, /stateHoldPending/);
+
+  const mig045 = read("supabase/migrations/045_event_commerce_setup.sql");
+  assert.match(mig045, /upsert_table_package_atomic/);
+  assert.match(mig045, /is_active/);
+  // Catalog price update does not touch order_items
+  assert.doesNotMatch(
+    mig045,
+    /UPDATE public\.order_items[\s\S]{0,80}base_price/
+  );
+
+  const docs = read("docs/CURRENT_STATE_ARCHITECTURE.md");
+  assert.match(docs, /Exclusive/);
+  assert.match(docs, /after confirmation/i);
+  assert.match(docs, /Draft-only/);
+  assert.match(docs, /capacitySource/);
+});
+
+test("guest_count cannot exceed remaining capacity (pure)", () => {
+  const full = evaluateSharedTableCapacity({
+    effectiveCapacity: 10,
+    usedPassCount: 10,
+    requestedGuests: 1,
+  });
+  assert.equal(full.ok, false);
+
+  const ok = evaluateSharedTableCapacity({
+    effectiveCapacity: 10,
+    usedPassCount: 7,
+    requestedGuests: 3,
+  });
+  assert.equal(ok.ok, true);
+  assert.equal(ok.remaining, 0);
+
+  const overflow = evaluateSharedTableCapacity({
+    effectiveCapacity: 10,
+    usedPassCount: 7,
+    requestedGuests: 4,
+  });
+  assert.equal(overflow.ok, false);
+  assert.equal(overflow.errorCode, "TABLE_CAPACITY_EXCEEDED");
+});
