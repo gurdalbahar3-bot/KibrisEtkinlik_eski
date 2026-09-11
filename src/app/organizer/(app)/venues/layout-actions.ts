@@ -48,13 +48,13 @@ export async function saveVenueAreaAction(formData: FormData): Promise<void> {
   if (!getSupabasePublicEnv()) {
     redirect("/organizer/login?error=config");
   }
-  const session = await requireOrganizer();
+  await requireOrganizer();
   const venueId = String(formData.get("venue_id") ?? "").trim();
   if (!isVenueUuid(venueId)) {
     redirect("/organizer/venues");
   }
   const venue = await getOrganizerVenue(venueId);
-  if (!venue || venue.ownerId !== session.userId) {
+  if (!venue) {
     redirectLayout(venueId, "layout_error=forbidden");
   }
 
@@ -100,13 +100,13 @@ export async function saveVenueTableAction(formData: FormData): Promise<void> {
   if (!getSupabasePublicEnv()) {
     redirect("/organizer/login?error=config");
   }
-  const session = await requireOrganizer();
+  await requireOrganizer();
   const venueId = String(formData.get("venue_id") ?? "").trim();
   if (!isVenueUuid(venueId)) {
     redirect("/organizer/venues");
   }
   const venue = await getOrganizerVenue(venueId);
-  if (!venue || venue.ownerId !== session.userId) {
+  if (!venue) {
     redirectLayout(venueId, "layout_error=forbidden");
   }
 
