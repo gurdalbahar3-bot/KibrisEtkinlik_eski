@@ -5,7 +5,7 @@ const SITE_URL =
 
 /**
  * Public crawl policy — discovery surfaces only.
- * Organizer/admin/checkout/account are disallowed (noindex intent via robots).
+ * Disallow private/commerce paths in both TR and EN locale prefixes.
  */
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -17,9 +17,13 @@ export default function robots(): MetadataRoute.Robots {
         "/admin",
         "/api",
         "/*/checkout",
+        "/*/odeme",
         "/*/account",
+        "/*/hesap",
         "/*/login",
+        "/*/giris",
         "/*/signup",
+        "/*/kayit",
       ],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,

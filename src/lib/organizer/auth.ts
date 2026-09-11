@@ -32,12 +32,18 @@ function toSession(profile: ProfileGateRow): OrganizerSession | null {
     return null;
   }
 
+  const verificationStatus = profile.verification_status ?? "pending";
+  // Portal access requires SA-approved organizer (matches venue/event create RPCs).
+  if (verificationStatus !== "approved") {
+    return null;
+  }
+
   return {
     userId: profile.id,
     email: profile.email,
     fullName: profile.full_name,
     accountType: "organizer",
-    verificationStatus: profile.verification_status ?? "pending",
+    verificationStatus,
   };
 }
 

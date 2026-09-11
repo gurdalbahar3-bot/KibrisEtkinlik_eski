@@ -12,6 +12,7 @@ export const ALLOWED_POST_055_MIGRATION_FILES = new Set([
   "061_staging_commerce_security_hardening.sql",
   "062_staging_checkout_phase_a.sql",
   "063_staging_payment_foundation.sql",
+  "064_mvp_release_security_hardening.sql",
 ]);
 
 /**

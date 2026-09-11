@@ -206,17 +206,21 @@ test("B6 confirm_payment_atomic still denied for anon (staging)", async () => {
   assert.ok(error, "anon must not execute confirm");
 });
 
-test("B6 no migration 064 required / allowlist stops at 063", () => {
-  const migs = readdirSync(resolve("supabase/migrations")).filter((n) =>
-    /^064_/.test(n)
+test("B6 migration 064 security hardening is allowlisted; unknown 065+ refused", () => {
+  const migs064 = readdirSync(resolve("supabase/migrations")).filter((n) =>
+    n === "064_mvp_release_security_hardening.sql"
   );
-  assert.equal(migs.length, 0);
+  assert.equal(migs064.length, 1);
+  const migs065 = readdirSync(resolve("supabase/migrations")).filter((n) =>
+    /^065_/.test(n)
+  );
+  assert.equal(migs065.length, 0);
   const allow = readFileSync(
     resolve("scripts/migration-scope-allowlist.mjs"),
     "utf8"
   );
-  assert.match(allow, /063_staging_payment_foundation\.sql/);
-  assert.equal(allow.includes("064_"), false);
+  assert.match(allow, /064_mvp_release_security_hardening\.sql/);
+  assert.equal(allow.includes("065_"), false);
 });
 
 test(
