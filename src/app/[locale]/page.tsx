@@ -4,7 +4,9 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { DiscoveryHero } from "@/components/home/DiscoveryHero";
 import { FeaturedEvents } from "@/components/home/FeaturedEvents";
 import { TodayEvents } from "@/components/home/TodayEvents";
+import { ThisWeekEvents } from "@/components/home/ThisWeekEvents";
 import { WeekendEvents } from "@/components/home/WeekendEvents";
+import { StartingSoonEvents } from "@/components/home/StartingSoonEvents";
 import { CategoryGrid } from "@/components/home/CategoryGrid";
 import { DistrictGrid } from "@/components/home/DistrictGrid";
 import { UpcomingEvents } from "@/components/home/UpcomingEvents";
@@ -63,7 +65,9 @@ export default async function HomePage({ params }: Props) {
     heroEvent,
     featuredEvents,
     todayPreview,
+    thisWeekPreview,
     weekendPreview,
+    startingSoonPreview,
     upcomingPreview,
     venues,
     districts,
@@ -94,7 +98,9 @@ export default async function HomePage({ params }: Props) {
       <DiscoveryHero spotlight={heroEvent} />
       <FeaturedEvents events={featuredEvents} />
       <TodayEvents events={todayPreview} />
+      <ThisWeekEvents events={thisWeekPreview} />
       <WeekendEvents events={weekendPreview} />
+      <StartingSoonEvents events={startingSoonPreview} />
       <CategoryGrid categoryCounts={categoryCounts} />
       <DistrictGrid districts={districts} />
       <UpcomingEvents events={upcomingPreview} />

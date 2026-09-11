@@ -1,5 +1,7 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/lib/i18n/navigation";
+import { resolveDiscoveryCommerceMode } from "@/lib/discovery/commerce-cta";
+import { formatTicketPrice } from "@/lib/discovery/format-price";
 import { getEventImage, getEventImageSources } from "@/lib/ui/event-image";
 import { PosterImage } from "@/components/ui/PosterImage";
 import { formatEventDate } from "@/lib/seo/jsonld";
@@ -35,7 +37,29 @@ export async function PlatformEventCard({
   const isCompact = variant === "compact";
   const isFeatured = variant === "featured" || variant === "standard";
   const imageSrc = getEventImage(event);
-  const fallbackSources = getEventImageSources(event).filter((url) => url !== imageSrc);
+  const fallbackSources = getEventImageSources(event).filter(
+    (url) => url !== imageSrc
+  );
+  const mode = resolveDiscoveryCommerceMode(event);
+
+  const ctaLabel =
+    mode === "free"
+      ? t("joinFree")
+      : mode === "ticket" || mode === "external"
+        ? t("buyTickets")
+        : mode === "reservation"
+          ? t("reserveTable")
+          : mode === "hybrid"
+            ? t("buyOrReserve")
+            : t("viewDetails");
+
+  const priceLabel = event.isFree
+    ? t("free")
+    : event.startingPrice != null
+      ? t("fromPrice", {
+          price: formatTicketPrice(event.startingPrice, locale),
+        })
+      : t("viewDetails");
 
   return (
     <article className="platform-card group flex h-full flex-col">
@@ -62,8 +86,12 @@ export async function PlatformEventCard({
           {tCat(event.category)}
         </span>
         <div className="absolute bottom-3 left-3 rounded-xl bg-white/95 px-2.5 py-1.5 text-center shadow-md backdrop-blur-sm">
-          <p className="text-lg font-bold leading-none text-platform-navy">{day}</p>
-          <p className="text-[10px] font-bold uppercase tracking-wide text-accent-600">{month}</p>
+          <p className="text-lg font-bold leading-none text-platform-navy">
+            {day}
+          </p>
+          <p className="text-[10px] font-bold uppercase tracking-wide text-accent-600">
+            {month}
+          </p>
         </div>
         {event.isFree && (
           <span className="absolute right-3 top-3 rounded-full bg-emerald-500 px-2.5 py-1 text-[10px] font-semibold text-white shadow">
@@ -75,7 +103,9 @@ export async function PlatformEventCard({
       <div
         className={`flex flex-1 flex-col ${isCompact ? "gap-1 p-3" : isFeatured ? "gap-1.5 p-4" : "gap-2 p-4 sm:p-5"}`}
       >
-        <Link href={{ pathname: "/events/[slug]", params: { slug: event.slug } }}>
+        <Link
+          href={{ pathname: "/events/[slug]", params: { slug: event.slug } }}
+        >
           <h3
             className={`line-clamp-2 font-bold leading-snug text-platform-navy transition group-hover:text-brand-700 ${
               variant === "hero"
@@ -92,10 +122,14 @@ export async function PlatformEventCard({
         </Link>
 
         {event.artist && !isCompact && (
-          <p className="line-clamp-1 text-xs font-medium text-slate-500">{event.artist}</p>
+          <p className="line-clamp-1 text-xs font-medium text-slate-500">
+            {event.artist}
+          </p>
         )}
 
-        <div className={`space-y-1 ${isCompact ? "text-xs" : "text-sm"} text-slate-600`}>
+        <div
+          className={`space-y-1 ${isCompact ? "text-xs" : "text-sm"} text-slate-600`}
+        >
           <p className="flex items-center gap-1.5 line-clamp-1">
             <PinIcon className="shrink-0 text-accent-500" />
             <span>
@@ -117,9 +151,21 @@ export async function PlatformEventCard({
           )}
         </div>
 
-        <p className={`mt-auto font-semibold text-platform-navy ${isCompact ? "text-xs" : "text-sm"}`}>
-          {event.isFree ? t("free") : t("details")}
-        </p>
+        <div
+          className={`mt-auto flex items-center justify-between gap-2 ${isCompact ? "pt-1" : "pt-2"}`}
+        >
+          <p
+            className={`font-semibold text-platform-navy ${isCompact ? "text-xs" : "text-sm"}`}
+          >
+            {priceLabel}
+          </p>
+          <Link
+            href={{ pathname: "/events/[slug]", params: { slug: event.slug } }}
+            className={`shrink-0 font-semibold text-brand-700 hover:underline ${isCompact ? "text-[11px]" : "text-xs"}`}
+          >
+            {ctaLabel}
+          </Link>
+        </div>
       </div>
     </article>
   );
@@ -127,7 +173,12 @@ export async function PlatformEventCard({
 
 function PinIcon({ className }: { className?: string }) {
   return (
-    <svg className={`h-3.5 w-3.5 ${className ?? ""}`} fill="currentColor" viewBox="0 0 20 20" aria-hidden>
+    <svg
+      className={`h-3.5 w-3.5 ${className ?? ""}`}
+      fill="currentColor"
+      viewBox="0 0 20 20"
+      aria-hidden
+    >
       <path
         fillRule="evenodd"
         d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
@@ -139,7 +190,13 @@ function PinIcon({ className }: { className?: string }) {
 
 function CalendarIcon({ className }: { className?: string }) {
   return (
-    <svg className={`h-3.5 w-3.5 ${className ?? ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+    <svg
+      className={`h-3.5 w-3.5 ${className ?? ""}`}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      aria-hidden
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"

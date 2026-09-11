@@ -22,7 +22,9 @@ export interface HomepageDiscoveryData {
   heroEvent: DiscoveryEvent | null;
   featuredEvents: DiscoveryEvent[];
   todayPreview: DiscoveryEvent[];
+  thisWeekPreview: DiscoveryEvent[];
   weekendPreview: DiscoveryEvent[];
+  startingSoonPreview: DiscoveryEvent[];
   upcomingPreview: DiscoveryEvent[];
   venues: DiscoveryVenue[];
   districts: DistrictInfo[];
@@ -30,6 +32,7 @@ export interface HomepageDiscoveryData {
   stats: {
     totalEvents: number;
     todayCount: number;
+    thisWeekCount: number;
     weekendCount: number;
     venueCount: number;
     districtCount: number;
@@ -48,7 +51,7 @@ function sortByDateThenTime(a: DiscoveryEvent, b: DiscoveryEvent): number {
 
 /**
  * Single-pass homepage loader.
- * Dedup: hero → featured → today → weekend → upcoming.
+ * Dedup: hero → featured → today → this week → weekend → starting soon → upcoming.
  */
 export async function loadHomepageDiscoveryData(): Promise<HomepageDiscoveryData> {
   const [allEvents, allVenues, allDistricts] = await Promise.all([
@@ -58,12 +61,17 @@ export async function loadHomepageDiscoveryData(): Promise<HomepageDiscoveryData
   ]);
 
   const todayRange = getDateRange("today");
+  const weekRange = getDateRange("week");
   const weekendRange = getDateRange("weekend");
   const today = getCyprusDateString();
 
   const todayEvents = allEvents
     .filter((event) => event.date >= todayRange.from && event.date <= todayRange.to)
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+  const thisWeekEvents = allEvents
+    .filter((event) => event.date >= weekRange.from && event.date <= weekRange.to)
+    .sort(sortByDateThenTime);
 
   const weekendEvents = allEvents
     .filter((event) => event.date >= weekendRange.from && event.date <= weekendRange.to)
@@ -91,10 +99,22 @@ export async function loadHomepageDiscoveryData(): Promise<HomepageDiscoveryData
   const todayPreview = todayEvents.filter((event) => !usedIds.has(event.id)).slice(0, SECTION_LIMIT);
   todayPreview.forEach((event) => usedIds.add(event.id));
 
+  const thisWeekPreview = thisWeekEvents
+    .filter((event) => !usedIds.has(event.id))
+    .slice(0, SECTION_LIMIT);
+  thisWeekPreview.forEach((event) => usedIds.add(event.id));
+
   const weekendPreview = weekendEvents
     .filter((event) => !usedIds.has(event.id))
     .slice(0, SECTION_LIMIT);
   weekendPreview.forEach((event) => usedIds.add(event.id));
+
+  // Starting soon: nearest upcoming by date+time (today + next days), not yet used.
+  const startingSoonPreview = [...allEvents]
+    .filter((event) => event.date >= today && !usedIds.has(event.id))
+    .sort(sortByDateThenTime)
+    .slice(0, SECTION_LIMIT);
+  startingSoonPreview.forEach((event) => usedIds.add(event.id));
 
   const upcomingPreview = allEvents
     .filter((event) => event.date > today && !usedIds.has(event.id))
@@ -111,7 +131,9 @@ export async function loadHomepageDiscoveryData(): Promise<HomepageDiscoveryData
     heroEvent,
     featuredEvents,
     todayPreview,
+    thisWeekPreview,
     weekendPreview,
+    startingSoonPreview,
     upcomingPreview,
     venues,
     districts: allDistricts,
@@ -119,6 +141,7 @@ export async function loadHomepageDiscoveryData(): Promise<HomepageDiscoveryData
     stats: {
       totalEvents: allEvents.length,
       todayCount: todayEvents.length,
+      thisWeekCount: thisWeekEvents.length,
       weekendCount: weekendEvents.length,
       venueCount: allVenues.length,
       districtCount: allDistricts.length,

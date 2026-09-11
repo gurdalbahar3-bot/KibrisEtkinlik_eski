@@ -56,7 +56,7 @@ export async function DistrictGrid({
             {districts.map((district) => (
               <li key={district.slug}>
                 <Link
-                  href={{ pathname: "/events", query: { district: district.slug } }}
+                  href={{ pathname: "/events/[slug]", params: { slug: district.slug } }}
                   className="discovery-card group relative flex h-44 sm:h-48"
                 >
                   <PosterImage
@@ -98,7 +98,7 @@ export async function DistrictGrid({
           {districts.map((district) => (
             <li key={district.slug}>
               <Link
-                href={{ pathname: "/events", query: { district: district.slug } }}
+                href={{ pathname: "/events/[slug]", params: { slug: district.slug } }}
                 className="group flex min-h-[56px] flex-col items-center justify-center rounded-2xl border border-slate-200/90 bg-white px-3 py-3.5 text-center shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:bg-slate-50/80 hover:shadow-card"
               >
                 <span className="flex items-center gap-1 text-sm font-bold text-platform-navy">

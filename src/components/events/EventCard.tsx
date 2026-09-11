@@ -3,6 +3,8 @@
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/lib/i18n/navigation";
 import { PosterImage } from "@/components/ui/PosterImage";
+import { resolveDiscoveryCommerceMode } from "@/lib/discovery/commerce-cta";
+import { formatTicketPrice } from "@/lib/discovery/format-price";
 import { formatEventDate } from "@/lib/seo/jsonld";
 import type { DiscoveryEvent } from "@/types/event";
 
@@ -17,6 +19,26 @@ export function EventCard({ event, priority = false }: EventCardProps) {
   const tDist = useTranslations("districts");
   const locale = useLocale() as "tr" | "en";
   const { day, month, weekday } = formatEventDate(event.date, locale);
+  const mode = resolveDiscoveryCommerceMode(event);
+
+  const ctaLabel =
+    mode === "free"
+      ? t("joinFree")
+      : mode === "ticket" || mode === "external"
+        ? t("buyTickets")
+        : mode === "reservation"
+          ? t("reserveTable")
+          : mode === "hybrid"
+            ? t("buyOrReserve")
+            : t("viewDetails");
+
+  const priceLabel = event.isFree
+    ? t("free")
+    : event.startingPrice != null
+      ? t("fromPrice", {
+          price: formatTicketPrice(event.startingPrice, locale),
+        })
+      : null;
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:shadow-card-hover">
@@ -63,17 +85,25 @@ export function EventCard({ event, priority = false }: EventCardProps) {
           </span>
         </Link>
         {event.artist && (
-          <p className="line-clamp-1 text-xs font-medium text-slate-500">{event.artist}</p>
+          <p className="line-clamp-1 text-xs font-medium text-slate-500">
+            {event.artist}
+          </p>
         )}
         <p className="line-clamp-1 text-sm text-slate-600">
           {event.venue}
           <span className="text-slate-400"> · </span>
           {tDist(event.district)}
         </p>
-        <div className="mt-auto pt-2">
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-2">
           <span className="inline-flex rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700">
             {tCat(event.category)}
           </span>
+          <div className="text-right">
+            {priceLabel ? (
+              <p className="text-xs font-semibold text-slate-800">{priceLabel}</p>
+            ) : null}
+            <p className="text-xs font-semibold text-brand-700">{ctaLabel}</p>
+          </div>
         </div>
       </div>
     </article>
