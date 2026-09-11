@@ -202,6 +202,17 @@ Social channels are **not** inventory sources of truth.
 | CTAs | Safe detail/checkout links only; ledger/payment never client-trusted. Hybrid = ticket + reservation. |
 | SEO | Per-event + district canonical, hreflang, OG/Twitter, JSON-LD Event; sitemap from discovery facade only. |
 
+## 9d. MVP release security (064)
+
+| Topic | Rule |
+|-------|------|
+| Signup privilege | `handle_new_user` always inserts `account_type=customer`. Organizer elevation only via SA approval RPC. |
+| Organizer portal | App requires `verification_status=approved` (in addition to RPC eligibility). |
+| Hold expiry | Past-due `pending_payment` orders may be expired by any authenticated caller so `expire_due_pending_orders_atomic` releases inventory. |
+| Confirm integrity | Post-payment capacity/guest failures `RAISE` (transaction abort), not soft `RETURN`. |
+| Deposit charge | `reserve_table_atomic` sets `orders.total_amount` to `amount_due_now` (deposit or base). |
+| QR entity gate | `use_qr_atomic` refuses cancelled/inactive underlying tickets/passes. |
+
 ---
 
 ## 10. Historical reference

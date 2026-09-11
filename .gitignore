@@ -14,3 +14,8 @@ playwright/.cache/
 # Staging/local logical DB dumps — never commit or push
 backups/
 *.dump.sql
+# Generated / ephemeral audit artifacts
+tsconfig.tsbuildinfo
+scripts/_audit_*.sql
+scripts/_co_audit_*.sql
+scripts/_phase_a_*.sql
