@@ -12,6 +12,9 @@ export type DateFilterKey =
 
 export type DiscoverySearchScope = "event" | "artist" | "venue";
 
+export type DiscoveryPriceFilter = "free" | "paid";
+export type DiscoveryAvailabilityFilter = "tickets" | "reservation";
+
 export interface DiscoverySearchParams {
   q?: string;
   date?: DateFilterKey;
@@ -20,9 +23,17 @@ export interface DiscoverySearchParams {
   to?: string;
   district?: DistrictSlug;
   category?: EventCategory;
+  /** Venue slug filter (events at a specific venue). */
+  venue?: string;
+  /** Free vs paid catalog filter. */
+  price?: DiscoveryPriceFilter;
+  /** Ticket and/or reservation availability. */
+  availability?: DiscoveryAvailabilityFilter;
   sort?: SortKey;
   /** Hero/listing search scope — event/artist → events; venue → venues listing. */
   scope?: DiscoverySearchScope;
+  /** 1-based listing page. */
+  page?: number;
 }
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -40,8 +51,13 @@ export function parseDiscoverySearchParams(
   const toRaw = typeof raw.to === "string" ? raw.to.trim() : undefined;
   const districtRaw = typeof raw.district === "string" ? raw.district : undefined;
   const categoryRaw = typeof raw.category === "string" ? raw.category : undefined;
+  const venueRaw = typeof raw.venue === "string" ? raw.venue.trim() : undefined;
+  const priceRaw = typeof raw.price === "string" ? raw.price : undefined;
+  const availabilityRaw =
+    typeof raw.availability === "string" ? raw.availability : undefined;
   const sortRaw = typeof raw.sort === "string" ? raw.sort : undefined;
   const scopeRaw = typeof raw.scope === "string" ? raw.scope : undefined;
+  const pageRaw = typeof raw.page === "string" ? raw.page : undefined;
 
   const date = isDateFilter(dateRaw) ? dateRaw : undefined;
   const from = isIsoDate(fromRaw) ? fromRaw : undefined;
@@ -52,8 +68,19 @@ export function parseDiscoverySearchParams(
   const category = CATEGORY_KEYS.includes(categoryRaw as EventCategory)
     ? (categoryRaw as EventCategory)
     : undefined;
+  const venue =
+    venueRaw && /^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(venueRaw)
+      ? venueRaw.toLowerCase()
+      : undefined;
+  const price = isPriceFilter(priceRaw) ? priceRaw : undefined;
+  const availability = isAvailabilityFilter(availabilityRaw)
+    ? availabilityRaw
+    : undefined;
   const sort = isSortKey(sortRaw) ? sortRaw : undefined;
   const scope = isSearchScope(scopeRaw) ? scopeRaw : undefined;
+  const pageNum = pageRaw ? Number.parseInt(pageRaw, 10) : NaN;
+  const page =
+    Number.isFinite(pageNum) && pageNum >= 1 ? Math.floor(pageNum) : undefined;
 
   return {
     q: q || undefined,
@@ -62,8 +89,12 @@ export function parseDiscoverySearchParams(
     to,
     district,
     category,
+    venue,
+    price,
+    availability,
     sort,
     scope,
+    page,
   };
 }
 
@@ -85,6 +116,18 @@ function isSearchScope(value: string | undefined): value is DiscoverySearchScope
   return value === "event" || value === "artist" || value === "venue";
 }
 
+function isPriceFilter(
+  value: string | undefined
+): value is DiscoveryPriceFilter {
+  return value === "free" || value === "paid";
+}
+
+function isAvailabilityFilter(
+  value: string | undefined
+): value is DiscoveryAvailabilityFilter {
+  return value === "tickets" || value === "reservation";
+}
+
 export function buildDiscoveryQueryString(
   params: DiscoverySearchParams,
   options?: { omitDefaultSort?: boolean }
@@ -96,10 +139,14 @@ export function buildDiscoveryQueryString(
   if (params.to) sp.set("to", params.to);
   if (params.district) sp.set("district", params.district);
   if (params.category) sp.set("category", params.category);
+  if (params.venue) sp.set("venue", params.venue);
+  if (params.price) sp.set("price", params.price);
+  if (params.availability) sp.set("availability", params.availability);
   if (params.scope && params.scope !== "event") sp.set("scope", params.scope);
   if (params.sort && !(options?.omitDefaultSort && params.sort === "date")) {
     sp.set("sort", params.sort);
   }
+  if (params.page && params.page > 1) sp.set("page", String(params.page));
   const qs = sp.toString();
   return qs ? `?${qs}` : "";
 }
@@ -115,14 +162,29 @@ export function toDiscoveryQueryObject(
   if (params.to) query.to = params.to;
   if (params.district) query.district = params.district;
   if (params.category) query.category = params.category;
+  if (params.venue) query.venue = params.venue;
+  if (params.price) query.price = params.price;
+  if (params.availability) query.availability = params.availability;
   if (params.scope && params.scope !== "event") query.scope = params.scope;
   if (params.sort && params.sort !== "date") query.sort = params.sort;
+  if (params.page && params.page > 1) query.page = String(params.page);
   return query;
 }
 
 export function omitDiscoveryParam(
   params: DiscoverySearchParams,
-  key: "q" | "date" | "district" | "category" | "from" | "to" | "scope"
+  key:
+    | "q"
+    | "date"
+    | "district"
+    | "category"
+    | "from"
+    | "to"
+    | "scope"
+    | "venue"
+    | "price"
+    | "availability"
+    | "page"
 ): DiscoverySearchParams {
   const next = { ...params };
   delete next[key];
@@ -137,6 +199,9 @@ export function hasActiveDiscoveryFilters(params: DiscoverySearchParams): boolea
       params.to ||
       params.district ||
       params.category ||
+      params.venue ||
+      params.price ||
+      params.availability ||
       (params.scope && params.scope !== "event")
   );
 }
@@ -148,6 +213,9 @@ export function countActiveDiscoveryFilters(params: DiscoverySearchParams): numb
   if (params.from || params.to) count += 1;
   if (params.district) count += 1;
   if (params.category) count += 1;
+  if (params.venue) count += 1;
+  if (params.price) count += 1;
+  if (params.availability) count += 1;
   return count;
 }
 

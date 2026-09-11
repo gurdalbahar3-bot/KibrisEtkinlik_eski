@@ -42,6 +42,12 @@ export interface DiscoveryEvent {
   /** All linked artists, already sorted by `event_artists.sort_order`. */
   artists?: string[];
   officialTicketUrl?: string;
+  /** Batch-enriched: active public ticket offers exist. */
+  hasTicketOffers?: boolean;
+  /** Batch-enriched: active public table packages exist. */
+  hasReservationOffers?: boolean;
+  /** Lowest public catalog price in TRY (tickets or reservation deposit/base). */
+  startingPrice?: number;
 }
 
 export type TicketSaleMode = "ticket_based" | "seat_based";

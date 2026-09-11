@@ -17,9 +17,14 @@ import { supabaseVenuesRepository } from "@/lib/data/supabase-venues";
 import { filterEvents } from "@/lib/discovery/filter-events";
 import { findRelatedEvents } from "@/lib/discovery/related-events";
 import { resolveSlug } from "@/lib/discovery/resolve-slug";
+import {
+  applyCommerceIndex,
+  loadDiscoveryCommerceIndex,
+} from "@/lib/data/discovery-commerce";
+import { paginateItems } from "@/lib/discovery/pagination";
 import { DISTRICT_SLUGS } from "@/lib/data/categories";
 import type { DiscoverySearchParams } from "@/lib/discovery/search-params";
-import type { SearchOptions } from "@/types/discovery";
+import type { DiscoverySearchResult, SearchOptions } from "@/types/discovery";
 import type {
   DiscoveryEvent,
   DiscoveryTicketOffer,
@@ -35,11 +40,15 @@ import type {
  * Supabase mode: fail loud (no silent mock fallback). List pool = upcoming only.
  */
 const loadDiscoveryEvents = cache(async (): Promise<DiscoveryEvent[]> => {
+  let events: DiscoveryEvent[];
   if (isSupabaseDataSource()) {
     assertSupabaseDataSourceReady();
-    return supabaseEventsRepository.getAll();
+    events = await supabaseEventsRepository.getAll();
+  } else {
+    events = mockEventsRepository.getAll();
   }
-  return mockEventsRepository.getAll();
+  const index = await loadDiscoveryCommerceIndex();
+  return applyCommerceIndex(events, index);
 });
 
 const loadDiscoveryVenues = cache(async (): Promise<DiscoveryVenue[]> => {
@@ -60,6 +69,57 @@ const loadDiscoveryDistricts = cache(async (): Promise<DistrictInfo[]> => {
 
 function findEventBySlug(events: DiscoveryEvent[], slug: string): DiscoveryEvent | undefined {
   return events.find((event) => event.slug === slug);
+}
+
+function pageSizeOrDefault(limit?: number): number {
+  return limit != null && limit > 0 ? limit : 24;
+}
+
+async function runDiscoverySearchPage(
+  params: DiscoverySearchParams = {},
+  options: SearchOptions = {}
+): Promise<DiscoverySearchResult> {
+  const { limit, offset, sort, page } = options;
+  const mergedParams: DiscoverySearchParams = {
+    ...params,
+    ...(sort !== undefined ? { sort } : {}),
+  };
+
+  const all = await loadDiscoveryEvents();
+  const filtered = filterEvents(all, mergedParams);
+
+  const wantsPagination =
+    page != null || params.page != null || (limit != null && offset != null);
+
+  if (!wantsPagination && offset == null && limit == null) {
+    return {
+      items: filtered,
+      total: filtered.length,
+      page: 1,
+      pageSize: filtered.length || 1,
+      pageCount: 1,
+    };
+  }
+
+  if (offset !== undefined || (limit !== undefined && page == null && params.page == null)) {
+    let sliced = filtered;
+    if (offset !== undefined && offset > 0) {
+      sliced = sliced.slice(offset);
+    }
+    if (limit !== undefined && limit >= 0) {
+      sliced = sliced.slice(0, limit);
+    }
+    return {
+      items: sliced,
+      total: filtered.length,
+      page: 1,
+      pageSize: sliced.length || limit || filtered.length,
+      pageCount: 1,
+    };
+  }
+
+  const currentPage = page ?? params.page ?? 1;
+  return paginateItems(filtered, currentPage, pageSizeOrDefault(limit));
 }
 
 /**
@@ -92,43 +152,49 @@ export const discoveryEventsRepository = {
 
   /** Detail pages — past events remain reachable by slug. */
   async getBySlug(slug: string): Promise<DiscoveryEvent | undefined> {
+    let event: DiscoveryEvent | undefined;
     if (isSupabaseDataSource()) {
       assertSupabaseDataSourceReady();
-      return supabaseEventsRepository.getBySlug(slug);
+      event = await supabaseEventsRepository.getBySlug(slug);
+    } else {
+      event = findEventBySlug(mockEventsRepository.getAll(), slug);
     }
-    return findEventBySlug(mockEventsRepository.getAll(), slug);
+    if (!event) return undefined;
+    const index = await loadDiscoveryCommerceIndex();
+    return applyCommerceIndex([event], index)[0];
   },
 
   /** Checkout deep-link — public statuses only (same as getById on supabase). */
   async getById(id: string): Promise<DiscoveryEvent | undefined> {
+    let event: DiscoveryEvent | undefined;
     if (isSupabaseDataSource()) {
       assertSupabaseDataSourceReady();
-      return supabaseEventsRepository.getById(id);
+      event = await supabaseEventsRepository.getById(id);
+    } else {
+      event = mockEventsRepository.getAll().find((row) => row.id === id);
     }
-    return mockEventsRepository.getAll().find((event) => event.id === id);
+    if (!event) return undefined;
+    const index = await loadDiscoveryCommerceIndex();
+    return applyCommerceIndex([event], index)[0];
   },
 
   async search(
     params: DiscoverySearchParams = {},
     options: SearchOptions = {}
   ): Promise<DiscoveryEvent[]> {
-    const { limit, offset, sort } = options;
-    const mergedParams: DiscoverySearchParams = {
-      ...params,
-      ...(sort !== undefined ? { sort } : {}),
-    };
+    const page = await runDiscoverySearchPage(params, options);
+    return page.items;
+  },
 
-    const all = await loadDiscoveryEvents();
-    let result = filterEvents(all, mergedParams);
-
-    if (offset !== undefined && offset > 0) {
-      result = result.slice(offset);
-    }
-    if (limit !== undefined && limit >= 0) {
-      result = result.slice(0, limit);
-    }
-
-    return result;
+  /**
+   * Server-side filtered + paginated discovery search.
+   * Filtering runs on the public upcoming pool (already status-gated).
+   */
+  async searchPage(
+    params: DiscoverySearchParams = {},
+    options: SearchOptions = {}
+  ): Promise<DiscoverySearchResult> {
+    return runDiscoverySearchPage(params, options);
   },
 
   async getToday(): Promise<DiscoveryEvent[]> {

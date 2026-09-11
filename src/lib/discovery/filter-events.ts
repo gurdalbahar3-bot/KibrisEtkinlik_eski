@@ -77,5 +77,22 @@ export function filterEvents(
     result = result.filter((e) => e.category === params.category);
   }
 
+  if (params.venue) {
+    const venueSlug = params.venue.toLowerCase();
+    result = result.filter((e) => e.venueSlug === venueSlug);
+  }
+
+  if (params.price === "free") {
+    result = result.filter((e) => e.isFree);
+  } else if (params.price === "paid") {
+    result = result.filter((e) => !e.isFree);
+  }
+
+  if (params.availability === "tickets") {
+    result = result.filter((e) => Boolean(e.hasTicketOffers));
+  } else if (params.availability === "reservation") {
+    result = result.filter((e) => Boolean(e.hasReservationOffers));
+  }
+
   return sortEvents(result, params.sort ?? DEFAULT_SORT);
 }
