@@ -62,18 +62,22 @@ function anonClient() {
   });
 }
 
-test("B1 allowlist includes 064 and refuses unknown 056+", async () => {
+test("B1 allowlist includes 064+065 and refuses unknown 056+", async () => {
   const { ALLOWED_POST_055_MIGRATION_FILES, unexpectedPost055Migrations } =
     await import("./migration-scope-allowlist.mjs");
   assert.ok(
     ALLOWED_POST_055_MIGRATION_FILES.has("064_mvp_release_security_hardening.sql")
   );
+  assert.ok(
+    ALLOWED_POST_055_MIGRATION_FILES.has("065_mvp_qr_expiry_hardening.sql")
+  );
   const unexpected = unexpectedPost055Migrations([
     { name: "064_mvp_release_security_hardening.sql", n: 64 },
-    { name: "065_evil.sql", n: 65 },
+    { name: "065_mvp_qr_expiry_hardening.sql", n: 65 },
+    { name: "066_evil.sql", n: 66 },
   ]);
   assert.equal(unexpected.length, 1);
-  assert.equal(unexpected[0].name, "065_evil.sql");
+  assert.equal(unexpected[0].name, "066_evil.sql");
 });
 
 test("B1 refuses NEXT_PUBLIC_IYZICO_* and production iyzico base URL helper", () => {

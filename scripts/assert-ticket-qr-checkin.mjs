@@ -158,6 +158,20 @@ test("use_qr_atomic: auth, can_scan, already_used audit, ticket → used", () =>
   assert.match(sql, /UPDATE public\.tickets SET status = 'used'/);
 });
 
+test("065 unlocks cancelled/not_active scan_result for 064 use_qr_atomic", () => {
+  const sql065 = read("supabase/migrations/065_mvp_qr_expiry_hardening.sql");
+  const sql064 = read(
+    "supabase/migrations/064_mvp_release_security_hardening.sql"
+  );
+  assert.match(sql064, /v_scan_result := 'cancelled'/);
+  assert.match(sql064, /v_scan_result := 'not_active'/);
+  assert.match(sql065, /'cancelled'/);
+  assert.match(sql065, /'not_active'/);
+  assert.match(sql065, /qr_scan_logs_scan_result_check/);
+  assert.equal(mapUseQrErrorToUiCode("CANCELLED"), "CANCELLED");
+  assert.equal(mapUseQrErrorToUiCode("NOT_ACTIVE"), "NOT_ACTIVE");
+});
+
 test("customer ticket detail + organizer check-in UI exist", () => {
   assert.ok(
     existsSync(resolve(root, "src/app/[locale]/account/tickets/[id]/page.tsx"))

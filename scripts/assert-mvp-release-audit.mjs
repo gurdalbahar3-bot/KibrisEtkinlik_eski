@@ -24,6 +24,19 @@ test("064 security hardening migration exists and is allowlisted", () => {
   assert.match(allow, /064_mvp_release_security_hardening\.sql/);
 });
 
+test("065 QR CHECK + expire_due service_role hardening exists and is allowlisted", () => {
+  const name = "065_mvp_qr_expiry_hardening.sql";
+  assert.equal(existsSync(resolve("supabase/migrations", name)), true);
+  const sql = read(`supabase/migrations/${name}`);
+  assert.match(sql, /qr_scan_logs_scan_result_check/);
+  assert.match(sql, /'cancelled'/);
+  assert.match(sql, /'not_active'/);
+  assert.match(sql, /is_service_context\(\)/);
+  assert.match(sql, /service_role/);
+  const allow = read("scripts/migration-scope-allowlist.mjs");
+  assert.match(allow, /065_mvp_qr_expiry_hardening\.sql/);
+});
+
 test("organizer portal requires approved verification", () => {
   const auth = read("src/lib/organizer/auth.ts");
   assert.match(auth, /verificationStatus !== "approved"/);
@@ -71,10 +84,15 @@ test("discovery list statuses exclude draft lifecycle", () => {
   assert.match(queries, /DISCOVERY_LIST_STATUSES\s*=\s*\["published",\s*"postponed"\]/);
 });
 
-test("protected migrations 058-060 remain present and untouched by 064 filename", () => {
+test("protected migrations 058-060 remain present; 064/065 do not rename them", () => {
   const migs = readdirSync(resolve("supabase/migrations"));
   assert.ok(migs.includes("058_staging_event_review_lifecycle.sql"));
   assert.ok(migs.includes("059_staging_set_event_official_ticket_url.sql"));
   assert.ok(migs.includes("060_staging_artist_write_rpcs.sql"));
   assert.ok(migs.includes("064_mvp_release_security_hardening.sql"));
+  assert.ok(migs.includes("065_mvp_qr_expiry_hardening.sql"));
+  const sql065 = read("supabase/migrations/065_mvp_qr_expiry_hardening.sql");
+  assert.doesNotMatch(sql065, /058_staging_event_review_lifecycle/);
+  assert.doesNotMatch(sql065, /059_staging_set_event_official_ticket_url/);
+  assert.doesNotMatch(sql065, /060_staging_artist_write_rpcs/);
 });
