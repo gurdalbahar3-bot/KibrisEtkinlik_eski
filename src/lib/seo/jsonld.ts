@@ -89,7 +89,7 @@ export function buildWebsiteJsonLd(siteUrl: string, locale: Locale) {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: locale === "tr" ? "Global Event Discovery" : "Global Event Discovery",
+    name: "Kıbrıs Etkinlik",
     url: `${siteUrl}/${locale}`,
     potentialAction: {
       "@type": "SearchAction",

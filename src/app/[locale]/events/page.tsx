@@ -6,7 +6,7 @@ import { discoveryEventsRepository } from "@/lib/data/discovery-repository";
 import { parseDiscoverySearchParams } from "@/lib/discovery/search-params";
 import { buildItemListJsonLd } from "@/lib/seo/jsonld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://globaleventdiscovery.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kibrisetkinlik.com";
 
 export const dynamic = "force-dynamic";
 

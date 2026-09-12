@@ -1,8 +1,8 @@
 {
   "meta": {
-    "siteName": "Global Event Discovery",
-    "siteNameShort": "Event Discovery",
-    "homeTitle": "Cyprus Events — Concerts, Festivals, Theatre | Global Event Discovery",
+    "siteName": "Kıbrıs Etkinlik",
+    "siteNameShort": "Kıbrıs Etkinlik",
+    "homeTitle": "Cyprus Events — Concerts, Festivals, Theatre | Kıbrıs Etkinlik",
     "homeDescription": "What's on in Cyprus? Discover concerts, festivals, theatre, nightlife and sports across Northern Cyprus — Lefkoşa, Girne, Famagusta, Güzelyurt, Lefke and İskele.",
     "homeKeywords": "Cyprus events, Northern Cyprus concerts, Kyrenia festival, Nicosia theatre, İskele events"
   },
@@ -120,10 +120,10 @@
   },
   "seoContent": {
     "title": "Cyprus Events Guide",
-    "summary": "Global Event Discovery brings concerts, festivals, theatre and nightlife across Northern Cyprus into one place.",
+    "summary": "Kıbrıs Etkinlik brings concerts, festivals, theatre and nightlife across Northern Cyprus into one place.",
     "expand": "Read more",
     "collapse": "Show less",
-    "p1": "Global Event Discovery brings together concerts, festivals, theatre, stand-up nights, nightlife and sports across Cyprus. From Nicosia to Kyrenia, Famagusta to İskele — find what's on near you.",
+    "p1": "Kıbrıs Etkinlik brings together concerts, festivals, theatre, stand-up nights, nightlife and sports across Cyprus. From Nicosia to Kyrenia, Famagusta to İskele — find what's on near you.",
     "p2": "Planning your weekend? Wondering what's on today? Filter by district to find nearby events, or browse by category — concerts, festivals, family activities, art & culture and more.",
     "p3": "We are an event discovery platform, not a ticket seller. Event detail pages link you to official ticket and reservation partners."
   },
@@ -136,7 +136,7 @@
     "tagline": "Discover events in Cyprus",
     "discover": "Discover",
     "about": "About",
-    "aboutText": "Global Event Discovery is an independent platform helping you find events across Northern Cyprus.",
+    "aboutText": "Kıbrıs Etkinlik is an independent platform helping you find events across Northern Cyprus.",
     "rights": "All rights reserved."
   },
   "eventDetail": {
@@ -152,8 +152,8 @@
   "listing": {
     "title": "Discover Events",
     "subtitle": "Search and filter events across Cyprus",
-    "metaTitle": "Cyprus Events | Global Event Discovery",
-    "metaSearchTitle": "\"{query}\" search results | Global Event Discovery",
+    "metaTitle": "Cyprus Events | Kıbrıs Etkinlik",
+    "metaSearchTitle": "\"{query}\" search results | Kıbrıs Etkinlik",
     "metaDescription": "Discover concerts, festivals, theatre and more across Cyprus.",
     "searchLabel": "Search",
     "searchPlaceholder": "Search events, artists or venues...",
@@ -174,9 +174,9 @@
   "categoriesPage": {
     "title": "Categories",
     "subtitle": "Explore events by interest",
-    "metaTitle": "Event Categories | Global Event Discovery",
+    "metaTitle": "Event Categories | Kıbrıs Etkinlik",
     "metaDescription": "Concerts, festivals, theatre, stand-up and more.",
-    "metaCategoryTitle": "{category} Events | Global Event Discovery",
+    "metaCategoryTitle": "{category} Events | Kıbrıs Etkinlik",
     "metaCategoryDescription": "Discover {category} events in Cyprus.",
     "categorySubtitle": "Upcoming events in this category",
     "backHome": "Home",
@@ -185,7 +185,7 @@
   "venuesPage": {
     "title": "Popular Venues",
     "subtitle": "Discover event venues",
-    "metaTitle": "Venues | Global Event Discovery",
+    "metaTitle": "Venues | Kıbrıs Etkinlik",
     "metaDescription": "Concert and event venues across Cyprus.",
     "viewAll": "All venues",
     "upcoming": "{count} upcoming events",
@@ -200,7 +200,7 @@
   "districtsPage": {
     "title": "Explore by District",
     "subtitle": "Discover events across all 6 districts",
-    "metaTitle": "Events by District | Global Event Discovery",
+    "metaTitle": "Events by District | Kıbrıs Etkinlik",
     "metaDescription": "Events in Nicosia, Kyrenia, Famagusta, Güzelyurt, Lefke and İskele.",
     "backHome": "Home"
   },

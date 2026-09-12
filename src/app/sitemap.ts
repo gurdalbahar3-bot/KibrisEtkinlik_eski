@@ -3,7 +3,7 @@ import { CATEGORY_KEYS } from "@/lib/data/categories";
 import { DISTRICT_SLUGS } from "@/lib/data/categories";
 import { MOCK_EVENTS, MOCK_VENUES } from "@/lib/data/mock-events";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://globaleventdiscovery.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kibrisetkinlik.com";
 
 /**
  * Follow-up: switch event/venue URL generation to discoveryEventsRepository /

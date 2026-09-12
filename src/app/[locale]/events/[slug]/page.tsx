@@ -10,7 +10,7 @@ import { getEventImage, getEventImageSources } from "@/lib/ui/event-image";
 import { eventToJsonLd, formatEventDate } from "@/lib/seo/jsonld";
 import type { DistrictSlug } from "@/types/event";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://globaleventdiscovery.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kibrisetkinlik.com";
 
 /** Runtime discovery fetch — slug list comes from Supabase, not mock static params. */
 export const dynamic = "force-dynamic";
@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const tDist = await getTranslations({ locale, namespace: "districts" });
     const name = tDist(slug as DistrictSlug);
     return {
-      title: `${name} — ${locale === "tr" ? "Etkinlikler" : "Events"} | Global Event Discovery`,
+      title: `${name} — ${locale === "tr" ? "Etkinlikler" : "Events"} | Kıbrıs Etkinlik`,
       description:
         locale === "tr"
           ? `${name} ilçesindeki konser, festival ve etkinlikleri keşfedin.`
@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const image = getEventImage(event);
 
   return {
-    title: `${event.title} | Global Event Discovery`,
+    title: `${event.title} | Kıbrıs Etkinlik`,
     description: event.description,
     alternates: { canonical: `${SITE_URL}${path}` },
     openGraph: {
