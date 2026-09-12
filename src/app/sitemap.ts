@@ -1,18 +1,33 @@
 import type { MetadataRoute } from "next";
-import { CATEGORY_KEYS } from "@/lib/data/categories";
-import { DISTRICT_SLUGS } from "@/lib/data/categories";
-import { MOCK_EVENTS, MOCK_VENUES } from "@/lib/data/mock-events";
+import { CATEGORY_KEYS, DISTRICT_SLUGS } from "@/lib/data/categories";
+import {
+  discoveryEventsRepository,
+  discoveryVenuesRepository,
+} from "@/lib/data/discovery-repository";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kibrisetkinlik.com";
 
 /**
- * Follow-up: switch event/venue URL generation to discoveryEventsRepository /
- * discoveryVenuesRepository when SUPABASE_DATA_SOURCE=supabase (async sitemap).
- * Kept on mock catalog for this PR to avoid build-time Supabase coupling.
+ * Discovery-aligned sitemap.
+ * Uses discoveryEventsRepository / discoveryVenuesRepository so
+ * SUPABASE_DATA_SOURCE=mock|supabase stays consistent with homepage/listings.
+ * Categories + district hubs are stable taxonomy routes (not row-driven).
  */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const [events, venues] = await Promise.all([
+    discoveryEventsRepository.getAll(),
+    discoveryVenuesRepository.getAll(),
+  ]);
+
   const locales = ["tr", "en"] as const;
   const entries: MetadataRoute.Sitemap = [];
+  const seen = new Set<string>();
+
+  function push(entry: MetadataRoute.Sitemap[number]) {
+    if (seen.has(entry.url)) return;
+    seen.add(entry.url);
+    entries.push(entry);
+  }
 
   for (const locale of locales) {
     const prefix = `${SITE_URL}/${locale}`;
@@ -21,25 +36,35 @@ export default function sitemap(): MetadataRoute.Sitemap {
     const venuesPath = locale === "tr" ? "mekanlar" : "venues";
     const districtsPath = locale === "tr" ? "ilceler" : "districts";
 
-    entries.push(
-      { url: prefix, lastModified: new Date(), changeFrequency: "daily", priority: 1 },
-      { url: `${prefix}/${eventsPath}`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
-      { url: `${prefix}/${categoriesPath}`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-      { url: `${prefix}/${venuesPath}`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-      { url: `${prefix}/${districtsPath}`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 }
-    );
+    push({ url: prefix, lastModified: new Date(), changeFrequency: "daily", priority: 1 });
+    push({
+      url: `${prefix}/${eventsPath}`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.9,
+    });
+    push({
+      url: `${prefix}/${categoriesPath}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    });
+    push({
+      url: `${prefix}/${venuesPath}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    });
+    push({
+      url: `${prefix}/${districtsPath}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    });
 
-    for (const event of MOCK_EVENTS) {
-      entries.push({
-        url: `${prefix}/${eventsPath}/${event.slug}`,
-        lastModified: new Date(),
-        changeFrequency: "weekly",
-        priority: 0.7,
-      });
-    }
-
+    // District hub routes under /events/[slug] — listed before event detail slugs.
     for (const district of DISTRICT_SLUGS) {
-      entries.push({
+      push({
         url: `${prefix}/${eventsPath}/${district}`,
         lastModified: new Date(),
         changeFrequency: "weekly",
@@ -47,8 +72,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
       });
     }
 
+    for (const event of events) {
+      push({
+        url: `${prefix}/${eventsPath}/${event.slug}`,
+        lastModified: new Date(),
+        changeFrequency: "weekly",
+        priority: 0.7,
+      });
+    }
+
     for (const category of CATEGORY_KEYS) {
-      entries.push({
+      push({
         url: `${prefix}/${categoriesPath}/${category}`,
         lastModified: new Date(),
         changeFrequency: "weekly",
@@ -56,8 +90,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
       });
     }
 
-    for (const venue of MOCK_VENUES) {
-      entries.push({
+    for (const venue of venues) {
+      push({
         url: `${prefix}/${venuesPath}/${venue.slug}`,
         lastModified: new Date(),
         changeFrequency: "weekly",

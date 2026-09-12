@@ -24,6 +24,7 @@ export async function FeaturedEvents({ events }: FeaturedEventsProps) {
           title={t("title")}
           subtitle={t("subtitle")}
           titleId="featured-title"
+          cta={{ href: "/events", label: t("viewAll") }}
           className="section-header-gap"
         />
 

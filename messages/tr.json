@@ -50,7 +50,9 @@
     "badge": "Canlı",
     "title": "Bugün Kıbrıs'ta",
     "subtitle": "Bugün gerçekleşen etkinlikler",
-    "viewAll": "Tümünü gör"
+    "viewAll": "Tümünü gör",
+    "emptyTitle": "Bugün etkinlik yok",
+    "emptyHint": "Yaklaşan etkinliklere göz atın."
   },
   "popularSection": {
     "title": "Popüler Etkinlikler",
@@ -208,7 +210,8 @@
     "badge": "Editoryal",
     "title": "Öne Çıkan Etkinlikler",
     "subtitle": "Görsel öncelikli seçki — yayınlanmış etkinlikler.",
-    "cta": "Etkinliği keşfet"
+    "cta": "Etkinliği keşfet",
+    "viewAll": "Tümünü gör"
   },
   "weekendSection": {
     "title": "Bu Hafta Sonu",

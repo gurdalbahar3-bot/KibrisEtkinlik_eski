@@ -50,7 +50,9 @@
     "badge": "Live",
     "title": "Today in Cyprus",
     "subtitle": "Events happening today",
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "emptyTitle": "No events today",
+    "emptyHint": "Check upcoming events."
   },
   "popularSection": {
     "title": "Popular Events",
@@ -208,7 +210,8 @@
     "badge": "Editorial",
     "title": "Featured events",
     "subtitle": "Visual-first picks from published events.",
-    "cta": "Discover event"
+    "cta": "Discover event",
+    "viewAll": "View all"
   },
   "weekendSection": {
     "title": "This Weekend",
