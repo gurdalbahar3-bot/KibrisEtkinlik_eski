@@ -54,11 +54,6 @@
     "emptyTitle": "No events today",
     "emptyHint": "Check upcoming events."
   },
-  "popularSection": {
-    "title": "Popular Events",
-    "subtitle": "Featured picks — this week and beyond",
-    "viewAll": "View all"
-  },
   "categoriesSection": {
     "title": "Categories",
     "subtitle": "Explore by interest",
@@ -128,11 +123,6 @@
     "p1": "Kıbrıs Etkinlik brings together concerts, festivals, theatre, stand-up nights, nightlife and sports across Cyprus. From Nicosia to Kyrenia, Famagusta to İskele — find what's on near you.",
     "p2": "Planning your weekend? Wondering what's on today? Filter by district to find nearby events, or browse by category — concerts, festivals, family activities, art & culture and more.",
     "p3": "We are an event discovery platform, not a ticket seller. Event detail pages link you to official ticket and reservation partners."
-  },
-  "bannerSlots": {
-    "default": "Ad slot",
-    "afterToday": "Homepage — after Today banner",
-    "beforeVenues": "Homepage — before Venues banner"
   },
   "footer": {
     "tagline": "Discover events in Cyprus",

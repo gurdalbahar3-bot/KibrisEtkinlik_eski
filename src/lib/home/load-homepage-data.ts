@@ -27,13 +27,6 @@ export interface HomepageDiscoveryData {
   venues: DiscoveryVenue[];
   districts: DistrictInfo[];
   categoryCounts: Record<EventCategory, number>;
-  stats: {
-    totalEvents: number;
-    todayCount: number;
-    weekendCount: number;
-    venueCount: number;
-    districtCount: number;
-  };
 }
 
 /** Featured/hero covers: real `cover_image_url` only — never UI placeholders. */
@@ -115,13 +108,6 @@ export async function loadHomepageDiscoveryData(): Promise<HomepageDiscoveryData
     upcomingPreview,
     venues,
     districts: allDistricts,
-    categoryCounts,
-    stats: {
-      totalEvents: allEvents.length,
-      todayCount: todayEvents.length,
-      weekendCount: weekendEvents.length,
-      venueCount: allVenues.length,
-      districtCount: allDistricts.length,
-    },
+    categoryCounts
   };
 }

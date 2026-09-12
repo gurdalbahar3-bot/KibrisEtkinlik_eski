@@ -54,11 +54,6 @@
     "emptyTitle": "Bugün etkinlik yok",
     "emptyHint": "Yaklaşan etkinliklere göz atın."
   },
-  "popularSection": {
-    "title": "Popüler Etkinlikler",
-    "subtitle": "Öne çıkan etkinlikler — bu hafta ve sonrası",
-    "viewAll": "Tümünü gör"
-  },
   "categoriesSection": {
     "title": "Kategoriler",
     "subtitle": "İlgi alanına göre keşfet",
@@ -128,11 +123,6 @@
     "p1": "Kıbrıs Etkinlik, Kıbrıs'taki konserler, festivaller, tiyatro gösterileri, stand-up geceleri, gece hayatı etkinlikleri ve spor organizasyonlarını tek bir platformda toplar. Lefkoşa'dan Girne'ye, Gazimağusa'dan İskele'ye kadar KKTC'nin her köşesindeki etkinlikleri kolayca keşfedebilirsiniz.",
     "p2": "Hafta sonu planı mı yapıyorsunuz? Bugün Kıbrıs'ta ne var diye mi merak ediyorsunuz? İlçenize göre filtreleyerek size en yakın etkinlikleri bulabilir, kategori bazlı arama ile konser, festival, çocuk etkinlikleri veya sanat & kültür programlarına hızlıca ulaşabilirsiniz.",
     "p3": "Platformumuz bir bilet satış sitesi değil; öncelikli amacı etkinlik keşfi sağlamaktır. Etkinlik detay sayfasından resmi bilet ve rezervasyon noktalarına yönlendirilirsiniz."
-  },
-  "bannerSlots": {
-    "default": "Reklam alanı",
-    "afterToday": "Ana sayfa — Bugün sonrası banner",
-    "beforeVenues": "Ana sayfa — Mekanlar öncesi banner"
   },
   "footer": {
     "tagline": "Kıbrıs'taki etkinlikleri keşfet",

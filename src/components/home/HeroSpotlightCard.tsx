@@ -2,6 +2,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/lib/i18n/navigation";
 import { PosterImage } from "@/components/ui/PosterImage";
 import { getEventImage, getEventImageSources } from "@/lib/ui/event-image";
+import { hasEventVenueLink } from "@/lib/ui/event-venue-link";
 import { formatEventDate } from "@/lib/seo/jsonld";
 import type { DiscoveryEvent } from "@/types/event";
 import type { Locale } from "@/lib/i18n/routing";
@@ -20,6 +21,7 @@ export async function HeroSpotlightCard({ event }: HeroSpotlightCardProps) {
 
   const imageSrc = getEventImage(event);
   const fallbackSources = getEventImageSources(event).filter((url) => url !== imageSrc);
+  const eventHref = { pathname: "/events/[slug]" as const, params: { slug: event.slug } };
 
   return (
     <article className="hero-spotlight-card w-full max-w-sm lg:max-w-none lg:justify-self-end">
@@ -27,11 +29,8 @@ export async function HeroSpotlightCard({ event }: HeroSpotlightCardProps) {
         {t("spotlightLabel")}
       </p>
 
-      <Link
-        href={{ pathname: "/events/[slug]", params: { slug: event.slug } }}
-        className="group block overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-white/20 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.45)]"
-      >
-        <div className="relative aspect-[16/10] sm:aspect-[5/3]">
+      <div className="group overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-white/20 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.45)]">
+        <Link href={eventHref} className="relative block aspect-[16/10] sm:aspect-[5/3]">
           <PosterImage
             src={imageSrc}
             fallbackSources={fallbackSources}
@@ -53,19 +52,32 @@ export async function HeroSpotlightCard({ event }: HeroSpotlightCardProps) {
             <p className="text-xl font-bold leading-none text-platform-navy">{day}</p>
             <p className="text-[10px] font-bold uppercase tracking-wide text-accent-600">{month}</p>
           </div>
-        </div>
+        </Link>
 
         <div className="space-y-2 p-4 sm:p-5">
-          <h3 className="line-clamp-2 text-lg font-bold leading-snug text-platform-navy transition group-hover:text-brand-700">
-            {event.title}
-          </h3>
+          <Link href={eventHref}>
+            <h3 className="line-clamp-2 text-lg font-bold leading-snug text-platform-navy transition group-hover:text-brand-700">
+              {event.title}
+            </h3>
+          </Link>
           {event.artist && (
             <p className="line-clamp-1 text-sm font-medium text-slate-500">{event.artist}</p>
           )}
           <p className="flex items-center gap-1.5 text-sm text-slate-600">
             <PinIcon />
-            <span className="line-clamp-1">
-              {event.venue} · {tDist(event.district)}
+            <span className="min-w-0 line-clamp-1">
+              {hasEventVenueLink(event) ? (
+                <Link
+                  href={{ pathname: "/venues/[slug]", params: { slug: event.venueSlug } }}
+                  className="font-medium text-slate-700 underline-offset-2 transition hover:text-brand-700 hover:underline"
+                >
+                  {event.venue}
+                </Link>
+              ) : (
+                event.venue
+              )}
+              <span className="text-slate-400"> · </span>
+              {tDist(event.district)}
             </span>
           </p>
           <p className="flex items-center gap-1.5 text-sm text-slate-500">
@@ -74,11 +86,14 @@ export async function HeroSpotlightCard({ event }: HeroSpotlightCardProps) {
               {weekday} · {event.startTime}
             </span>
           </p>
-          <span className="mt-1 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-accent-500 px-4 text-sm font-semibold text-white transition group-hover:bg-accent-600">
+          <Link
+            href={eventHref}
+            className="mt-1 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-accent-500 px-4 text-sm font-semibold text-white transition hover:bg-accent-600"
+          >
             {t("spotlightCta")}
-          </span>
+          </Link>
         </div>
-      </Link>
+      </div>
     </article>
   );
 }
