@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { createOrganizerVenueAction } from "@/app/organizer/(app)/venues/actions";
 import { OrganizerSubmitButton } from "@/components/organizer/OrganizerSubmitButton";
+import { VenueLocationMapPicker } from "@/components/organizer/VenueLocationMapPicker";
 import { requireOrganizer } from "@/lib/organizer/auth";
 import {
   listActiveDistrictOptions,
@@ -182,33 +183,21 @@ export default async function OrganizerNewVenuePage({ searchParams }: Props) {
           </select>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="latitude" className="block text-sm font-medium text-slate-700">
-              {t("fieldVenueLatitude")}
-            </label>
-            <input
-              id="latitude"
-              name="latitude"
-              type="number"
-              step="any"
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-            />
-          </div>
-          <div>
-            <label htmlFor="longitude" className="block text-sm font-medium text-slate-700">
-              {t("fieldVenueLongitude")}
-            </label>
-            <input
-              id="longitude"
-              name="longitude"
-              type="number"
-              step="any"
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-            />
-          </div>
-        </div>
-        <p className="text-xs text-slate-500">{t("venueCoordsHint")}</p>
+        <VenueLocationMapPicker
+          labels={{
+            latitude: t("fieldVenueLatitude"),
+            longitude: t("fieldVenueLongitude"),
+            coordsHint: t("venueCoordsHint"),
+            selectOnMap: t("venueMapSelectOnMap"),
+            clearLocation: t("venueMapClearLocation"),
+            locateFromAddress: t("venueMapLocateFromAddress"),
+            mapUnavailable: t("venueMapUnavailable"),
+            mapLoading: t("venueMapLoading"),
+            mapReadyHint: t("venueMapReadyHint"),
+            geocodeEmpty: t("venueMapGeocodeEmpty"),
+            geocodeFailed: t("venueMapGeocodeFailed"),
+          }}
+        />
 
         <div>
           <label htmlFor="capacity" className="block text-sm font-medium text-slate-700">
