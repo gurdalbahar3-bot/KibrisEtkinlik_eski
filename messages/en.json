@@ -141,8 +141,20 @@
     "venue": "Venue",
     "district": "District",
     "category": "Category",
-    "officialTickets": "Official Tickets / Reservation",
-    "comingSoon": "Coming soon"
+    "artist": "Artist",
+    "free": "Free",
+    "freeEntry": "Free entry",
+    "officialTickets": "Get tickets / Official tickets",
+    "comingSoon": "Coming soon",
+    "ticketsTitle": "Tickets",
+    "fromPrice": "From {price}",
+    "remaining": "{count} left",
+    "soldOut": "Sold out",
+    "catalogEmpty": "No ticket types have been published for this event yet.",
+    "noCheckoutHint": "Ticket types are listed. In-app checkout is not open yet.",
+    "buyTickets": "Buy tickets",
+    "relatedTitle": "Related events",
+    "relatedSubtitle": "More events in the same category or district"
   },
   "listing": {
     "title": "Discover Events",

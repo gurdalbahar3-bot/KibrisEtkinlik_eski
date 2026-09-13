@@ -141,8 +141,20 @@
     "venue": "Mekan",
     "district": "İlçe",
     "category": "Kategori",
-    "officialTickets": "Resmi Bilet / Rezervasyon",
-    "comingSoon": "Yakında"
+    "artist": "Sanatçı",
+    "free": "Ücretsiz",
+    "freeEntry": "Ücretsiz giriş",
+    "officialTickets": "Bilet Al / Resmi Bilet",
+    "comingSoon": "Yakında",
+    "ticketsTitle": "Biletler",
+    "fromPrice": "{price} itibarıyla",
+    "remaining": "{count} bilet kaldı",
+    "soldOut": "Tükendi",
+    "catalogEmpty": "Bu etkinlik için henüz bilet türü yayınlanmadı.",
+    "noCheckoutHint": "Bilet türleri yayınlandı. Platform içi ödeme henüz açık değil.",
+    "buyTickets": "Bilet Al",
+    "relatedTitle": "Benzer etkinlikler",
+    "relatedSubtitle": "Aynı kategori veya ilçeden diğer etkinlikler"
   },
   "listing": {
     "title": "Etkinlikleri Keşfet",
