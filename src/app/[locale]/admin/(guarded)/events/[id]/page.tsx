@@ -6,12 +6,13 @@ import { getAdminReviewEventDetailWithTickets } from "@/lib/admin/data/admin-eve
 import {
   createAdminTranslator,
   getAdminMessages,
-  resolveAdminLocale,
 } from "@/lib/admin/i18n";
 import { isEventUuid } from "@/lib/admin/publish-event-result";
 
+export const dynamic = "force-dynamic";
+
 type Props = {
-  params: Promise<{ id: string }>;
+  params: Promise<{ locale: string; id: string }>;
   searchParams: Promise<{
     approved?: string;
     approveError?: string;
@@ -21,8 +22,9 @@ type Props = {
   }>;
 };
 
-export default async function AdminEventReviewDetailPage({ params, searchParams }: Props) {
-  const { id } = await params;
+export default async function LocaleAdminEventDetailPage({ params, searchParams }: Props) {
+  const { locale: localeRaw, id } = await params;
+  const locale = localeRaw === "en" ? "en" : "tr";
   const {
     approved,
     approveError: approveErrorParam,
@@ -35,7 +37,6 @@ export default async function AdminEventReviewDetailPage({ params, searchParams 
     notFound();
   }
 
-  const locale = await resolveAdminLocale();
   const messages = getAdminMessages(locale);
   const t = createAdminTranslator(messages);
   const event = await getAdminReviewEventDetailWithTickets(id);
@@ -64,7 +65,7 @@ export default async function AdminEventReviewDetailPage({ params, searchParams 
       publishSuccess={publishSuccess}
       approvePublishError={approvePublishError}
       publicPath={publicPath ?? null}
-      basePath="/admin/review/events"
+      basePath={`/${locale}/admin/events`}
     />
   );
 }

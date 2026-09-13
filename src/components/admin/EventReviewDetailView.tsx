@@ -1,16 +1,21 @@
 import Link from "next/link";
 
+import { ApproveAndPublishEventForm } from "@/components/admin/ApproveAndPublishEventForm";
 import { ApproveEventForm } from "@/components/admin/ApproveEventForm";
 import { formatDateTime } from "@/lib/admin/format";
 import type { AdminMessages } from "@/lib/admin/i18n";
-import type { AdminReviewEventDetail } from "@/lib/admin/data/admin-event-review";
+import type { AdminReviewEventDetailWithTickets } from "@/lib/admin/data/admin-event-review";
 
 interface EventReviewDetailViewProps {
-  event: AdminReviewEventDetail;
+  event: AdminReviewEventDetailWithTickets;
   locale: "tr" | "en";
   t: (key: keyof AdminMessages) => string;
   approveSuccess?: boolean;
   approveError?: string;
+  publishSuccess?: boolean;
+  approvePublishError?: string;
+  publicPath?: string | null;
+  basePath?: string;
 }
 
 export function EventReviewDetailView({
@@ -19,16 +24,18 @@ export function EventReviewDetailView({
   t,
   approveSuccess = false,
   approveError,
+  publishSuccess = false,
+  approvePublishError,
+  publicPath = null,
+  basePath = "/admin/review/events",
 }: EventReviewDetailViewProps) {
   const canApprove = event.status === "in_review";
   const isApproved = event.status === "approved" || approveSuccess;
+  const isPublished = event.status === "published" || publishSuccess;
 
   return (
     <div className="space-y-6">
-      <Link
-        href="/admin/review/events"
-        className="text-sm font-medium text-brand-700 hover:underline"
-      >
+      <Link href={basePath} className="text-sm font-medium text-brand-700 hover:underline">
         ← {t("eventReview")}
       </Link>
 
@@ -38,7 +45,27 @@ export function EventReviewDetailView({
         </p>
       ) : null}
 
-      {approveSuccess || isApproved ? (
+      {approvePublishError ? (
+        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
+          {t("approveAndPublishError")}: {approvePublishError}
+        </p>
+      ) : null}
+
+      {publishSuccess || isPublished ? (
+        <div className="space-y-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4" role="status">
+          <p className="text-sm font-semibold text-emerald-900">{t("approveAndPublishSuccess")}</p>
+          {publicPath ? (
+            <p className="text-sm text-emerald-900">
+              {t("publishSuccessPublicLink")}:{" "}
+              <Link href={publicPath} className="font-semibold underline">
+                {publicPath}
+              </Link>
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      {approveSuccess || (isApproved && !isPublished) ? (
         <div className="space-y-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4" role="status">
           <p className="text-sm font-semibold text-emerald-900">{t("approveEventSuccess")}</p>
           <p className="text-sm text-emerald-900">{t("approveThenPublishHint")}</p>
@@ -164,12 +191,65 @@ export function EventReviewDetailView({
         </div>
       </dl>
 
+      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-slate-900">{t("ticketZonesHeading")}</h2>
+        {event.ticketZones.length === 0 ? (
+          <p className="mt-2 text-sm text-slate-500">{t("ticketZonesEmpty")}</p>
+        ) : (
+          <ul className="mt-4 space-y-4">
+            {event.ticketZones.map((zone) => (
+              <li key={zone.id} className="rounded-lg border border-slate-100 p-4">
+                <p className="font-semibold text-slate-900">
+                  {zone.name}{" "}
+                  <span className="text-sm font-normal text-slate-500">
+                    ({t("ticketZoneCapacity")}: {zone.capacity})
+                  </span>
+                </p>
+                {zone.types.length === 0 ? (
+                  <p className="mt-2 text-sm text-slate-500">{t("ticketTypesEmpty")}</p>
+                ) : (
+                  <ul className="mt-2 space-y-1 text-sm text-slate-700">
+                    {zone.types.map((ticketType) => (
+                      <li key={ticketType.id} className="flex flex-wrap gap-2">
+                        <span className="font-medium">{ticketType.name}</span>
+                        <span>
+                          {ticketType.price.toLocaleString(locale === "en" ? "en-GB" : "tr-TR")}{" "}
+                          TRY
+                        </span>
+                        {!ticketType.isActive ? (
+                          <span className="text-xs text-slate-500">({t("ticketTypeInactive")})</span>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       {canApprove ? (
-        <div className="rounded-xl border border-dashed border-brand-200 bg-brand-50/40 p-5">
-          <p className="text-sm text-brand-950">{t("approveHint")}</p>
-          <div className="mt-3">
-            <ApproveEventForm eventId={event.id} t={t} />
+        <div className="space-y-4 rounded-xl border border-dashed border-brand-200 bg-brand-50/40 p-5">
+          <p className="text-sm text-brand-950">{t("approveAndPublishHint")}</p>
+          <div className="flex flex-wrap gap-3">
+            <ApproveAndPublishEventForm
+              eventId={event.id}
+              locale={locale}
+              t={t}
+              returnBase={basePath}
+            />
+            <ApproveEventForm eventId={event.id} t={t} returnBase={basePath} />
+            <button
+              type="button"
+              disabled
+              title={t("rejectEventUnavailable")}
+              className="inline-flex min-h-11 cursor-not-allowed items-center justify-center rounded-lg border border-slate-200 bg-slate-100 px-4 text-sm font-semibold text-slate-500"
+            >
+              {t("rejectEvent")}
+            </button>
           </div>
+          <p className="text-xs text-slate-600">{t("rejectEventUnavailable")}</p>
         </div>
       ) : null}
     </div>

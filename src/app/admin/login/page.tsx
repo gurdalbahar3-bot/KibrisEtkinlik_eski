@@ -13,7 +13,7 @@ import {
 import { getSupabasePublicEnv } from "@/lib/supabase/config";
 
 type Props = {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; next?: string }>;
 };
 
 function loginErrorMessage(
@@ -41,7 +41,11 @@ export default async function AdminLoginPage({ searchParams }: Props) {
     redirect("/admin");
   }
 
-  const { error } = await searchParams;
+  const { error, next } = await searchParams;
+  const nextPath =
+    next && next.startsWith("/") && !next.startsWith("//") && !next.includes("://")
+      ? next
+      : "/admin";
   const locale = await resolveAdminLocale();
   const messages = getAdminMessages(locale);
   const t = createAdminTranslator(messages);
@@ -69,6 +73,7 @@ export default async function AdminLoginPage({ searchParams }: Props) {
                 {t("loginDevOnly")}
               </p>
               <form action={loginDevAction} className="mt-6">
+              <input type="hidden" name="next" value={nextPath} />
                 <button
                   type="submit"
                   className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-brand-600 px-4 text-sm font-semibold text-white transition hover:bg-brand-700"
@@ -85,6 +90,7 @@ export default async function AdminLoginPage({ searchParams }: Props) {
                 {t("loginSupabaseHint")}
               </p>
               <form action={loginSupabaseAction} className="mt-6 space-y-4">
+              <input type="hidden" name="next" value={nextPath} />
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-slate-700">
                     {t("loginEmail")}

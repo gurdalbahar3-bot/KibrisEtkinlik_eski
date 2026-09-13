@@ -219,5 +219,17 @@
   "colPricing": "Pricing",
   "colWedding": "Wedding",
   "pricingFree": "Free",
-  "pricingPaid": "Paid"
+  "pricingPaid": "Paid",
+  "approveAndPublish": "Approve and publish",
+  "approveAndPublishHint": "Approves then publishes via existing approve_event + publish_event RPCs.",
+  "approveAndPublishSuccess": "Event approved and published.",
+  "approveAndPublishError": "Approve/publish failed",
+  "publishSuccessPublicLink": "Public event URL",
+  "rejectEvent": "Reject",
+  "rejectEventUnavailable": "P0: no reject_event RPC — rejection unsupported without migration (TODO).",
+  "ticketZonesHeading": "Ticket zones and types",
+  "ticketZonesEmpty": "No ticket zones on this event.",
+  "ticketTypesEmpty": "No ticket types in this zone.",
+  "ticketZoneCapacity": "Capacity",
+  "ticketTypeInactive": "inactive"
 }

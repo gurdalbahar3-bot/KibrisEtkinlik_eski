@@ -92,22 +92,33 @@ export async function approveEventAction(eventId: string): Promise<ApproveEventA
 
 export async function approveEventFormAction(formData: FormData): Promise<void> {
   const eventId = String(formData.get("eventId") ?? "").trim();
+  const returnBaseRaw = String(formData.get("returnBase") ?? "").trim();
+  const returnBase =
+    returnBaseRaw === "/tr/admin/events" ||
+    returnBaseRaw === "/en/admin/events" ||
+    returnBaseRaw === "/admin/review/events"
+      ? returnBaseRaw
+      : "/admin/review/events";
   const result = await approveEventAction(eventId);
 
   if (!result.ok) {
     redirect(
-      `/admin/review/events/${encodeURIComponent(eventId)}?approveError=${encodeURIComponent(result.message)}`
+      `${returnBase}/${encodeURIComponent(eventId)}?approveError=${encodeURIComponent(result.message)}`
     );
   }
 
   revalidatePath("/admin/review/events");
   revalidatePath(`/admin/review/events/${result.eventId}`);
+  revalidatePath("/tr/admin/events");
+  revalidatePath("/en/admin/events");
+  revalidatePath(`/tr/admin/events/${result.eventId}`);
+  revalidatePath(`/en/admin/events/${result.eventId}`);
   revalidatePath("/admin/publishing");
   revalidatePath(`/admin/publishing/${result.eventId}`);
   revalidatePath("/admin/events");
   revalidatePath(`/admin/events/${result.eventId}`);
 
   redirect(
-    `/admin/review/events/${result.eventId}?approved=${encodeURIComponent(result.eventId)}`
+    `${returnBase}/${result.eventId}?approved=${encodeURIComponent(result.eventId)}`
   );
 }

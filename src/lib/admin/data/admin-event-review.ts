@@ -19,7 +19,6 @@ const REVIEW_EVENT_SELECT = `
   ends_at,
   cover_image_url,
   created_at,
-  review_submitted_at,
   venues (
     id,
     name,
@@ -174,4 +173,89 @@ export async function getAdminReviewEventById(
     isWedding: Boolean(row.is_wedding),
     coverImageUrl: row.cover_image_url,
   };
+}
+
+
+export interface AdminReviewTicketType {
+  id: string;
+  name: string;
+  price: number;
+  currency: "TRY";
+  isActive: boolean;
+}
+
+export interface AdminReviewTicketZone {
+  id: string;
+  name: string;
+  capacity: number;
+  types: AdminReviewTicketType[];
+}
+
+export interface AdminReviewEventDetailWithTickets extends AdminReviewEventDetail {
+  ticketZones: AdminReviewTicketZone[];
+}
+
+/** Ticket zones/types for SA review detail (user JWT + existing RLS). */
+export async function getAdminReviewEventTicketCatalog(
+  eventId: string
+): Promise<AdminReviewTicketZone[]> {
+  if (!isSupabaseDataSource()) return [];
+  if (!(await isAuthenticatedSuperAdmin())) return [];
+
+  const supabase = await createSupabaseServerClient();
+  const [{ data: zones, error: zonesError }, { data: types, error: typesError }] =
+    await Promise.all([
+      supabase
+        .from("event_ticket_zones")
+        .select("id, name, capacity, sort_order, is_active")
+        .eq("event_id", eventId)
+        .order("sort_order", { ascending: true }),
+      supabase
+        .from("event_ticket_types")
+        .select("id, zone_id, name, price, is_active")
+        .eq("event_id", eventId)
+        .order("name", { ascending: true }),
+    ]);
+
+  if (zonesError) {
+    throw new Error(`Admin review ticket zones read failed: ${zonesError.message}`);
+  }
+  if (typesError) {
+    throw new Error(`Admin review ticket types read failed: ${typesError.message}`);
+  }
+
+  const typesByZone = new Map<string, AdminReviewTicketType[]>();
+  for (const row of types ?? []) {
+    const zoneId = String((row as { zone_id: string }).zone_id);
+    const list = typesByZone.get(zoneId) ?? [];
+    list.push({
+      id: String((row as { id: string }).id),
+      name: String((row as { name: string }).name),
+      price: Number((row as { price: number | string }).price),
+      currency: "TRY",
+      isActive: Boolean((row as { is_active: boolean }).is_active),
+    });
+    typesByZone.set(zoneId, list);
+  }
+
+  return ((zones ?? []) as Array<{
+    id: string;
+    name: string;
+    capacity: number;
+    is_active: boolean;
+  }>).map((zone) => ({
+    id: zone.id,
+    name: zone.name,
+    capacity: zone.capacity,
+    types: typesByZone.get(zone.id) ?? [],
+  }));
+}
+
+export async function getAdminReviewEventDetailWithTickets(
+  id: string
+): Promise<AdminReviewEventDetailWithTickets | null> {
+  const event = await getAdminReviewEventById(id);
+  if (!event) return null;
+  const ticketZones = await getAdminReviewEventTicketCatalog(id);
+  return { ...event, ticketZones };
 }

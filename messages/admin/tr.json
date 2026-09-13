@@ -219,5 +219,17 @@
   "colPricing": "Ücret",
   "colWedding": "Düğün",
   "pricingFree": "Ücretsiz",
-  "pricingPaid": "Ücretli"
+  "pricingPaid": "Ücretli",
+  "approveAndPublish": "Onayla ve Yayınla",
+  "approveAndPublishHint": "Mevcut approve_event + publish_event RPC zinciri ile onaylayıp yayınlar.",
+  "approveAndPublishSuccess": "Etkinlik onaylandı ve yayınlandı.",
+  "approveAndPublishError": "Onay/yayın başarısız",
+  "publishSuccessPublicLink": "Public etkinlik URL",
+  "rejectEvent": "Reddet",
+  "rejectEventUnavailable": "P0: reject_event RPC yok — migration olmadan red desteklenmiyor (TODO).",
+  "ticketZonesHeading": "Bilet bölgeleri ve tipleri",
+  "ticketZonesEmpty": "Bu etkinlikte bilet bölgesi yok.",
+  "ticketTypesEmpty": "Bu bölgede bilet tipi yok.",
+  "ticketZoneCapacity": "Kapasite",
+  "ticketTypeInactive": "pasif"
 }

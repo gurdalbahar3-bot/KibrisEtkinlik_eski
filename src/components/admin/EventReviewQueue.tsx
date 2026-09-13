@@ -8,9 +8,16 @@ interface EventReviewQueueProps {
   events: AdminReviewEventListItem[];
   locale: "tr" | "en";
   t: (key: keyof AdminMessages) => string;
+  /** Detail link prefix, e.g. /admin/review/events or /tr/admin/events */
+  basePath?: string;
 }
 
-export function EventReviewQueue({ events, locale, t }: EventReviewQueueProps) {
+export function EventReviewQueue({
+  events,
+  locale,
+  t,
+  basePath = "/admin/review/events",
+}: EventReviewQueueProps) {
   if (events.length === 0) {
     return (
       <div className="space-y-3">
@@ -53,7 +60,7 @@ export function EventReviewQueue({ events, locale, t }: EventReviewQueueProps) {
               </p>
             </div>
             <Link
-              href={`/admin/review/events/${event.id}`}
+              href={`${basePath}/${event.id}`}
               className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-brand-700 px-4 text-sm font-semibold text-white transition hover:bg-brand-800"
             >
               {t("reviewAction")}
