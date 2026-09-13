@@ -102,11 +102,11 @@ test("Organizer ticket commerce draft + in_review + public offers", async ({
     await page.locator("#description").fill("P0.8A ticket commerce E2E");
     await page.locator("#category").selectOption("concert");
     await page.locator("#starts_at").fill(futureDateTimeLocal());
-    // New-event form defaults is_free checked; paid catalog needs is_free=false for JSON-LD offers.
+    // Paid catalog (price=500/700): events.is_free must be false so public detail
+    // never shows "Ücretsiz"/"Free" alongside TRY ticket offers.
     const freeCheckbox = page.locator('input[name="is_free"]');
-    if (await freeCheckbox.isChecked()) {
-      await freeCheckbox.uncheck();
-    }
+    await freeCheckbox.setChecked(false);
+    await expect(freeCheckbox).not.toBeChecked();
     await page.getByRole("button", { name: /Taslak oluştur|Create draft/ }).click();
     await page.waitForURL(/\/organizer\/events\/[0-9a-f-]{36}/);
 
@@ -326,6 +326,13 @@ test("Organizer ticket commerce draft + in_review + public offers", async ({
 
     await expect(saPage.locator("main")).toContainText(normal);
     await expect(saPage.locator("main")).toContainText(/700|₺/);
+    // Paid event fixture: must not render the free badge next to priced offers.
+    await expect(saPage.locator("main")).not.toContainText(
+      /^(?:Ücretsiz|Free)$/m
+    );
+    await expect(
+      saPage.getByText(/Ücretsiz|Free/, { exact: true })
+    ).toHaveCount(0);
 
     const jsonLd = await saPage
       .locator('script[type="application/ld+json"]')
@@ -334,6 +341,7 @@ test("Organizer ticket commerce draft + in_review + public offers", async ({
     expect(joined).toMatch(/"@type"\s*:\s*"Offer"/);
     expect(joined).toMatch(/"priceCurrency"\s*:\s*"TRY"/);
     expect(joined).toMatch(/"price"\s*:\s*"700"/);
+    expect(joined).not.toMatch(/"price"\s*:\s*"0"/);
   } finally {
     await organizerContext.close();
     await saContext.close();
