@@ -31,7 +31,6 @@ export function EventReviewDetailView({
 }: EventReviewDetailViewProps) {
   const canApprove = event.status === "in_review";
   const isApproved = event.status === "approved" || approveSuccess;
-  const isPublished = event.status === "published" || publishSuccess;
 
   return (
     <div className="space-y-6">
@@ -39,19 +38,20 @@ export function EventReviewDetailView({
         ← {t("eventReview")}
       </Link>
 
-      {approveError ? (
+      {/* If already published, ignore stale double-submit approvePublishError query params. */}
+      {approveError && !publishSuccess ? (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
           {approveError}
         </p>
       ) : null}
 
-      {approvePublishError ? (
+      {approvePublishError && !publishSuccess ? (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
           {t("approveAndPublishError")}: {approvePublishError}
         </p>
       ) : null}
 
-      {publishSuccess || isPublished ? (
+      {publishSuccess ? (
         <div className="space-y-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4" role="status">
           <p className="text-sm font-semibold text-emerald-900">{t("approveAndPublishSuccess")}</p>
           {publicPath ? (
@@ -65,7 +65,8 @@ export function EventReviewDetailView({
         </div>
       ) : null}
 
-      {approveSuccess || (isApproved && !isPublished) ? (
+      {/* Approve-only success — never alongside published success. */}
+      {(approveSuccess || isApproved) && !publishSuccess && event.status !== "published" ? (
         <div className="space-y-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4" role="status">
           <p className="text-sm font-semibold text-emerald-900">{t("approveEventSuccess")}</p>
           <p className="text-sm text-emerald-900">{t("approveThenPublishHint")}</p>

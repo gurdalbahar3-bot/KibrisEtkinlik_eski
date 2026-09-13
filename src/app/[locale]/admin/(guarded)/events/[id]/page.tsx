@@ -45,15 +45,25 @@ export default async function LocaleAdminEventDetailPage({ params, searchParams 
     notFound();
   }
 
-  const approveError = approveErrorFromQuery(approveErrorParam);
+  const isPublishedStatus = event.status === "published";
+  const publishSuccessFromQuery =
+    Boolean(published?.trim()) && published === event.id;
+  // Double-submit can leave only approvePublishError while DB is already published.
+  const publishSuccess =
+    publishSuccessFromQuery ||
+    (isPublishedStatus && Boolean(approvePublishError?.trim()));
+  const approveError =
+    isPublishedStatus || publishSuccess
+      ? undefined
+      : approveErrorFromQuery(approveErrorParam);
   const approveSuccess =
+    !publishSuccess &&
+    !isPublishedStatus &&
     Boolean(approved?.trim()) &&
     approved === event.id &&
-    (event.status === "approved" || event.status === "published" || !approveError);
-  const publishSuccess =
-    Boolean(published?.trim()) &&
-    published === event.id &&
-    (event.status === "published" || !approvePublishError);
+    (event.status === "approved" || !approveError);
+  const visibleApprovePublishError =
+    isPublishedStatus || publishSuccess ? undefined : approvePublishError;
 
   return (
     <EventReviewDetailView
@@ -63,7 +73,7 @@ export default async function LocaleAdminEventDetailPage({ params, searchParams 
       approveSuccess={approveSuccess}
       approveError={approveError}
       publishSuccess={publishSuccess}
-      approvePublishError={approvePublishError}
+      approvePublishError={visibleApprovePublishError}
       publicPath={publicPath ?? null}
       basePath={`/${locale}/admin/events`}
     />
