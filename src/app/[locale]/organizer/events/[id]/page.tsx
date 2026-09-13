@@ -12,6 +12,20 @@ type Props = {
   params: Promise<{ locale: string; id: string }>;
 };
 
+function statusMessageKey(status: string): string {
+  switch (status) {
+    case "published":
+      return "statusPublished";
+    case "approved":
+      return "statusApproved";
+    case "in_review":
+      return "statusInReview";
+    case "draft":
+    default:
+      return "statusDraft";
+  }
+}
+
 export default async function OrganizerEventDetailPage({ params }: Props) {
   const { id } = await params;
   const t = await getTranslations("organizer");
@@ -25,14 +39,6 @@ export default async function OrganizerEventDetailPage({ params }: Props) {
     (z) => z.is_active && z.sale_mode === "ticket_based"
   );
   const activeTypes = setup.types.filter((ty) => ty.is_active);
-  const canPublish =
-    event.status === "draft" &&
-    Boolean(event.venue_id) &&
-    activeZones.length > 0 &&
-    activeZones.every((z) => z.capacity > 0) &&
-    activeTypes.some((ty) =>
-      activeZones.some((z) => z.id === ty.zone_id && Number(ty.price) >= 0)
-    );
 
   const venues = event.venues as unknown as
     | { name: string }
@@ -44,14 +50,15 @@ export default async function OrganizerEventDetailPage({ params }: Props) {
 
   const publicSlug = buildDeterministicSlug(event.title, event.id);
 
+  const statusKey = statusMessageKey(event.status);
+  const statusLabel = t.has(statusKey) ? t(statusKey) : event.status;
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            {event.status === "published"
-              ? t("statusPublished")
-              : t("statusDraft")}
+            {statusLabel}
           </p>
           <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
             {event.title}
@@ -134,12 +141,14 @@ export default async function OrganizerEventDetailPage({ params }: Props) {
         </div>
       ) : null}
 
-      {event.status === "draft" ? (
-        <PublishEventPanel
-          eventId={event.id}
-          publicSlug={publicSlug}
-          canPublish={canPublish}
-        />
+      {event.status === "draft" || event.status === "in_review" ? (
+        <PublishEventPanel eventId={event.id} publicSlug={publicSlug} />
+      ) : null}
+
+      {event.status === "approved" ? (
+        <p className="rounded-xl border border-teal-100 bg-teal-50 px-4 py-3 text-sm text-teal-950">
+          {t("approvedWaitingPublish")}
+        </p>
       ) : null}
     </div>
   );

@@ -302,5 +302,14 @@
   "errCommerceInvalidPrice": "Invalid price.",
   "errCommerceInvalidMaxPerOrder": "Invalid max per order.",
   "errCommerceTicketTypeNotFound": "Ticket type not found.",
-  "errCommerceSaveFailed": "Could not save the ticket catalog. Please try again."
+  "errCommerceSaveFailed": "Could not save the ticket catalog. Please try again.",
+  "filterAll": "All",
+  "actionContinueEditing": "Continue editing",
+  "approvedWaitingPublish": "Approved — waiting to be published",
+  "viewPublicEvent": "View event",
+  "coverPreviewAlt": "Cover image preview",
+  "coverUrlOnlyHint": "Image URL only. No upload.",
+  "startsVenueLockedByDb": "Start/end time and venue cannot be changed after creation with current DB grants.",
+  "lockedBecauseStatus": "Editing is locked in this status. Only draft events can be edited.",
+  "publishedLiveHint": "Event is live. You can open the public page."
 }

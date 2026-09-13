@@ -302,5 +302,14 @@
   "errCommerceInvalidPrice": "Geçersiz fiyat.",
   "errCommerceInvalidMaxPerOrder": "Geçersiz sipariş limiti.",
   "errCommerceTicketTypeNotFound": "Bilet tipi bulunamadı.",
-  "errCommerceSaveFailed": "Bilet kataloğu kaydedilemedi. Lütfen tekrar deneyin."
+  "errCommerceSaveFailed": "Bilet kataloğu kaydedilemedi. Lütfen tekrar deneyin.",
+  "filterAll": "Tümü",
+  "actionContinueEditing": "Düzenlemeye devam et",
+  "approvedWaitingPublish": "Onaylandı — yayınlanması bekleniyor",
+  "viewPublicEvent": "Etkinliği Gör",
+  "coverPreviewAlt": "Kapak görseli önizleme",
+  "coverUrlOnlyHint": "Yalnızca görsel URL. Yükleme yok.",
+  "startsVenueLockedByDb": "Başlangıç/bitiş ve mekan, mevcut DB yetkisiyle oluşturma sonrası değiştirilemez.",
+  "lockedBecauseStatus": "Bu durumda düzenleme kilitli. Yalnızca taslak etkinlikler düzenlenebilir.",
+  "publishedLiveHint": "Etkinlik yayında. Herkese açık sayfayı görüntüleyebilirsiniz."
 }

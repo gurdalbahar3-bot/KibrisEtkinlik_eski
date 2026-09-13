@@ -11,7 +11,6 @@ import {
 import { CATEGORY_KEYS } from "@/lib/data/categories";
 import {
   cyprusLocalInputToIso,
-  rpcPublishEvent,
   rpcUpsertTicketType,
   rpcUpsertTicketZone,
 } from "@/lib/organizer/data";
@@ -218,64 +217,15 @@ export async function saveTicketSetupAction(
   redirect(`/${locale}/organizer/events/${eventId}`);
 }
 
+/**
+ * Organizer publish is intentionally disabled (P1 security).
+ * Canonical lifecycle: draft → in_review (organizer) → approved → published (Super Admin).
+ * This action never calls publish_event.
+ */
 export async function publishEventAction(
   _prev: ActionState | null,
   formData: FormData
 ): Promise<ActionState> {
-  const actor = await assertOrganizerActor();
-  if (!actor.ok) return { ok: false, errorCode: actor.errorCode };
-
-  const locale = String(formData.get("locale") ?? "tr");
-  const eventId = String(formData.get("event_id") ?? "").trim();
-  if (!eventId) return { ok: false, errorCode: "MISSING_FIELDS" };
-
-  const supabase = await createSupabaseServerClient();
-  const { data: event } = await supabase
-    .from("events")
-    .select("id, status, venue_id")
-    .eq("id", eventId)
-    .maybeSingle();
-
-  if (!event) return { ok: false, errorCode: "EVENT_NOT_FOUND" };
-  if (event.status !== "draft") return { ok: false, errorCode: "INVALID_STATE" };
-  if (!event.venue_id) return { ok: false, errorCode: "VENUE_REQUIRED" };
-
-  const { data: zones } = await supabase
-    .from("event_ticket_zones")
-    .select("id, is_active, sale_mode, capacity")
-    .eq("event_id", eventId)
-    .eq("is_active", true)
-    .eq("sale_mode", "ticket_based");
-
-  if (!zones || zones.length === 0) {
-    return { ok: false, errorCode: "TICKET_ZONE_REQUIRED" };
-  }
-  if (zones.some((z) => z.capacity == null || z.capacity <= 0)) {
-    return { ok: false, errorCode: "INVALID_CAPACITY" };
-  }
-
-  const zoneIds = zones.map((z) => z.id);
-  const { data: types } = await supabase
-    .from("event_ticket_types")
-    .select("id, zone_id, price, is_active")
-    .eq("event_id", eventId)
-    .eq("is_active", true)
-    .in("zone_id", zoneIds);
-
-  if (!types || types.length === 0) {
-    return { ok: false, errorCode: "TICKET_TYPE_REQUIRED" };
-  }
-  if (types.some((t) => t.price == null || Number(t.price) < 0)) {
-    return { ok: false, errorCode: "INVALID_PRICE" };
-  }
-
-  const result = await rpcPublishEvent(eventId);
-  if (!result.success) {
-    return { ok: false, errorCode: result.error_code ?? "PUBLISH_FAILED" };
-  }
-
-  revalidatePath(`/${locale}/organizer/events/${eventId}`);
-  revalidatePath(`/${locale}/organizer/events`);
-  revalidatePath(`/${locale}/events`);
-  return { ok: true, eventId };
+  void formData;
+  return { ok: false, errorCode: "ORGANIZER_PUBLISH_FORBIDDEN" };
 }

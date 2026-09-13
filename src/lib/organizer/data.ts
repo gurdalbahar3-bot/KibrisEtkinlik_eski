@@ -182,15 +182,14 @@ export async function rpcUpsertTicketType(input: {
   return asRpcResult(data);
 }
 
-export async function rpcPublishEvent(eventId: string): Promise<RpcResult> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.rpc("publish_event", {
-    p_event_id: eventId,
-  });
-  if (error) {
-    return { success: false, error_code: error.message };
-  }
-  return asRpcResult(data);
+/**
+ * Intentionally not called from Organizer UI/actions (P1).
+ * Super Admin publish goes through `@/lib/admin/publish-event-action`.
+ * Kept as a non-callable stub so accidental imports fail closed.
+ */
+export async function rpcPublishEvent(_eventId: string): Promise<RpcResult> {
+  void _eventId;
+  return { success: false, error_code: "ORGANIZER_PUBLISH_FORBIDDEN" };
 }
 
 /** Cyprus local wall-clock → ISO timestamptz (P0 uses +03:00). */

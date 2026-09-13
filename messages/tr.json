@@ -269,7 +269,7 @@
     "backHome": "Ana sayfa",
     "switchAccount": "Başka hesapla giriş",
     "dashboardTitle": "Özet",
-    "dashboardSubtitle": "Etkinliklerinizi oluşturun, biletleri ayarlayın ve yayınlayın.",
+    "dashboardSubtitle": "Etkinliklerinizi oluşturun, biletleri ayarlayın ve incelemeye gönderin.",
     "statTotal": "Toplam",
     "statDraft": "Taslak",
     "statPublished": "Yayında",
@@ -315,12 +315,19 @@
     "viewPublicEvent": "Herkese açık sayfayı gör",
     "ticketsSummary": "Biletler",
     "ticketsSummaryValue": "{zones} bölge · {types} tip",
-    "publishHeading": "Yayınla",
-    "publishHint": "Yayın sonrası etkinlik keşif ve detay sayfalarında görünür.",
+    "publishHeading": "Yayın için Super Admin onayı gerekir",
+    "publishHint": "Organizatörler etkinliği doğrudan yayınlayamaz. Canonical Organizer OS üzerinden incelemeye gönderin.",
     "publishBlocked": "Yayın için aktif mekan, ticket_based bölge, bilet tipi, kapasite ve fiyat gerekir.",
     "publishing": "Yayınlanıyor…",
     "publishSubmit": "Etkinliği yayınla",
-    "publishSuccess": "Etkinlik yayınlandı."
+    "publishSuccess": "Etkinlik yayınlandı.",
+    "approvalRequiredHeading": "Yayın için Super Admin onayı gerekir",
+    "approvalRequiredBody": "Organizatörler etkinliği doğrudan yayınlayamaz. Canonical Organizer OS üzerinden incelemeye gönderin.",
+    "approvalRequiredSteps": "Akış: taslak → incelemeye gönder → Super Admin onaylar ve yayınlar.",
+    "approvedWaitingPublish": "Onaylandı — yayınlanması bekleniyor",
+    "goToCanonicalOrganizer": "Organizer OS’e git",
+    "statusInReview": "İncelemede",
+    "statusApproved": "Onaylı"
   },
   "organizerErrors": {
     "GENERIC": "Bir hata oluştu. Lütfen tekrar deneyin.",
@@ -353,7 +360,8 @@
     "ZONE_NOT_FOUND": "Bölge bulunamadı.",
     "ZONE_NAME_CONFLICT": "Bu isimde bir bölge zaten var.",
     "WRONG_SALE_MODE": "Bölge ticket_based olmalı.",
-    "TICKET_TYPE_NOT_FOUND": "Bilet tipi bulunamadı."
+    "TICKET_TYPE_NOT_FOUND": "Bilet tipi bulunamadı.",
+    "ORGANIZER_PUBLISH_FORBIDDEN": "Organizatörler doğrudan yayınlayamaz. Super Admin onay sürecini kullanın."
   },
   "accountOrders": {
     "title": "Siparişlerim",

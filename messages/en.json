@@ -269,7 +269,7 @@
     "backHome": "Home",
     "switchAccount": "Sign in with another account",
     "dashboardTitle": "Overview",
-    "dashboardSubtitle": "Create events, set up tickets, and publish.",
+    "dashboardSubtitle": "Create events, set up tickets, and submit them for review.",
     "statTotal": "Total",
     "statDraft": "Draft",
     "statPublished": "Published",
@@ -315,12 +315,19 @@
     "viewPublicEvent": "View public page",
     "ticketsSummary": "Tickets",
     "ticketsSummaryValue": "{zones} zones · {types} types",
-    "publishHeading": "Publish",
-    "publishHint": "After publishing, the event appears in discovery and detail pages.",
+    "publishHeading": "Super Admin approval is required to publish",
+    "publishHint": "Organizers cannot publish events directly. Submit for review via the canonical Organizer OS.",
     "publishBlocked": "Publishing requires an active venue, ticket_based zone, ticket type, capacity, and price.",
     "publishing": "Publishing…",
     "publishSubmit": "Publish event",
-    "publishSuccess": "Event published."
+    "publishSuccess": "Event published.",
+    "approvalRequiredHeading": "Super Admin approval is required to publish",
+    "approvalRequiredBody": "Organizers cannot publish events directly. Submit for review via the canonical Organizer OS.",
+    "approvalRequiredSteps": "Flow: draft → submit for review → Super Admin approves and publishes.",
+    "approvedWaitingPublish": "Approved — waiting to be published",
+    "goToCanonicalOrganizer": "Go to Organizer OS",
+    "statusInReview": "In review",
+    "statusApproved": "Approved"
   },
   "organizerErrors": {
     "GENERIC": "Something went wrong. Please try again.",
@@ -353,7 +360,8 @@
     "ZONE_NOT_FOUND": "Zone not found.",
     "ZONE_NAME_CONFLICT": "A zone with this name already exists.",
     "WRONG_SALE_MODE": "Zone must be ticket_based.",
-    "TICKET_TYPE_NOT_FOUND": "Ticket type not found."
+    "TICKET_TYPE_NOT_FOUND": "Ticket type not found.",
+    "ORGANIZER_PUBLISH_FORBIDDEN": "Organizers cannot publish directly. Use the Super Admin approval flow."
   },
   "accountOrders": {
     "title": "My orders",

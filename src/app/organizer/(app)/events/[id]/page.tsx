@@ -21,6 +21,7 @@ import {
   getOrganizerMessages,
   resolveOrganizerLocale,
 } from "@/lib/organizer/i18n";
+import { buildOrganizerPublicEventPath } from "@/lib/organizer/public-event-url";
 import { isEventUuid } from "@/lib/organizer/rpc";
 
 type Props = {
@@ -269,6 +270,17 @@ export default async function OrganizerEventEditPage({ params, searchParams }: P
               placeholder="https://"
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
             />
+            {event.coverImageUrl ? (
+              <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={event.coverImageUrl}
+                  alt={t("coverPreviewAlt")}
+                  className="max-h-56 w-full object-cover"
+                />
+              </div>
+            ) : null}
+            <p className="mt-1 text-xs text-slate-500">{t("coverUrlOnlyHint")}</p>
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:gap-6">
@@ -294,6 +306,7 @@ export default async function OrganizerEventEditPage({ params, searchParams }: P
           </div>
 
           <p className="text-xs text-slate-500">{t("editLockedHint")}</p>
+          <p className="text-xs text-slate-500">{t("startsVenueLockedByDb")}</p>
 
           <button
             type="submit"
@@ -311,7 +324,18 @@ export default async function OrganizerEventEditPage({ params, searchParams }: P
           <p className="text-sm text-slate-600">
             {t("fieldCategory")}: {categoryLabel(event.category, t)}
           </p>
+          {event.coverImageUrl ? (
+            <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={event.coverImageUrl}
+                alt={t("coverPreviewAlt")}
+                className="max-h-56 w-full object-cover"
+              />
+            </div>
+          ) : null}
           <p className="text-sm text-slate-500">{t("readOnlyHint")}</p>
+          <p className="text-sm text-slate-500">{t("lockedBecauseStatus")}</p>
         </div>
       )}
 
@@ -474,9 +498,23 @@ export default async function OrganizerEventEditPage({ params, searchParams }: P
           </button>
         </form>
       ) : event.status === "in_review" ? (
-        <p className="rounded-xl border border-teal-100 bg-teal-50 px-4 py-3 text-sm text-teal-950">
+        <p className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-950">
           {t("waitingReview")}
         </p>
+      ) : event.status === "approved" ? (
+        <p className="rounded-xl border border-teal-100 bg-teal-50 px-4 py-3 text-sm text-teal-950">
+          {t("approvedWaitingPublish")}
+        </p>
+      ) : event.status === "published" ? (
+        <div className="flex flex-col gap-3 rounded-xl border border-teal-100 bg-teal-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-teal-950">{t("publishedLiveHint")}</p>
+          <Link
+            href={buildOrganizerPublicEventPath(locale, event.title, event.id)}
+            className="inline-flex min-h-10 items-center justify-center rounded-lg bg-teal-700 px-4 text-sm font-semibold text-white hover:bg-teal-800"
+          >
+            {t("viewPublicEvent")}
+          </Link>
+        </div>
       ) : null}
     </div>
   );
