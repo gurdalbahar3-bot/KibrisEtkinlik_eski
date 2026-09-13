@@ -76,6 +76,10 @@ body {
     @apply inline-flex min-h-11 items-center justify-center rounded-full bg-accent-500 px-6 text-sm font-semibold text-white shadow-glow transition hover:bg-accent-600;
   }
 
+  .field-input {
+    @apply w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-brand-500 focus:ring-2;
+  }
+
   .btn-secondary {
     @apply inline-flex min-h-11 items-center justify-center rounded-full border border-white/25 bg-white/10 px-6 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/20;
   }

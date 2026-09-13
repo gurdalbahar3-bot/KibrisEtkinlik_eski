@@ -34,7 +34,7 @@ async function fetchDiscoveryListEventRows(): Promise<DbEventRow[]> {
     throw new Error(`Supabase discovery events fetch failed: ${error.message}`);
   }
 
-  return (data ?? []) as DbEventRow[];
+  return (data ?? []) as unknown as DbEventRow[];
 }
 
 /** Detail / deep-link pool: includes past + completed (still RLS-public). */
@@ -50,7 +50,7 @@ async function fetchPublicDetailEventRows(): Promise<DbEventRow[]> {
     throw new Error(`Supabase event detail fetch failed: ${error.message}`);
   }
 
-  return (data ?? []) as DbEventRow[];
+  return (data ?? []) as unknown as DbEventRow[];
 }
 
 function filterUpcomingCyprus(events: DiscoveryEvent[]): DiscoveryEvent[] {
@@ -213,6 +213,6 @@ export const supabaseEventsRepository = {
       throw new Error(`Supabase event fetch failed: ${error.message}`);
     }
     if (!data) return undefined;
-    return mapEventRowToDiscoveryEvent(data as DbEventRow);
+    return mapEventRowToDiscoveryEvent(data as unknown as DbEventRow);
   },
 };

@@ -331,6 +331,92 @@ export interface Database {
         };
         Relationships: [];
       };
+      events: {
+        Row: {
+          id: string;
+          owner_id: string;
+          venue_id: string;
+          title: string;
+          description: string | null;
+          category: string;
+          is_free: boolean;
+          is_wedding: boolean;
+          status: DbEventStatus;
+          starts_at: string;
+          ends_at: string | null;
+          cover_image_url: string | null;
+          cancellation_reason: string | null;
+          organization_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          owner_id: string;
+          venue_id: string;
+          title: string;
+          description?: string | null;
+          category: string;
+          is_free?: boolean;
+          is_wedding?: boolean;
+          starts_at: string;
+          ends_at?: string | null;
+          cover_image_url?: string | null;
+        };
+        Update: {
+          title?: string;
+          description?: string | null;
+          category?: string;
+          is_free?: boolean;
+          is_wedding?: boolean;
+          cover_image_url?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "events_venue_id_fkey";
+            columns: ["venue_id"];
+            isOneToOne: false;
+            referencedRelation: "venues";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      event_ticket_zones: {
+        Row: {
+          id: string;
+          event_id: string;
+          name: string;
+          zone_type: string;
+          sale_mode: string;
+          venue_area_id: string | null;
+          capacity: number;
+          reserved_count: number;
+          sold_count: number;
+          description: string | null;
+          sort_order: number | null;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      event_ticket_types: {
+        Row: {
+          id: string;
+          event_id: string;
+          zone_id: string;
+          name: string;
+          price: number;
+          description: string | null;
+          max_per_order: number | null;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
       account_applications: {
         Row: {
           id: string;
@@ -397,6 +483,40 @@ export interface Database {
           p_tables?: Json[];
           p_seats?: Json[];
           p_objects?: Json[];
+        };
+        Returns: Json;
+      };
+      upsert_event_ticket_zone_atomic: {
+        Args: {
+          p_event_id: string;
+          p_name: string;
+          p_zone_type: string;
+          p_sale_mode: string;
+          p_capacity: number;
+          p_venue_area_id?: string | null;
+          p_description?: string | null;
+          p_sort_order?: number | null;
+          p_is_active?: boolean;
+          p_zone_id?: string | null;
+        };
+        Returns: Json;
+      };
+      upsert_event_ticket_type: {
+        Args: {
+          p_event_id: string;
+          p_zone_id: string;
+          p_name: string;
+          p_price: number;
+          p_description?: string | null;
+          p_max_per_order?: number | null;
+          p_is_active?: boolean;
+          p_ticket_type_id?: string | null;
+        };
+        Returns: Json;
+      };
+      publish_event: {
+        Args: {
+          p_event_id: string;
         };
         Returns: Json;
       };

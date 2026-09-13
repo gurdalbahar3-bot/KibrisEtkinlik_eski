@@ -34,6 +34,12 @@ export const routing = defineRouting({
       tr: "/ilceler",
       en: "/districts",
     },
+    "/login": "/login",
+    "/organizer": "/organizer",
+    "/organizer/events": "/organizer/events",
+    "/organizer/events/new": "/organizer/events/new",
+    "/organizer/events/[id]": "/organizer/events/[id]",
+    "/organizer/events/[id]/tickets": "/organizer/events/[id]/tickets",
   },
 });
 
