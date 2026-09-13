@@ -97,7 +97,7 @@ async function fetchEventsViaAuthenticatedSupabase(): Promise<AdminEventListItem
     throw new Error(`Admin events read failed: ${error.message}`);
   }
 
-  const rows = (data ?? []) as DbEventRow[];
+  const rows = (data ?? []) as unknown as DbEventRow[];
   const ownerIds = [...new Set(rows.map((row) => row.owner_id))];
   const ownerById = await fetchOwnerProfiles(ownerIds);
 
@@ -120,7 +120,7 @@ async function fetchEventByIdViaAuthenticatedSupabase(id: string): Promise<Admin
     return null;
   }
 
-  const row = data as DbEventRow;
+  const row = data as unknown as DbEventRow;
   const ownerById = await fetchOwnerProfiles([row.owner_id]);
   const base = mapEventRow(row, ownerById);
 

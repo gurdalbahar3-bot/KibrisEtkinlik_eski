@@ -7,11 +7,15 @@ import {
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kibrisetkinlik.com";
 
+/** Runtime catalog — production never bakes mock event slugs into sitemap.xml. */
+export const dynamic = "force-dynamic";
+
 /**
  * Discovery-aligned sitemap.
  * Uses discoveryEventsRepository / discoveryVenuesRepository so
  * SUPABASE_DATA_SOURCE=mock|supabase stays consistent with homepage/listings.
  * Categories + district hubs are stable taxonomy routes (not row-driven).
+ * force-dynamic: do not prerender against production supabase during `next build`.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [events, venues] = await Promise.all([

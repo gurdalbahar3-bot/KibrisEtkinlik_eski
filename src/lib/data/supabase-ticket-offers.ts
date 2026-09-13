@@ -18,7 +18,7 @@ export async function fetchTicketOffersByEventId(
     throw new Error(`Supabase ticket offers fetch failed: ${error.message}`);
   }
 
-  return mapTicketTypeRowsToOffers((data ?? []) as DbEventTicketTypeRow[]);
+  return mapTicketTypeRowsToOffers((data ?? []) as unknown as DbEventTicketTypeRow[]);
 }
 
 export const supabaseTicketOffersRepository = {

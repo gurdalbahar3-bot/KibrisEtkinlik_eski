@@ -13,10 +13,33 @@ export type Json =
 
 export type DbEventStatus =
   | "draft"
+  | "in_review"
+  | "approved"
   | "published"
   | "postponed"
+  | "unpublished"
   | "cancelled"
   | "completed";
+
+export type DbEventChangeRequestType = "postpone" | "reschedule";
+
+export type DbEventChangeRequestStatus = "pending" | "accepted" | "rejected";
+
+export type DbEventChangeDecision = "accept" | "reject";
+
+export interface DbEventChangeRequestRow {
+  id: string;
+  event_id: string;
+  requester_id: string;
+  change_type: DbEventChangeRequestType;
+  proposed_start: string | null;
+  proposed_end: string | null;
+  reason: string | null;
+  status: DbEventChangeRequestStatus;
+  decided_by: string | null;
+  decided_at: string | null;
+  created_at: string;
+}
 
 export interface DbKktcDistrictRow {
   id?: string;
@@ -106,9 +129,12 @@ export type RpcResultJson = {
   venue_id?: string;
 };
 
+export type DbVenueStatus = "draft" | "in_review" | "active" | "hidden" | "archived";
+
 export interface DbVenueRow {
   id: string;
   owner_id?: string;
+  created_by?: string;
   name: string;
   venue_category: string | null;
   address: string | null;
@@ -118,7 +144,7 @@ export interface DbVenueRow {
   longitude: number | null;
   floor_plan_url: string | null;
   capacity: number | null;
-  status: string;
+  status: DbVenueStatus | string;
   district_id: string | null;
   organization_id?: string | null;
   layout_canvas_width?: number | null;
@@ -188,9 +214,50 @@ export interface DbAccountApplicationRow {
   submitted_at: string;
 }
 
+export type DbApproveAccountDecision = "approve" | "reject";
+
+export interface DbApproveAccountApplicationResult {
+  success: boolean;
+  error_code?: string;
+  application_id?: string;
+  decision?: DbApproveAccountDecision;
+  account_type?: string;
+  verification_status?: string;
+  organization_id?: string | null;
+}
+
+export interface DbPublishEventResult {
+  success: boolean;
+  error_code?: string;
+  event_id?: string;
+  status?: string;
+  noop?: boolean;
+}
+
+export interface DbApproveEventResult {
+  success: boolean;
+  error_code?: string;
+  event_id?: string;
+  status?: string;
+}
+
+export interface DbAdminAuditLogRow {
+  id: string;
+  actor_id: string | null;
+  actor_role: string | null;
+  action: string;
+  target_type: string;
+  target_id: string;
+  old_state: Json | null;
+  new_state: Json | null;
+  metadata: Json;
+  created_at: string;
+}
+
 export interface DbEventRow {
   id: string;
   owner_id: string;
+  created_by?: string;
   title: string;
   description: string | null;
   category: string;
@@ -198,12 +265,122 @@ export interface DbEventRow {
   starts_at: string;
   ends_at: string | null;
   cover_image_url: string | null;
+  official_ticket_url?: string | null;
   venue_id: string;
   status: DbEventStatus;
   review_status?: string | null;
   venues: DbVenueRow | null;
   event_locations: DbEventLocationRow | DbEventLocationRow[] | null;
   event_artists: DbEventArtistRow[] | null;
+}
+
+export interface DbEventTicketZoneRow {
+  id: string;
+  event_id: string;
+  name: string;
+  zone_type: string;
+  sale_mode: string;
+  capacity: number;
+  reserved_count: number;
+  sold_count: number;
+  description: string | null;
+  sort_order: number | null;
+  is_active: boolean;
+}
+
+export interface DbEventTicketTypeRow {
+  id: string;
+  event_id: string;
+  zone_id: string;
+  name: string;
+  price: number | string;
+  description: string | null;
+  max_per_order: number | null;
+  is_active: boolean;
+  event_ticket_zones: DbEventTicketZoneRow | DbEventTicketZoneRow[] | null;
+}
+
+export type DbOrderStatus =
+  | "draft"
+  | "pending_payment"
+  | "paid"
+  | "failed"
+  | "expired"
+  | "cancelled_by_organizer";
+
+export interface DbOrderRow {
+  id: string;
+  customer_id: string;
+  event_id: string;
+  status: DbOrderStatus | string;
+  subtotal_amount: number | string;
+  total_amount: number | string;
+  currency: string | null;
+  expires_at: string;
+  paid_at: string | null;
+  created_at: string;
+  updated_at: string;
+  amount_paid_online: number | string | null;
+  amount_remaining: number | string | null;
+  amount_due_now: number | string | null;
+}
+
+export interface DbOrderItemRow {
+  id: string;
+  order_id: string;
+  item_type: string;
+  reference_id: string | null;
+  zone_id: string | null;
+  quantity: number;
+  unit_price: number | string;
+  total_price: number | string;
+  snapshot_label: string | null;
+  created_at: string;
+  amount_due_now: number | string | null;
+}
+
+export interface DbOrderItemSelectionRow {
+  id: string;
+  order_item_id: string;
+  selection_type: string;
+  package_item_id: string | null;
+  package_upgrade_id: string | null;
+  upgrade_option_id: string | null;
+  snapshot_item_name: string;
+  snapshot_option_name: string | null;
+  snapshot_category: string | null;
+  quantity: number;
+  unit_price_delta: number | string;
+  line_total_delta: number | string;
+  created_at: string;
+}
+
+export type DbTicketStatus =
+  | "pending_payment"
+  | "active"
+  | "transferred"
+  | "used"
+  | "cancelled"
+  | "cancelled_by_organizer";
+
+export interface DbTicketRow {
+  id: string;
+  event_id: string;
+  ticket_type_id: string;
+  zone_id: string;
+  order_id: string;
+  order_item_id: string | null;
+  holder_id: string;
+  status: DbTicketStatus | string;
+  qr_code_id: string | null;
+  confirmed_at: string | null;
+  created_at: string;
+}
+
+export interface DbCustomerProfileRow {
+  profile_id: string;
+  preferred_city: string | null;
+  created_at: string;
 }
 
 export interface Database {
@@ -213,7 +390,15 @@ export interface Database {
         Row: Omit<DbVenueRow, "kktc_districts">;
         Insert: Record<string, never>;
         Update: Record<string, never>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "venues_district_id_fkey";
+            columns: ["district_id"];
+            isOneToOne: false;
+            referencedRelation: "kktc_districts";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       kktc_districts: {
         Row: Required<Pick<DbKktcDistrictRow, "id" | "code" | "name_tr" | "name_en" | "sort_order" | "is_active">>;
@@ -331,6 +516,46 @@ export interface Database {
         };
         Relationships: [];
       };
+      organizations: {
+        Row: {
+          id: string;
+          name: string;
+          status: string;
+        };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      organization_memberships: {
+        Row: {
+          id: string;
+          organization_id: string;
+          profile_id: string;
+          status: string;
+        };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [
+          {
+            foreignKeyName: "organization_memberships_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      organizer_profiles: {
+        Row: {
+          profile_id: string;
+          organization_name: string | null;
+          organization_id: string | null;
+          created_at: string | null;
+        };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
       events: {
         Row: {
           id: string;
@@ -341,14 +566,14 @@ export interface Database {
           category: string;
           is_free: boolean;
           is_wedding: boolean;
-          status: DbEventStatus;
+          status: DbEventStatus | string;
           starts_at: string;
           ends_at: string | null;
           cover_image_url: string | null;
-          cancellation_reason: string | null;
+          official_ticket_url: string | null;
           organization_id: string | null;
-          created_at: string;
-          updated_at: string;
+          created_at?: string | null;
+          review_submitted_at?: string | null;
         };
         Insert: {
           owner_id: string;
@@ -381,41 +606,59 @@ export interface Database {
           },
         ];
       };
-      event_ticket_zones: {
-        Row: {
-          id: string;
-          event_id: string;
-          name: string;
-          zone_type: string;
-          sale_mode: string;
-          venue_area_id: string | null;
-          capacity: number;
-          reserved_count: number;
-          sold_count: number;
-          description: string | null;
-          sort_order: number | null;
-          is_active: boolean;
-          created_at: string;
-        };
+      event_locations: {
+        Row: Omit<DbEventLocationRow, "kktc_districts">;
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [
+          {
+            foreignKeyName: "event_locations_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: true;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_locations_district_id_fkey";
+            columns: ["district_id"];
+            isOneToOne: false;
+            referencedRelation: "kktc_districts";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      artists: {
+        Row: { [K in keyof DbArtistRow]: DbArtistRow[K] };
         Insert: Record<string, never>;
         Update: Record<string, never>;
         Relationships: [];
       };
-      event_ticket_types: {
+      event_artists: {
         Row: {
           id: string;
           event_id: string;
-          zone_id: string;
-          name: string;
-          price: number;
-          description: string | null;
-          max_per_order: number | null;
-          is_active: boolean;
-          created_at: string;
+          artist_id: string;
+          role: string | null;
+          sort_order: number | null;
         };
         Insert: Record<string, never>;
         Update: Record<string, never>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "event_artists_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_artists_artist_id_fkey";
+            columns: ["artist_id"];
+            isOneToOne: false;
+            referencedRelation: "artists";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       account_applications: {
         Row: {
@@ -435,26 +678,214 @@ export interface Database {
         Update: Record<string, never>;
         Relationships: [];
       };
+      admin_audit_log: {
+        Row: { [K in keyof DbAdminAuditLogRow]: DbAdminAuditLogRow[K] };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      event_change_requests: {
+        Row: { [K in keyof DbEventChangeRequestRow]: DbEventChangeRequestRow[K] };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      event_ticket_zones: {
+        Row: { [K in keyof DbEventTicketZoneRow]: DbEventTicketZoneRow[K] };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      event_ticket_types: {
+        Row: Omit<DbEventTicketTypeRow, "event_ticket_zones">;
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [
+          {
+            foreignKeyName: "event_ticket_types_zone_id_fkey";
+            columns: ["zone_id"];
+            isOneToOne: false;
+            referencedRelation: "event_ticket_zones";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      orders: {
+        Row: { [K in keyof DbOrderRow]: DbOrderRow[K] };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      order_items: {
+        Row: { [K in keyof DbOrderItemRow]: DbOrderItemRow[K] };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      order_item_selections: {
+        Row: { [K in keyof DbOrderItemSelectionRow]: DbOrderItemSelectionRow[K] };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      tickets: {
+        Row: { [K in keyof DbTicketRow]: DbTicketRow[K] };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      customer_profiles: {
+        Row: { [K in keyof DbCustomerProfileRow]: DbCustomerProfileRow[K] };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
     };
-    Views: Record<string, never>;
+    Views: { [_ in never]: never };
     Functions: {
       is_super_admin: {
         Args: Record<string, never>;
         Returns: boolean;
       };
+      approve_account_application: {
+        Args: {
+          p_application_id: string;
+          p_decision: string;
+          p_rejection_reason: string | null;
+          p_organization_id: string | null;
+        };
+        Returns: Json;
+      };
+      can_manage_venue: {
+        Args: {
+          p_venue_id: string;
+        };
+        Returns: boolean;
+      };
       create_venue_atomic: {
         Args: {
           p_name: string;
+          p_owner_id?: string | null;
           p_venue_category?: string | null;
           p_address?: string | null;
           p_city?: string | null;
           p_region?: string | null;
-          p_district_id?: string | null;
           p_latitude?: number | null;
           p_longitude?: number | null;
           p_capacity?: number | null;
-          p_floor_plan_url?: string | null;
+          p_district_id?: string | null;
           p_organization_id?: string | null;
+          p_floor_plan_url?: string | null;
+        };
+        Returns: Json;
+      };
+      create_event_atomic: {
+        Args: {
+          p_title: string;
+          p_venue_id: string;
+          p_category: string;
+          p_starts_at: string;
+          p_description?: string | null;
+          p_ends_at?: string | null;
+          p_cover?: string | null;
+          p_is_free?: boolean | null;
+          p_is_wedding?: boolean | null;
+          p_owner_id?: string | null;
+          p_organization_id?: string | null;
+        };
+        Returns: Json;
+      };
+      publish_event: {
+        Args: {
+          p_event_id: string;
+        };
+        Returns: Json;
+      };
+      postpone_event: {
+        Args: {
+          p_event_id: string;
+          p_reason?: string | null;
+        };
+        Returns: Json;
+      };
+      reschedule_event: {
+        Args: {
+          p_event_id: string;
+          p_starts_at: string;
+          p_ends_at?: string | null;
+        };
+        Returns: Json;
+      };
+      submit_event_for_review: {
+        Args: {
+          p_event_id: string;
+        };
+        Returns: Json;
+      };
+      approve_event: {
+        Args: {
+          p_event_id: string;
+        };
+        Returns: Json;
+      };
+      unpublish_event: {
+        Args: {
+          p_event_id: string;
+        };
+        Returns: Json;
+      };
+      cancel_event: {
+        Args: {
+          p_event_id: string;
+          p_reason?: string | null;
+        };
+        Returns: Json;
+      };
+      complete_event: {
+        Args: {
+          p_event_id: string;
+        };
+        Returns: Json;
+      };
+      propose_event_schedule_change: {
+        Args: {
+          p_event_id: string;
+          p_change_type: DbEventChangeRequestType;
+          p_proposed_start?: string | null;
+          p_proposed_end?: string | null;
+          p_reason?: string | null;
+        };
+        Returns: Json;
+      };
+      decide_event_change_request: {
+        Args: {
+          p_request_id: string;
+          p_decision: DbEventChangeDecision;
+        };
+        Returns: Json;
+      };
+      upsert_artist_atomic: {
+        Args: {
+          p_name: string;
+          p_slug?: string | null;
+          p_bio?: string | null;
+          p_image_url?: string | null;
+          p_is_active?: boolean | null;
+          p_artist_id?: string | null;
+        };
+        Returns: Json;
+      };
+      set_event_artists_atomic: {
+        Args: {
+          p_event_id: string;
+          p_artists: Json;
+        };
+        Returns: Json;
+      };
+      set_event_official_ticket_url: {
+        Args: {
+          p_event_id: string;
+          p_url?: string | null;
         };
         Returns: Json;
       };
@@ -475,6 +906,36 @@ export interface Database {
         };
         Returns: Json;
       };
+      submit_venue_for_review: {
+        Args: {
+          p_venue_id: string;
+        };
+        Returns: Json;
+      };
+      approve_venue: {
+        Args: {
+          p_venue_id: string;
+        };
+        Returns: Json;
+      };
+      hide_venue: {
+        Args: {
+          p_venue_id: string;
+        };
+        Returns: Json;
+      };
+      unhide_venue: {
+        Args: {
+          p_venue_id: string;
+        };
+        Returns: Json;
+      };
+      archive_venue: {
+        Args: {
+          p_venue_id: string;
+        };
+        Returns: Json;
+      };
       save_venue_layout_batch_atomic: {
         Args: {
           p_venue_id: string;
@@ -483,6 +944,52 @@ export interface Database {
           p_tables?: Json[];
           p_seats?: Json[];
           p_objects?: Json[];
+        };
+        Returns: Json;
+      };
+      create_mixed_cart_atomic: {
+        Args: {
+          p_event_id: string;
+          p_items: Json;
+        };
+        Returns: Json;
+      };
+      checkout_ticket_only_atomic: {
+        Args: {
+          p_event_id: string;
+          p_zone_id: string;
+          p_ticket_type_id: string;
+          p_quantity: number;
+        };
+        Returns: Json;
+      };
+      expire_due_pending_orders_atomic: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      expire_order_atomic: {
+        Args: {
+          p_order_id: string;
+        };
+        Returns: Json;
+      };
+      confirm_payment_atomic: {
+        Args: {
+          p_order_id: string;
+          p_provider: string;
+          p_provider_payment_id: string;
+          p_amount: number;
+          p_currency: string;
+          p_payment_method?: string | null;
+        };
+        Returns: Json;
+      };
+      fail_payment_atomic: {
+        Args: {
+          p_order_id: string;
+          p_provider?: string | null;
+          p_provider_payment_id?: string | null;
+          p_currency?: string | null;
         };
         Returns: Json;
       };
@@ -514,14 +1021,10 @@ export interface Database {
         };
         Returns: Json;
       };
-      publish_event: {
-        Args: {
-          p_event_id: string;
-        };
-        Returns: Json;
-      };
     };
-    Enums: Record<string, never>;
+    Enums: {
+      event_status: DbEventStatus;
+    };
     CompositeTypes: Record<string, never>;
   };
 }
