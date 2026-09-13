@@ -72,12 +72,13 @@ export async function loginAction(
 }
 
 export async function logoutAction(formData: FormData): Promise<void> {
-  const locale = String(formData.get("locale") ?? "tr").trim() || "tr";
+  void formData;
   if (getSupabasePublicEnv()) {
     const supabase = await createSupabaseServerClient();
     await supabase.auth.signOut();
   }
-  redirect(`/${locale}/login`);
+  // Locale organizer shell logs out to Organizer OS login — not customer /giris.
+  redirect("/organizer/login");
 }
 
 export async function createEventAction(

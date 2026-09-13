@@ -1,11 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 
-import { loginAction, type ActionState } from "@/app/[locale]/organizer/actions";
-
-const initialState: ActionState = { ok: false };
+import { loginCustomerAction } from "@/lib/customer/auth-actions";
 
 export function LoginForm({
   locale,
@@ -15,16 +12,15 @@ export function LoginForm({
   nextPath: string;
 }) {
   const t = useTranslations("auth");
-  const tErrors = useTranslations("organizerErrors");
-  const [state, formAction, pending] = useActionState(loginAction, initialState);
 
   return (
     <form
-      action={formAction}
+      action={loginCustomerAction}
       className="mx-auto w-full max-w-md space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+      data-testid="customer-login-form"
     >
       <input type="hidden" name="locale" value={locale} />
-      <input type="hidden" name="next" value={nextPath} />
+      {nextPath ? <input type="hidden" name="next" value={nextPath} /> : null}
 
       <div>
         <label htmlFor="email" className="mb-1 block text-sm font-medium text-slate-700">
@@ -54,16 +50,8 @@ export function LoginForm({
         />
       </div>
 
-      {state.errorCode ? (
-        <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">
-          {tErrors.has(state.errorCode)
-            ? tErrors(state.errorCode)
-            : state.message || tErrors("GENERIC")}
-        </p>
-      ) : null}
-
-      <button type="submit" disabled={pending} className="btn-primary w-full disabled:opacity-60">
-        {pending ? t("signingIn") : t("signIn")}
+      <button type="submit" className="btn-primary w-full">
+        {t("signIn")}
       </button>
     </form>
   );

@@ -226,13 +226,36 @@
     "emptyHint": "Check upcoming events."
   },
   "auth": {
-    "title": "Organizer sign in",
-    "subtitle": "Sign in with an approved organizer or venue owner account.",
+    "title": "Customer sign in",
+    "subtitle": "Sign in to buy tickets and view your orders.",
     "email": "Email",
     "password": "Password",
     "signIn": "Sign in",
     "signingIn": "Signing in…",
-    "callbackError": "Could not complete sign-in. Please try again."
+    "callbackError": "Could not complete sign-in. Please try again.",
+    "noAccount": "Don't have an account?",
+    "signupLink": "Sign up",
+    "errorMissing": "Email and password are required.",
+    "errorInvalid": "Incorrect email or password.",
+    "errorNotCustomer": "This account is not for customer sign-in. Organizers should use /organizer/login.",
+    "errorConfig": "Sign-in is not configured right now. Please try again later.",
+    "errorConfirm": "Account created. Please confirm your email, then sign in."
+  },
+  "customerAuth": {
+    "signupTitle": "Customer sign up",
+    "signupSubtitle": "Create an account to buy tickets.",
+    "fullName": "Full name",
+    "email": "Email",
+    "phone": "Phone",
+    "password": "Password",
+    "passwordHint": "At least 8 characters.",
+    "signupButton": "Sign up",
+    "hasAccount": "Already have an account?",
+    "loginLink": "Sign in",
+    "signupErrorMissing": "Email and password are required.",
+    "signupErrorWeakPassword": "Password must be at least 8 characters.",
+    "signupErrorFailed": "Sign-up failed. The email may already be in use.",
+    "loginErrorConfig": "Sign-up is not configured right now. Please try again later."
   },
   "organizer": {
     "badge": "Organizer OS",

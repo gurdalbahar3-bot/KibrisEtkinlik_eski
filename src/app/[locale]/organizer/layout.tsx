@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import NextLink from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { Link } from "@/lib/i18n/navigation";
@@ -13,7 +14,8 @@ export default async function OrganizerLayout({ children }: Props) {
   const ctx = await loadOrganizerContext();
 
   if (ctx.status === "unauthenticated") {
-    redirect(`/${locale}/login?next=/${locale}/organizer`);
+    // Organizer OS uses dedicated /organizer/login — never customer /giris.
+    redirect("/organizer/login");
   }
 
   if (ctx.status === "forbidden") {
@@ -24,15 +26,18 @@ export default async function OrganizerLayout({ children }: Props) {
         </h1>
         <p className="mt-3 text-sm text-slate-600">{t("accessDeniedBody")}</p>
         <div className="mt-8 flex justify-center gap-3">
-          <Link href="/" className="btn-primary">
+          <Link
+            href="/"
+            className="btn-primary"
+          >
             {t("backHome")}
           </Link>
-          <Link
-            href="/login"
+          <NextLink
+            href="/organizer/login"
             className="inline-flex min-h-11 items-center justify-center rounded-full border border-slate-300 bg-white px-6 text-sm font-semibold text-slate-800"
           >
             {t("switchAccount")}
-          </Link>
+          </NextLink>
         </div>
       </div>
     );

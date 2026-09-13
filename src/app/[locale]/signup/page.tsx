@@ -3,29 +3,36 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { signupCustomerAction } from "@/lib/customer/auth-actions";
 import { getCustomerSession } from "@/lib/customer/auth";
+import {
+  customerHomePath,
+  safeCustomerNextPath,
+} from "@/lib/auth/safe-next";
 import { Link } from "@/lib/i18n/navigation";
 import { getSupabasePublicEnv } from "@/lib/supabase/config";
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; next?: string }>;
 };
 
 export default async function CustomerSignupPage({ params, searchParams }: Props) {
-  const { locale } = await params;
+  const { locale: localeRaw } = await params;
+  const locale = localeRaw === "en" ? "en" : "tr";
   setRequestLocale(locale);
-  const { error } = await searchParams;
+
+  const query = await searchParams;
+  const nextPath = safeCustomerNextPath(query.next, locale);
   const t = await getTranslations("customerAuth");
   const session = await getCustomerSession();
 
   if (session) {
-    nextRedirect(locale === "en" ? "/en" : "/tr");
+    nextRedirect(nextPath ?? customerHomePath(locale));
   }
 
   const configured = Boolean(getSupabasePublicEnv());
 
   let errorMessage: string | null = null;
-  switch (error) {
+  switch (query.error) {
     case "missing":
       errorMessage = t("signupErrorMissing");
       break;
@@ -42,6 +49,10 @@ export default async function CustomerSignupPage({ params, searchParams }: Props
       break;
   }
 
+  const loginHref = nextPath
+    ? ({ pathname: "/login" as const, query: { next: nextPath } } as const)
+    : ("/login" as const);
+
   return (
     <div className="section-container py-12">
       <div className="mx-auto w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 shadow-card">
@@ -57,6 +68,7 @@ export default async function CustomerSignupPage({ params, searchParams }: Props
         {configured ? (
           <form action={signupCustomerAction} className="mt-6 space-y-4" data-testid="customer-signup-form">
             <input type="hidden" name="locale" value={locale} />
+            {nextPath ? <input type="hidden" name="next" value={nextPath} /> : null}
             <div>
               <label htmlFor="full_name" className="block text-sm font-medium text-slate-700">
                 {t("fullName")}
@@ -122,7 +134,7 @@ export default async function CustomerSignupPage({ params, searchParams }: Props
 
         <p className="mt-6 text-sm text-slate-600">
           {t("hasAccount")}{" "}
-          <Link href="/login" className="font-medium text-brand-700 hover:underline">
+          <Link href={loginHref} className="font-medium text-brand-700 hover:underline">
             {t("loginLink")}
           </Link>
         </p>

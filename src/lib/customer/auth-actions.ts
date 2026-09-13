@@ -2,22 +2,31 @@
 
 import { redirect } from "next/navigation";
 
+import {
+  customerHomePath,
+  safeCustomerNextPath,
+} from "@/lib/auth/safe-next";
 import { assertCustomerProfile } from "@/lib/customer/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabasePublicEnv } from "@/lib/supabase/config";
 
 function localeLoginPath(locale: string): string {
-  return locale === "tr" ? "/tr/giris" : "/en/login";
+  return locale === "en" ? "/en/login" : "/tr/giris";
 }
 
-function localeHomePath(locale: string): string {
-  return locale === "tr" ? "/tr" : "/en";
+function localeSignupPath(locale: string): string {
+  return locale === "en" ? "/en/signup" : "/tr/kayit";
+}
+
+function resolveLocale(raw: string): "tr" | "en" {
+  return raw === "en" ? "en" : "tr";
 }
 
 export async function loginCustomerAction(formData: FormData): Promise<void> {
-  const locale = String(formData.get("locale") ?? "tr").trim() || "tr";
-  const next = String(formData.get("next") ?? "").trim();
+  const locale = resolveLocale(String(formData.get("locale") ?? "tr").trim());
+  const nextRaw = String(formData.get("next") ?? "").trim();
   const loginPath = localeLoginPath(locale);
+  const safeNext = safeCustomerNextPath(nextRaw, locale);
 
   if (!getSupabasePublicEnv()) {
     redirect(`${loginPath}?error=config`);
@@ -27,7 +36,10 @@ export async function loginCustomerAction(formData: FormData): Promise<void> {
   const password = String(formData.get("password") ?? "");
 
   if (!email || !password) {
-    redirect(`${loginPath}?error=missing`);
+    const q = safeNext
+      ? `?error=missing&next=${encodeURIComponent(safeNext)}`
+      : "?error=missing";
+    redirect(`${loginPath}${q}`);
   }
 
   const supabase = await createSupabaseServerClient();
@@ -37,26 +49,30 @@ export async function loginCustomerAction(formData: FormData): Promise<void> {
   });
 
   if (signInError || !signInData.user) {
-    redirect(`${loginPath}?error=invalid`);
+    const q = safeNext
+      ? `?error=invalid&next=${encodeURIComponent(safeNext)}`
+      : "?error=invalid";
+    redirect(`${loginPath}${q}`);
   }
 
   const gate = await assertCustomerProfile(signInData.user.id);
   if (!gate.ok) {
     await supabase.auth.signOut();
-    redirect(`${loginPath}?error=not_customer`);
+    const q = safeNext
+      ? `?error=not_customer&next=${encodeURIComponent(safeNext)}`
+      : "?error=not_customer";
+    redirect(`${loginPath}${q}`);
   }
 
-  if (next.startsWith("/") && !next.startsWith("//")) {
-    redirect(next);
-  }
-
-  redirect(localeHomePath(locale));
+  redirect(safeNext ?? customerHomePath(locale));
 }
 
 export async function signupCustomerAction(formData: FormData): Promise<void> {
-  const locale = String(formData.get("locale") ?? "tr").trim() || "tr";
-  const signupPath = locale === "tr" ? "/tr/kayit" : "/en/signup";
+  const locale = resolveLocale(String(formData.get("locale") ?? "tr").trim());
+  const nextRaw = String(formData.get("next") ?? "").trim();
+  const signupPath = localeSignupPath(locale);
   const loginPath = localeLoginPath(locale);
+  const safeNext = safeCustomerNextPath(nextRaw, locale);
 
   if (!getSupabasePublicEnv()) {
     redirect(`${signupPath}?error=config`);
@@ -68,11 +84,17 @@ export async function signupCustomerAction(formData: FormData): Promise<void> {
   const phone = String(formData.get("phone") ?? "").trim();
 
   if (!email || !password) {
-    redirect(`${signupPath}?error=missing`);
+    const q = safeNext
+      ? `?error=missing&next=${encodeURIComponent(safeNext)}`
+      : "?error=missing";
+    redirect(`${signupPath}${q}`);
   }
 
   if (password.length < 8) {
-    redirect(`${signupPath}?error=weak_password`);
+    const q = safeNext
+      ? `?error=weak_password&next=${encodeURIComponent(safeNext)}`
+      : "?error=weak_password";
+    redirect(`${signupPath}${q}`);
   }
 
   const supabase = await createSupabaseServerClient();
@@ -88,7 +110,10 @@ export async function signupCustomerAction(formData: FormData): Promise<void> {
   });
 
   if (signUpError || !signUpData.user) {
-    redirect(`${signupPath}?error=signup_failed`);
+    const q = safeNext
+      ? `?error=signup_failed&next=${encodeURIComponent(safeNext)}`
+      : "?error=signup_failed";
+    redirect(`${signupPath}${q}`);
   }
 
   if (signUpData.session && (fullName || phone)) {
@@ -96,7 +121,6 @@ export async function signupCustomerAction(formData: FormData): Promise<void> {
       ...(fullName ? { full_name: fullName } : {}),
       ...(phone ? { phone } : {}),
     };
-    // profiles Update is column-granted; supabase-js Update generic is still Record-never for inserts.
     await (
       supabase.from("profiles") as unknown as {
         update: (values: {
@@ -110,20 +134,26 @@ export async function signupCustomerAction(formData: FormData): Promise<void> {
   }
 
   if (!signUpData.session) {
-    redirect(`${loginPath}?error=confirm`);
+    const q = safeNext
+      ? `?error=confirm&next=${encodeURIComponent(safeNext)}`
+      : "?error=confirm";
+    redirect(`${loginPath}${q}`);
   }
 
   const gate = await assertCustomerProfile(signUpData.user.id);
   if (!gate.ok) {
     await supabase.auth.signOut();
-    redirect(`${loginPath}?error=not_customer`);
+    const q = safeNext
+      ? `?error=not_customer&next=${encodeURIComponent(safeNext)}`
+      : "?error=not_customer";
+    redirect(`${loginPath}${q}`);
   }
 
-  redirect(localeHomePath(locale));
+  redirect(safeNext ?? customerHomePath(locale));
 }
 
 export async function logoutCustomerAction(formData: FormData): Promise<void> {
-  const locale = String(formData.get("locale") ?? "tr").trim() || "tr";
+  const locale = resolveLocale(String(formData.get("locale") ?? "tr").trim());
   if (getSupabasePublicEnv()) {
     const supabase = await createSupabaseServerClient();
     await supabase.auth.signOut();

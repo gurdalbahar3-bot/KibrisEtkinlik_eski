@@ -226,13 +226,36 @@
     "emptyHint": "Yaklaşan etkinliklere göz atın."
   },
   "auth": {
-    "title": "Organizatör girişi",
-    "subtitle": "Onaylı organizatör veya mekan sahibi hesabınızla giriş yapın.",
+    "title": "Müşteri girişi",
+    "subtitle": "Bilet almak ve siparişlerinizi görmek için giriş yapın.",
     "email": "E-posta",
     "password": "Şifre",
     "signIn": "Giriş yap",
     "signingIn": "Giriş yapılıyor…",
-    "callbackError": "Oturum açılamadı. Lütfen tekrar deneyin."
+    "callbackError": "Oturum açılamadı. Lütfen tekrar deneyin.",
+    "noAccount": "Hesabınız yok mu?",
+    "signupLink": "Kayıt olun",
+    "errorMissing": "E-posta ve şifre gerekli.",
+    "errorInvalid": "E-posta veya şifre hatalı.",
+    "errorNotCustomer": "Bu hesap müşteri girişi için uygun değil. Organizatör hesabıyla /organizer/login kullanın.",
+    "errorConfig": "Giriş şu an yapılandırılamadı. Lütfen sonra tekrar deneyin.",
+    "errorConfirm": "Kayıt alındı. E-posta doğrulamasından sonra giriş yapabilirsiniz."
+  },
+  "customerAuth": {
+    "signupTitle": "Müşteri kaydı",
+    "signupSubtitle": "Bilet almak için hesap oluşturun.",
+    "fullName": "Ad soyad",
+    "email": "E-posta",
+    "phone": "Telefon",
+    "password": "Şifre",
+    "passwordHint": "En az 8 karakter.",
+    "signupButton": "Kayıt ol",
+    "hasAccount": "Zaten hesabınız var mı?",
+    "loginLink": "Giriş yapın",
+    "signupErrorMissing": "E-posta ve şifre gerekli.",
+    "signupErrorWeakPassword": "Şifre en az 8 karakter olmalı.",
+    "signupErrorFailed": "Kayıt başarısız. E-posta kullanımda olabilir.",
+    "loginErrorConfig": "Kayıt şu an yapılandırılamadı. Lütfen sonra tekrar deneyin."
   },
   "organizer": {
     "badge": "Organizer OS",
