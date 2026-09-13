@@ -37,7 +37,7 @@ async function fetchDiscoveryListEventRows(): Promise<DbEventRow[]> {
     throw new Error(`Supabase events fetch for district counts failed: ${error.message}`);
   }
 
-  return (data ?? []) as DbEventRow[];
+  return (data ?? []) as unknown as DbEventRow[];
 }
 
 function buildDistrictEventCounts(): Promise<Partial<Record<DistrictSlug, number>>> {

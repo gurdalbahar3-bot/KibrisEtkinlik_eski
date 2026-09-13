@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const venue = await discoveryVenuesRepository.getBySlug(slug);
   if (!venue) return {};
   return {
-    title: `${venue.name} | Global Event Discovery`,
+    title: `${venue.name} | Kıbrıs Etkinlik`,
     description: locale === "tr"
       ? `${venue.name} mekanındaki yaklaşan etkinlikler.`
       : `Upcoming events at ${venue.name}.`,

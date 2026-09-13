@@ -13,7 +13,11 @@ import { SeoContent } from "@/components/home/SeoContent";
 import { loadHomepageDiscoveryData } from "@/lib/home/load-homepage-data";
 import { buildItemListJsonLd, buildWebsiteJsonLd } from "@/lib/seo/jsonld";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://globaleventdiscovery.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kibrisetkinlik.com";
+
+/** Existing Cyprus district imagery from MEDIA.districts.girne (wider crop for social). */
+const HOME_OG_IMAGE =
+  "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1200&q=80";
 
 /** Runtime fetch — avoids build-time Supabase dependency when env is staging-only. */
 export const dynamic = "force-dynamic";
@@ -27,6 +31,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = await getTranslations({ locale, namespace: "meta" });
 
   const canonical = `${SITE_URL}/${locale}`;
+  const ogImages = [
+    {
+      url: HOME_OG_IMAGE,
+      width: 1200,
+      height: 630,
+      alt: t("siteName"),
+    },
+  ];
 
   return {
     title: t("homeTitle"),
@@ -46,11 +58,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: t("siteName"),
       locale: locale === "tr" ? "tr_TR" : "en_GB",
       type: "website",
+      images: ogImages,
     },
     twitter: {
       card: "summary_large_image",
       title: t("homeTitle"),
       description: t("homeDescription"),
+      images: [HOME_OG_IMAGE],
     },
   };
 }

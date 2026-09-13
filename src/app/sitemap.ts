@@ -1,25 +1,19 @@
 import type { MetadataRoute } from "next";
-import { CATEGORY_KEYS } from "@/lib/data/categories";
-import { DISTRICT_SLUGS } from "@/lib/data/categories";
+import { CATEGORY_KEYS, DISTRICT_SLUGS } from "@/lib/data/categories";
 import {
   discoveryEventsRepository,
   discoveryVenuesRepository,
 } from "@/lib/data/discovery-repository";
-import { assertDiscoverySourceAllowed } from "@/lib/supabase/config";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://globaleventdiscovery.com";
-
-/** Runtime catalog — production never bakes mock event slugs into sitemap.xml. */
-export const dynamic = "force-dynamic";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kibrisetkinlik.com";
 
 /**
- * Async sitemap via the discovery facade.
- * Development/test: mock catalog when unset/mock.
- * Production: supabase only (assertDiscoverySourceAllowed fails loud otherwise).
+ * Discovery-aligned sitemap.
+ * Uses discoveryEventsRepository / discoveryVenuesRepository so
+ * SUPABASE_DATA_SOURCE=mock|supabase stays consistent with homepage/listings.
+ * Categories + district hubs are stable taxonomy routes (not row-driven).
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  assertDiscoverySourceAllowed();
-
   const [events, venues] = await Promise.all([
     discoveryEventsRepository.getAll(),
     discoveryVenuesRepository.getAll(),
@@ -27,6 +21,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const locales = ["tr", "en"] as const;
   const entries: MetadataRoute.Sitemap = [];
+  const seen = new Set<string>();
+
+  function push(entry: MetadataRoute.Sitemap[number]) {
+    if (seen.has(entry.url)) return;
+    seen.add(entry.url);
+    entries.push(entry);
+  }
 
   for (const locale of locales) {
     const prefix = `${SITE_URL}/${locale}`;
@@ -35,25 +36,35 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const venuesPath = locale === "tr" ? "mekanlar" : "venues";
     const districtsPath = locale === "tr" ? "ilceler" : "districts";
 
-    entries.push(
-      { url: prefix, lastModified: new Date(), changeFrequency: "daily", priority: 1 },
-      { url: `${prefix}/${eventsPath}`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
-      { url: `${prefix}/${categoriesPath}`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-      { url: `${prefix}/${venuesPath}`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-      { url: `${prefix}/${districtsPath}`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 }
-    );
+    push({ url: prefix, lastModified: new Date(), changeFrequency: "daily", priority: 1 });
+    push({
+      url: `${prefix}/${eventsPath}`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.9,
+    });
+    push({
+      url: `${prefix}/${categoriesPath}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    });
+    push({
+      url: `${prefix}/${venuesPath}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    });
+    push({
+      url: `${prefix}/${districtsPath}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    });
 
-    for (const event of events) {
-      entries.push({
-        url: `${prefix}/${eventsPath}/${event.slug}`,
-        lastModified: new Date(),
-        changeFrequency: "weekly",
-        priority: 0.7,
-      });
-    }
-
+    // District hub routes under /events/[slug] — listed before event detail slugs.
     for (const district of DISTRICT_SLUGS) {
-      entries.push({
+      push({
         url: `${prefix}/${eventsPath}/${district}`,
         lastModified: new Date(),
         changeFrequency: "weekly",
@@ -61,8 +72,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     }
 
+    for (const event of events) {
+      push({
+        url: `${prefix}/${eventsPath}/${event.slug}`,
+        lastModified: new Date(),
+        changeFrequency: "weekly",
+        priority: 0.7,
+      });
+    }
+
     for (const category of CATEGORY_KEYS) {
-      entries.push({
+      push({
         url: `${prefix}/${categoriesPath}/${category}`,
         lastModified: new Date(),
         changeFrequency: "weekly",
@@ -71,7 +91,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
 
     for (const venue of venues) {
-      entries.push({
+      push({
         url: `${prefix}/${venuesPath}/${venue.slug}`,
         lastModified: new Date(),
         changeFrequency: "weekly",

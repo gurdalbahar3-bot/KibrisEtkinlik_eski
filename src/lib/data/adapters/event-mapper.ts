@@ -63,7 +63,7 @@ function resolveSortedArtistNames(row: DbEventRow): string[] {
 
 export function mapEventRowToDiscoveryEvent(row: DbEventRow): DiscoveryEvent {
   const venue = row.venues;
-  const venueName = venue?.name?.trim() ?? "Venue TBD";
+  const venueName = venue?.name?.trim() || "";
   const venueId = venue?.id ?? row.venue_id;
   const district = resolveEventDistrict(venue, row.event_locations);
 
@@ -80,8 +80,9 @@ export function mapEventRowToDiscoveryEvent(row: DbEventRow): DiscoveryEvent {
     hasRealCover,
     date: formatCyprusDateFromIso(row.starts_at),
     startTime: formatCyprusTime(row.starts_at),
-    venue: venueName,
-    venueSlug: buildVenueSlug(venueName, venueId),
+    venue: venueName || "Venue TBD",
+    // Slug only when a real venue name exists — avoids fake /venues links.
+    venueSlug: venueName && venueId ? buildVenueSlug(venueName, venueId) : "",
     district,
     category: normalizeEventCategory(row.category),
     description: row.description?.trim() ?? "",

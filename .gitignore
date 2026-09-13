@@ -7,10 +7,4 @@ dist/
 .supabase/
 supabase/.temp/
 .DS_Store
-test-results/
-playwright-report/
-blob-report/
-playwright/.cache/
-# Staging/local logical DB dumps — never commit or push
-backups/
-*.dump.sql
+*.tsbuildinfo

@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/lib/i18n/navigation";
 import { PosterImage } from "@/components/ui/PosterImage";
 import { formatEventDate } from "@/lib/seo/jsonld";
+import { hasEventVenueLink } from "@/lib/ui/event-venue-link";
 import type { DiscoveryEvent } from "@/types/event";
 
 interface EventCardProps {
@@ -66,7 +67,16 @@ export function EventCard({ event, priority = false }: EventCardProps) {
           <p className="line-clamp-1 text-xs font-medium text-slate-500">{event.artist}</p>
         )}
         <p className="line-clamp-1 text-sm text-slate-600">
-          {event.venue}
+          {hasEventVenueLink(event) ? (
+            <Link
+              href={{ pathname: "/venues/[slug]", params: { slug: event.venueSlug } }}
+              className="font-medium text-slate-700 underline-offset-2 transition hover:text-brand-700 hover:underline"
+            >
+              {event.venue}
+            </Link>
+          ) : (
+            event.venue
+          )}
           <span className="text-slate-400"> · </span>
           {tDist(event.district)}
         </p>
