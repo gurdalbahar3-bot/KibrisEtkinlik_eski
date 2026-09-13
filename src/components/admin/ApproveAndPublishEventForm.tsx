@@ -3,12 +3,12 @@
 import { useFormStatus } from "react-dom";
 
 import { approveAndPublishEventFormAction } from "@/lib/admin/approve-and-publish-event-action";
-import type { AdminMessages } from "@/lib/admin/i18n";
 
 interface ApproveAndPublishEventFormProps {
   eventId: string;
   locale: "tr" | "en";
-  t: (key: keyof AdminMessages) => string;
+  /** Pre-translated button label from the Server Component (do not pass `t`). */
+  submitLabel: string;
   returnBase?: string;
 }
 
@@ -29,7 +29,7 @@ function SubmitButton({ label }: { label: string }) {
 export function ApproveAndPublishEventForm({
   eventId,
   locale,
-  t,
+  submitLabel,
   returnBase = "/admin/review/events",
 }: ApproveAndPublishEventFormProps) {
   return (
@@ -37,7 +37,7 @@ export function ApproveAndPublishEventForm({
       <input type="hidden" name="eventId" value={eventId} />
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="returnBase" value={returnBase} />
-      <SubmitButton label={t("approveAndPublish")} />
+      <SubmitButton label={submitLabel} />
     </form>
   );
 }

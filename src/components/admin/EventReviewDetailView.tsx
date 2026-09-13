@@ -237,7 +237,7 @@ export function EventReviewDetailView({
             <ApproveAndPublishEventForm
               eventId={event.id}
               locale={locale}
-              t={t}
+              submitLabel={t("approveAndPublish")}
               returnBase={basePath}
             />
             <ApproveEventForm eventId={event.id} t={t} returnBase={basePath} />
