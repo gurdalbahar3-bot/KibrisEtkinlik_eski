@@ -93,7 +93,11 @@ export default async function EventOrDistrictPage({ params }: Props) {
 
   const [venue, ticketOffers, relatedEvents] = await Promise.all([
     discoveryVenuesRepository.getBySlug(event.venueSlug),
-    discoveryEventsRepository.getTicketOffers(event.id),
+    // Ticket catalog is additive — never fail the whole public detail page on offer fetch.
+    discoveryEventsRepository.getTicketOffers(event.id).catch((err) => {
+      console.error("[event-detail] ticket offers failed:", err);
+      return [];
+    }),
     discoveryEventsRepository.getRelatedEvents(event, 4),
   ]);
 

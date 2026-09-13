@@ -13,6 +13,7 @@ function parsePrice(value: number | string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+/** Map DB `sale_mode` (`ticket_based` | `seat_based`) → discovery TicketSaleMode. */
 function normalizeSaleMode(raw: string | null | undefined): TicketSaleMode {
   return raw === "seat_based" ? "seat_based" : "ticket_based";
 }
