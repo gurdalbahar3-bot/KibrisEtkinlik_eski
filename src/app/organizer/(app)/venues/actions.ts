@@ -75,7 +75,7 @@ function parseCoordinates(formData: FormData):
 }
 
 async function callVenueRpc(
-  fn: "create_venue_atomic" | "update_venue_atomic" | "deactivate_venue_atomic",
+  fn: "create_venue_atomic" | "update_venue_atomic" | "deactivate_venue_atomic" | "submit_venue_for_review",
   args: StagingCreateVenueArgs | StagingUpdateVenueArgs | StagingVenueStatusArgs
 ): Promise<{ data: Json | null; error: { message: string } | null }> {
   const supabase = await createSupabaseServerClient();
@@ -238,4 +238,34 @@ export async function deactivateOrganizerVenueAction(formData: FormData): Promis
   }
 
   redirectDetail(venueId, "deactivated=1");
+}
+
+export async function submitOrganizerVenueForReviewAction(formData: FormData): Promise<void> {
+  if (!getSupabasePublicEnv()) {
+    redirect("/organizer/login?error=config");
+  }
+
+  await requireOrganizer();
+
+  const venueId = String(formData.get("venue_id") ?? "").trim();
+  if (!isVenueUuid(venueId)) {
+    redirect("/organizer/venues");
+  }
+
+  const { data, error } = await callVenueRpc("submit_venue_for_review", {
+    p_venue_id: venueId,
+  });
+  if (error) {
+    redirectDetail(venueId, "error=rpc_failed");
+  }
+
+  const payload = parseOrganizerRpcJson(data);
+  if (!payload.success) {
+    redirectDetail(
+      venueId,
+      `error=${(payload.error_code ?? "submit_failed").toLowerCase()}`
+    );
+  }
+
+  redirectDetail(venueId, "submitted=1");
 }

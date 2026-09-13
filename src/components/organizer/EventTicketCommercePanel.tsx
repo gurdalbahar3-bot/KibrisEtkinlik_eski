@@ -70,6 +70,9 @@ export type EventTicketCommercePanelLabels = {
   errInvalidMaxPerOrder: string;
   errTicketTypeNotFound: string;
   errSaveFailed: string;
+  errFreeConflictWithPaidType: string;
+  errFreeHasPaidTickets: string;
+  errPaidRequiresCatalog: string;
 };
 
 type Props = {
@@ -141,6 +144,12 @@ function mapCommerceError(
       return labels.errInvalidMaxPerOrder;
     case "ticket_type_not_found":
       return labels.errTicketTypeNotFound;
+    case "free_conflict_with_paid_type":
+      return labels.errFreeConflictWithPaidType;
+    case "free_has_paid_tickets":
+      return labels.errFreeHasPaidTickets;
+    case "paid_requires_catalog":
+      return labels.errPaidRequiresCatalog;
     default:
       return labels.errSaveFailed;
   }

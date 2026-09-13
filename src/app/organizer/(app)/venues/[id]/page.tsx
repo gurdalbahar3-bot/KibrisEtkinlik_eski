@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import {
   deactivateOrganizerVenueAction,
+  submitOrganizerVenueForReviewAction,
   updateOrganizerVenueAction,
 } from "@/app/organizer/(app)/venues/actions";
 import { OrganizerSubmitButton } from "@/components/organizer/OrganizerSubmitButton";
@@ -26,6 +27,7 @@ type Props = {
     created?: string;
     saved?: string;
     deactivated?: string;
+    submitted?: string;
   }>;
 };
 
@@ -100,12 +102,27 @@ export default async function OrganizerVenueDetailPage({ params, searchParams }:
   const districts = await listActiveDistrictOptions();
   const errorMessage = mapEditError(query.error, t);
   const isActive = venue.status === "active";
-  const isInactive = venue.status === "inactive";
+  const isDraft = venue.status === "draft";
+  const isInReview = venue.status === "in_review";
+
+  function statusLabel(status: string): string {
+    switch (status) {
+      case "draft":
+        return t("venueStatusDraft");
+      case "in_review":
+        return t("venueStatusInReview");
+      case "active":
+        return t("venueStatusActive");
+      default:
+        return t("venueStatusInactive");
+    }
+  }
 
   let successMessage: string | null = null;
   if (query.created === "1") successMessage = t("msgVenueCreated");
   else if (query.saved === "1") successMessage = t("msgVenueSaved");
   else if (query.deactivated === "1") successMessage = t("msgVenueDeactivated");
+  else if (query.submitted === "1") successMessage = t("msgVenueSubmitted");
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
@@ -120,11 +137,15 @@ export default async function OrganizerVenueDetailPage({ params, searchParams }:
           <h2 className="text-2xl font-bold text-slate-900">{t("venueDetailTitle")}</h2>
           <span
             className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
-              isActive ? "bg-teal-50 text-teal-900" : "bg-slate-100 text-slate-700"
+              isActive
+                ? "bg-teal-50 text-teal-900"
+                : isInReview
+                  ? "bg-amber-50 text-amber-950"
+                  : "bg-slate-100 text-slate-700"
             }`}
             data-testid="venue-detail-status"
           >
-            {isActive ? t("venueStatusActive") : t("venueStatusInactive")}
+            {statusLabel(venue.status)}
           </span>
         </div>
         <p className="text-sm text-slate-600">{t("venueDetailSubtitle")}</p>
@@ -153,7 +174,7 @@ export default async function OrganizerVenueDetailPage({ params, searchParams }:
             {t("colStatus")}
           </dt>
           <dd className="mt-1 font-medium text-slate-900" data-testid="venue-status-value">
-            {isActive ? t("venueStatusActive") : t("venueStatusInactive")}
+            {statusLabel(venue.status)}
           </dd>
         </div>
         <div>
@@ -174,13 +195,30 @@ export default async function OrganizerVenueDetailPage({ params, searchParams }:
         </div>
       </dl>
 
-      {isInactive ? (
+      {isDraft ? (
+        <form
+          action={submitOrganizerVenueForReviewAction}
+          className="rounded-2xl border border-dashed border-teal-200 bg-teal-50/60 p-4"
+          data-testid="venue-submit-for-review"
+        >
+          <input type="hidden" name="venue_id" value={venue.id} />
+          <p className="text-sm text-teal-950">{t("venueSubmitForReviewHint")}</p>
+          <div className="mt-3">
+            <OrganizerSubmitButton
+              label={t("venueSubmitForReview")}
+              pendingLabel={t("venueSaving")}
+            />
+          </div>
+        </form>
+      ) : null}
+
+      {isInReview ? (
         <p
           className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950"
-          data-testid="venue-awaiting-sa-activation"
+          data-testid="venue-awaiting-review"
           role="status"
         >
-          {t("venueAwaitingSaActivation")}
+          {t("venueAwaitingReview")}
         </p>
       ) : null}
 

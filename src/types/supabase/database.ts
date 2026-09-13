@@ -889,6 +889,15 @@ export interface Database {
         };
         Returns: Json;
       };
+      update_event_draft_schedule_atomic: {
+        Args: {
+          p_event_id: string;
+          p_starts_at: string;
+          p_ends_at?: string | null;
+          p_venue_id?: string | null;
+        };
+        Returns: Json;
+      };
       update_venue_atomic: {
         Args: {
           p_venue_id: string;

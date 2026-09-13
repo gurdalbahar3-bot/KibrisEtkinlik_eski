@@ -13,9 +13,12 @@ import { CATEGORY_KEYS } from "@/lib/data/categories";
 import { requireOrganizer } from "@/lib/organizer/auth";
 import { getOrganizerEventArtists } from "@/lib/organizer/data/artists";
 import { getOrganizerEventMetadata } from "@/lib/organizer/data/event-metadata";
-import { getOrganizerEvent } from "@/lib/organizer/data/events";
+import { getOrganizerEvent, isoToCyprusDatetimeLocal } from "@/lib/organizer/data/events";
 import { getOrganizerEventTicketCommerce } from "@/lib/organizer/data/ticket-commerce";
-import { listActiveDistrictOptions } from "@/lib/organizer/data/venues";
+import {
+  listActiveDistrictOptions,
+  listOrganizerActiveVenues,
+} from "@/lib/organizer/data/venues";
 import {
   createOrganizerTranslator,
   getOrganizerMessages,
@@ -82,6 +85,30 @@ function mapEditError(
       return t("errForbidden");
     case "update_failed":
       return t("errUpdateFailed");
+    case "starts_at_required":
+      return t("errStartsAtRequired");
+    case "ends_at_invalid":
+      return t("errEndsAtInvalid");
+    case "ends_before_start":
+      return t("errEndsBeforeStart");
+    case "venue_required":
+    case "venue_forbidden":
+    case "venue_not_active":
+    case "venue_not_found":
+      return t("errVenueRequired");
+    case "not_draft":
+      return t("errInvalidTransition");
+    case "paid_requires_catalog":
+      return t("errPaidRequiresCatalog");
+    case "free_has_paid_tickets":
+      return t("errFreeHasPaidTickets");
+    case "free_conflict_with_paid_type":
+      return t("errFreeConflictWithPaidType");
+    case "ends_before_start":
+      return t("errEndsBeforeStart");
+    case "rpc_failed":
+    case "schedule_update_failed":
+      return t("errScheduleUpdateFailed");
     default:
       return t("errSubmitFailed");
   }
@@ -130,13 +157,14 @@ export default async function OrganizerEventEditPage({ params, searchParams }: P
     notFound();
   }
 
-  const [locale, metadata, districts, artistsBundle, ticketCommerce] =
+  const [locale, metadata, districts, artistsBundle, ticketCommerce, activeVenues] =
     await Promise.all([
       resolveOrganizerLocale(),
       getOrganizerEventMetadata(id),
       listActiveDistrictOptions(),
       getOrganizerEventArtists(id),
       getOrganizerEventTicketCommerce(id),
+      listOrganizerActiveVenues(session.userId),
     ]);
   const messages = getOrganizerMessages(locale);
   const t = createOrganizerTranslator(messages);
@@ -174,34 +202,36 @@ export default async function OrganizerEventEditPage({ params, searchParams }: P
         </p>
       ) : null}
 
-      <dl className="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm sm:grid-cols-2">
-        <div>
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            {t("fieldVenue")}
-          </dt>
-          <dd className="mt-1 font-medium text-slate-900">
-            {event.venueName ?? event.venueId}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            {t("fieldStartsAt")}
-          </dt>
-          <dd className="mt-1 font-medium text-slate-900">
-            {formatDateTime(event.startsAt, locale)}
-          </dd>
-        </div>
-        {event.endsAt ? (
+      {!isDraft ? (
+        <dl className="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm sm:grid-cols-2">
           <div>
             <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              {t("fieldEndsAt")}
+              {t("fieldVenue")}
             </dt>
             <dd className="mt-1 font-medium text-slate-900">
-              {formatDateTime(event.endsAt, locale)}
+              {event.venueName ?? event.venueId}
             </dd>
           </div>
-        ) : null}
-      </dl>
+          <div>
+            <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              {t("fieldStartsAt")}
+            </dt>
+            <dd className="mt-1 font-medium text-slate-900">
+              {formatDateTime(event.startsAt, locale)}
+            </dd>
+          </div>
+          {event.endsAt ? (
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                {t("fieldEndsAt")}
+              </dt>
+              <dd className="mt-1 font-medium text-slate-900">
+                {formatDateTime(event.endsAt, locale)}
+              </dd>
+            </div>
+          ) : null}
+        </dl>
+      ) : null}
 
       {isDraft ? (
         <form
@@ -305,8 +335,59 @@ export default async function OrganizerEventEditPage({ params, searchParams }: P
             </label>
           </div>
 
-          <p className="text-xs text-slate-500">{t("editLockedHint")}</p>
-          <p className="text-xs text-slate-500">{t("startsVenueLockedByDb")}</p>
+          <div>
+            <label htmlFor="venue_id" className="block text-sm font-medium text-slate-700">
+              {t("fieldVenue")} *
+            </label>
+            <select
+              id="venue_id"
+              name="venue_id"
+              required
+              defaultValue={event.venueId}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+              data-testid="draft-venue-select"
+            >
+              {activeVenues.map((venue) => (
+                <option key={venue.id} value={venue.id}>
+                  {venue.name}
+                  {venue.city ? ` · ${venue.city}` : ""}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-slate-500">{t("draftScheduleVenueHint")}</p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="starts_at" className="block text-sm font-medium text-slate-700">
+                {t("fieldStartsAt")} *
+              </label>
+              <input
+                id="starts_at"
+                name="starts_at"
+                type="datetime-local"
+                required
+                defaultValue={isoToCyprusDatetimeLocal(event.startsAt)}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                data-testid="draft-starts-at"
+              />
+            </div>
+            <div>
+              <label htmlFor="ends_at" className="block text-sm font-medium text-slate-700">
+                {t("fieldEndsAt")}
+              </label>
+              <input
+                id="ends_at"
+                name="ends_at"
+                type="datetime-local"
+                defaultValue={event.endsAt ? isoToCyprusDatetimeLocal(event.endsAt) : ""}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                data-testid="draft-ends-at"
+              />
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-500">{t("draftScheduleEditableHint")}</p>
 
           <button
             type="submit"
@@ -417,6 +498,9 @@ export default async function OrganizerEventEditPage({ params, searchParams }: P
           errInvalidMaxPerOrder: t("errCommerceInvalidMaxPerOrder"),
           errTicketTypeNotFound: t("errCommerceTicketTypeNotFound"),
           errSaveFailed: t("errCommerceSaveFailed"),
+          errFreeConflictWithPaidType: t("errFreeConflictWithPaidType"),
+          errFreeHasPaidTickets: t("errFreeHasPaidTickets"),
+          errPaidRequiresCatalog: t("errPaidRequiresCatalog"),
         }}
       />
 

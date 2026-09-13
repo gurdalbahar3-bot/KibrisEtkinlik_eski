@@ -86,6 +86,7 @@ export type DraftEventGate =
         venueId: string;
         venueName: string | null;
         isWedding: boolean;
+        isFree: boolean;
         status: string;
       };
     }
@@ -113,6 +114,7 @@ export async function requireOwnedDraftEvent(
       venueId: event.venueId,
       venueName: event.venueName,
       isWedding: event.isWedding,
+      isFree: event.isFree,
       status: event.status,
     },
   };

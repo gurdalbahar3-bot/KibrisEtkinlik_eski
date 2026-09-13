@@ -142,6 +142,14 @@ export type StagingSetEventOfficialTicketUrlArgs = {
   p_url?: string | null;
 };
 
+/** P1.1A — draft-only schedule/venue update (063). */
+export type StagingUpdateEventDraftScheduleArgs = {
+  p_event_id: string;
+  p_starts_at: string;
+  p_ends_at?: string | null;
+  p_venue_id?: string | null;
+};
+
 /** Staging 060 upsert_artist_atomic — create/update; app gates draft for panel mutations. */
 export type StagingUpsertArtistArgs = {
   p_name: string;

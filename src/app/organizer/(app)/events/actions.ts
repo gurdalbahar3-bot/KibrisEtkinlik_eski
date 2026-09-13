@@ -26,8 +26,17 @@ import {
   upsertOrganizerEventTicketType,
   upsertOrganizerEventTicketZone,
 } from "@/lib/organizer/data/ticket-commerce";
-import { updateOrganizerDraftEvent, setOrganizerOfficialTicketUrl } from "@/lib/organizer/data/events";
+import {
+  updateOrganizerDraftEvent,
+  updateOrganizerDraftEventSchedule,
+  setOrganizerOfficialTicketUrl,
+} from "@/lib/organizer/data/events";
 import { listOrganizerActiveVenues } from "@/lib/organizer/data/venues";
+import { cyprusLocalInputToIso } from "@/lib/organizer/data";
+import {
+  assertPaidTypeAllowedOnEvent,
+  evaluateEventTicketConsistency,
+} from "@/lib/organizer/ticket-consistency";
 import {
   isEventFormatType,
   isEventTicketZoneType,
@@ -230,6 +239,49 @@ export async function updateOrganizerDraftEventAction(formData: FormData): Promi
     redirectEdit(eventId, "error=category_required");
   }
 
+  const startsRaw = String(formData.get("starts_at") ?? "").trim();
+  const endsRaw = String(formData.get("ends_at") ?? "").trim();
+  const venueId = String(formData.get("venue_id") ?? "").trim();
+
+  if (!startsRaw) redirectEdit(eventId, "error=starts_at_required");
+  if (!venueId || !isEventUuid(venueId)) redirectEdit(eventId, "error=venue_required");
+
+  let startsAt: string;
+  try {
+    startsAt = cyprusLocalInputToIso(startsRaw);
+  } catch {
+    redirectEdit(eventId, "error=starts_at_required");
+  }
+  if (Number.isNaN(new Date(startsAt).getTime())) {
+    redirectEdit(eventId, "error=starts_at_required");
+  }
+
+  let endsAt: string | null = null;
+  if (endsRaw) {
+    try {
+      endsAt = cyprusLocalInputToIso(endsRaw);
+    } catch {
+      redirectEdit(eventId, "error=ends_at_invalid");
+    }
+    if (Number.isNaN(new Date(endsAt).getTime())) {
+      redirectEdit(eventId, "error=ends_at_invalid");
+    }
+    if (new Date(endsAt).getTime() <= new Date(startsAt).getTime()) {
+      redirectEdit(eventId, "error=ends_before_start");
+    }
+  }
+
+  const venues = await listOrganizerActiveVenues(session.userId);
+  if (!venues.some((v) => v.id === venueId)) {
+    redirectEdit(eventId, "error=venue_forbidden");
+  }
+
+  // Ticket consistency before persisting is_free
+  const consistency = await evaluateEventTicketConsistency(eventId, isFree);
+  if (!consistency.ok) {
+    redirectEdit(eventId, `error=${consistency.issue}`);
+  }
+
   const result = await updateOrganizerDraftEvent(eventId, session.userId, {
     title,
     description: description || null,
@@ -244,6 +296,16 @@ export async function updateOrganizerDraftEventAction(formData: FormData): Promi
       eventId,
       result.reason === "not_found" ? "error=not_found" : "error=update_failed"
     );
+  }
+
+  const schedule = await updateOrganizerDraftEventSchedule({
+    p_event_id: eventId,
+    p_starts_at: startsAt,
+    p_ends_at: endsAt,
+    p_venue_id: venueId,
+  });
+  if (!schedule.ok) {
+    redirectEdit(eventId, `error=${schedule.reason}`);
   }
 
   if (!isWedding) {
@@ -278,6 +340,18 @@ export async function submitOrganizerEventForReviewAction(formData: FormData): P
   }
   if (String(owned.status) !== "draft") {
     redirectEdit(eventId, "error=invalid_transition");
+  }
+
+  const { data: freeRow } = await supabase
+    .from("events")
+    .select("is_free")
+    .eq("id", eventId)
+    .eq("owner_id", session.userId)
+    .maybeSingle();
+  const isFree = Boolean((freeRow as unknown as { is_free?: boolean } | null)?.is_free);
+  const consistency = await evaluateEventTicketConsistency(eventId, isFree);
+  if (!consistency.ok) {
+    redirectEdit(eventId, `error=${consistency.issue}`);
   }
 
   const { data, error } = await callRpc("submit_event_for_review", {
@@ -907,6 +981,18 @@ export async function upsertOrganizerEventTicketTypeAction(
   }
   if (maxPerOrder !== null && maxPerOrder <= 0) {
     redirectCommerceError(eventId, "invalid_max_per_order");
+  }
+
+  const gate = await requireOwnedDraftEvent(eventId, session.userId);
+  if (!gate.ok) {
+    redirectCommerceError(
+      eventId,
+      gate.reason === "not_draft" ? "not_draft" : "not_found"
+    );
+  }
+  const paidConflict = assertPaidTypeAllowedOnEvent(gate.event.isFree, price, isActive);
+  if (paidConflict) {
+    redirectCommerceError(eventId, paidConflict);
   }
 
   const result = await upsertOrganizerEventTicketType({

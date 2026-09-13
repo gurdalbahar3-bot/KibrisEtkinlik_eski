@@ -35,6 +35,36 @@ function categoryLabel(
   return key ? t(key) : category;
 }
 
+
+function venueStatusLabel(
+  status: string,
+  t: (key: keyof ReturnType<typeof getOrganizerMessages>) => string
+): string {
+  switch (status) {
+    case "draft":
+      return t("venueStatusDraft");
+    case "in_review":
+      return t("venueStatusInReview");
+    case "active":
+      return t("venueStatusActive");
+    default:
+      return t("venueStatusInactive");
+  }
+}
+
+function venueStatusClass(status: string): string {
+  switch (status) {
+    case "active":
+      return "bg-teal-50 text-teal-900";
+    case "in_review":
+      return "bg-amber-50 text-amber-950";
+    case "draft":
+      return "bg-slate-100 text-slate-700";
+    default:
+      return "bg-slate-100 text-slate-700";
+  }
+}
+
 export default async function OrganizerVenuesPage() {
   const session = await requireOrganizer();
   const locale = await resolveOrganizerLocale();
@@ -86,14 +116,10 @@ export default async function OrganizerVenuesPage() {
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <span
-                    className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
-                      venue.status === "active"
-                        ? "bg-teal-50 text-teal-900"
-                        : "bg-slate-100 text-slate-700"
-                    }`}
+                    className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${venueStatusClass(venue.status)}`}
                     data-testid="venue-status"
                   >
-                    {venue.status === "active" ? t("venueStatusActive") : t("venueStatusInactive")}
+                    {venueStatusLabel(venue.status, t)}
                   </span>
                   <span
                     className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${

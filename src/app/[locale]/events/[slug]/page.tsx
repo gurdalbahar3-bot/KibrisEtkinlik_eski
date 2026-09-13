@@ -15,6 +15,7 @@ import {
 import { buildEventMapsDestination } from "@/lib/discovery/venue-directions";
 import { getEventImage, getEventImageSources } from "@/lib/ui/event-image";
 import { eventToJsonLd, formatEventDate } from "@/lib/seo/jsonld";
+import { shouldShowFreeBadge } from "@/lib/organizer/ticket-consistency";
 import type { DistrictSlug } from "@/types/event";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kibrisetkinlik.com";
@@ -136,11 +137,11 @@ export default async function EventOrDistrictPage({ params }: Props) {
             className="object-cover"
             priority
           />
-          {event.isFree && (
+          {shouldShowFreeBadge(event.isFree, ticketOffers.length) ? (
             <span className="absolute left-4 top-4 rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold text-white shadow">
               {t("free")}
             </span>
-          )}
+          ) : null}
         </div>
 
         <div>
@@ -225,7 +226,7 @@ export default async function EventOrDistrictPage({ params }: Props) {
 
           <EventTicketOffers
             offers={ticketOffers}
-            isFree={event.isFree}
+            isFree={shouldShowFreeBadge(event.isFree, ticketOffers.length)}
             officialTicketUrl={event.officialTicketUrl}
             eventId={event.id}
           />

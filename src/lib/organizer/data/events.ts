@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   parseOrganizerRpcJson,
   type StagingSetEventOfficialTicketUrlArgs,
+  type StagingUpdateEventDraftScheduleArgs,
 } from "@/lib/organizer/rpc";
 import type { Json } from "@/types/supabase/database";
 
@@ -169,4 +170,55 @@ export async function setOrganizerOfficialTicketUrl(
         : null;
 
   return { ok: true, url };
+}
+
+export type DraftScheduleUpdateResult =
+  | { ok: true }
+  | { ok: false; reason: string };
+
+/** P1.1A: draft-only starts_at/ends_at/venue_id via SECURITY DEFINER RPC (no column GRANT). */
+export async function updateOrganizerDraftEventSchedule(
+  args: StagingUpdateEventDraftScheduleArgs
+): Promise<DraftScheduleUpdateResult> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await (supabase.rpc as unknown as (
+    name: "update_event_draft_schedule_atomic",
+    params: StagingUpdateEventDraftScheduleArgs
+  ) => Promise<{ data: Json | null; error: { message: string } | null }>)(
+    "update_event_draft_schedule_atomic",
+    args
+  );
+
+  if (error) {
+    return { ok: false, reason: "rpc_failed" };
+  }
+
+  const payload = parseOrganizerRpcJson(data);
+  if (!payload.success) {
+    return {
+      ok: false,
+      reason: (payload.error_code ?? "schedule_update_failed").toLowerCase(),
+    };
+  }
+
+  return { ok: true };
+}
+
+/** Cyprus wall-clock datetime-local value for draft editor inputs. */
+export function isoToCyprusDatetimeLocal(iso: string): string {
+  try {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Nicosia",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).formatToParts(new Date(iso));
+    const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+    return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
+  } catch {
+    return iso.slice(0, 16);
+  }
 }
