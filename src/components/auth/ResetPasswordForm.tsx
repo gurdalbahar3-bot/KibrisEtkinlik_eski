@@ -20,7 +20,7 @@ export function ResetPasswordForm({
       data-testid="reset-password-form"
     >
       <input type="hidden" name="locale" value={locale} />
-      {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
+      <input type="hidden" name="returnTo" value={returnTo} />
 
       <div>
         <label htmlFor="password" className="mb-1 block text-sm font-medium text-slate-700">

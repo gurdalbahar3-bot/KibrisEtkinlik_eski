@@ -61,6 +61,22 @@ export function safePasswordResetReturnTo(
   return customerPasswordResetReturnTo(locale);
 }
 
+/** True when `next` targets the fixed reset-password path (with optional query). */
+export function isPasswordResetNextPath(
+  next: string | null | undefined,
+  locale: string
+): boolean {
+  if (!next) return false;
+  const resetPath = passwordResetPath(locale);
+  const trimmed = next.trim();
+  try {
+    const parsed = new URL(trimmed, "https://kibrisetkinlik.local");
+    return parsed.pathname === resetPath || parsed.pathname === `${resetPath}/`;
+  } catch {
+    return trimmed === resetPath || trimmed === `${resetPath}/`;
+  }
+}
+
 /**
  * Only allow the fixed reset-password path as a recovery destination.
  * Optional safe returnTo may ride as a query on that path.
@@ -76,20 +92,8 @@ export function passwordRecoveryDestination(
     ? returnToRaw
     : parseReturnToFromNext(next) ?? null;
 
-  let pathOnly = resetPath;
-  if (next) {
-    const trimmed = next.trim();
-    try {
-      const parsed = new URL(trimmed, "https://kibrisetkinlik.local");
-      if (parsed.pathname === resetPath || parsed.pathname === `${resetPath}/`) {
-        pathOnly = resetPath;
-      }
-    } catch {
-      if (trimmed === resetPath || trimmed === `${resetPath}/`) {
-        pathOnly = resetPath;
-      }
-    }
-  }
+  // Always land on the fixed reset path; never trust arbitrary next destinations.
+  const pathOnly = resetPath;
 
   if (returnTo) {
     return `${pathOnly}?returnTo=${encodeURIComponent(returnTo)}`;
@@ -108,10 +112,10 @@ function parseReturnToFromNext(next: string | null | undefined): PasswordResetRe
   }
 }
 
-/** Login path after a successful password update (customer gets ?reset=1). */
+/** Short-lived cookie so returnTo survives PKCE/hash hops that drop query params. */
+export const PASSWORD_RESET_RETURN_COOKIE = "ke_password_reset_return_to";
+
+/** Login path after a successful password update (customer and organizer get ?reset=1). */
 export function passwordResetCompletedPath(returnTo: PasswordResetReturnPath): string {
-  if (returnTo === ORGANIZER_LOGIN_RETURN_PATH) {
-    return ORGANIZER_LOGIN_RETURN_PATH;
-  }
   return `${returnTo}?reset=1`;
 }

@@ -1,9 +1,10 @@
 "use server";
 
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import {
+  PASSWORD_RESET_RETURN_COOKIE,
   customerPasswordResetReturnTo,
   forgotPasswordPath,
   isSafePasswordResetReturnTo,
@@ -13,6 +14,7 @@ import {
   passwordResetCompletedPath,
   passwordResetPath,
   safePasswordResetReturnTo,
+  type PasswordResetReturnPath,
 } from "@/lib/auth/password-recovery";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabasePublicEnv } from "@/lib/supabase/config";
@@ -39,10 +41,37 @@ async function getRequestOrigin(): Promise<string> {
   return "https://kibrisetkinlik.com";
 }
 
+async function setPasswordResetReturnCookie(
+  returnTo: PasswordResetReturnPath
+): Promise<void> {
+  const jar = await cookies();
+  jar.set(PASSWORD_RESET_RETURN_COOKIE, returnTo, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60, // 1 hour — covers email click latency
+  });
+}
+
+async function clearPasswordResetReturnCookie(): Promise<void> {
+  const jar = await cookies();
+  jar.delete(PASSWORD_RESET_RETURN_COOKIE);
+}
+
+/** Read allowlisted returnTo from the short-lived recovery cookie (if any). */
+export async function readPasswordResetReturnCookie(): Promise<PasswordResetReturnPath | null> {
+  const jar = await cookies();
+  const value = jar.get(PASSWORD_RESET_RETURN_COOKIE)?.value;
+  return isSafePasswordResetReturnTo(value) ? value : null;
+}
+
 /**
  * Forgot-password: send Supabase recovery email.
  * redirectTo is always `{origin}/{locale}/auth/callback?next=…&returnTo=…`
  * so Supabase must not fall back to bare Site URL when Redirect URLs allow the path.
+ * Also stores allowlisted returnTo in a short-lived cookie as a backup when query
+ * params are dropped by PKCE/hash hops.
  */
 export async function requestPasswordResetAction(formData: FormData): Promise<void> {
   const locale = resolveLocale(String(formData.get("locale") ?? "tr").trim());
@@ -66,6 +95,8 @@ export async function requestPasswordResetAction(formData: FormData): Promise<vo
     entry === "organizer"
       ? organizerPasswordResetReturnTo()
       : customerPasswordResetReturnTo(locale);
+
+  await setPasswordResetReturnCookie(returnTo);
 
   const origin = await getRequestOrigin();
   const callbackPath = passwordRecoveryCallbackPath(locale);
@@ -125,9 +156,16 @@ export async function updatePasswordFromRecoveryAction(
   const locale = resolveLocale(String(formData.get("locale") ?? "tr").trim());
   const resetPath = passwordResetPath(locale);
   const returnToRaw = String(formData.get("returnTo") ?? "").trim();
-  const returnTo = safePasswordResetReturnTo(returnToRaw || null, locale);
-  const returnQuery = isSafePasswordResetReturnTo(returnToRaw)
-    ? `?returnTo=${encodeURIComponent(returnToRaw)}`
+  const cookieReturnTo = await readPasswordResetReturnCookie();
+  // Prefer explicit form value; fall back to allowlisted cookie; then customer default.
+  const returnTo = safePasswordResetReturnTo(
+    isSafePasswordResetReturnTo(returnToRaw)
+      ? returnToRaw
+      : cookieReturnTo,
+    locale
+  );
+  const returnQuery = isSafePasswordResetReturnTo(returnTo)
+    ? `?returnTo=${encodeURIComponent(returnTo)}`
     : "";
 
   if (!getSupabasePublicEnv()) {
@@ -165,5 +203,6 @@ export async function updatePasswordFromRecoveryAction(
 
   // End recovery session so the user signs in deliberately (customer or organizer).
   await supabase.auth.signOut();
+  await clearPasswordResetReturnCookie();
   redirect(passwordResetCompletedPath(returnTo));
 }

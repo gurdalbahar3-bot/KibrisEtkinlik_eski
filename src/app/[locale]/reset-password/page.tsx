@@ -3,6 +3,7 @@ import NextLink from "next/link";
 import { Link } from "@/lib/i18n/navigation";
 
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
+import { readPasswordResetReturnCookie } from "@/lib/auth/password-recovery-actions";
 import {
   customerPasswordResetReturnTo,
   isSafePasswordResetReturnTo,
@@ -26,9 +27,11 @@ export default async function ResetPasswordPage({ params, searchParams }: Props)
   const query = await searchParams;
   const t = await getTranslations("passwordReset");
   const configured = Boolean(getSupabasePublicEnv());
+  const cookieReturnTo = await readPasswordResetReturnCookie();
+  // Prefer query returnTo; fall back to allowlisted cookie when email/PKCE dropped it.
   const returnTo = isSafePasswordResetReturnTo(query.returnTo)
     ? query.returnTo
-    : customerPasswordResetReturnTo(locale);
+    : cookieReturnTo ?? customerPasswordResetReturnTo(locale);
   const organizerReturn = returnTo === organizerPasswordResetReturnTo();
 
   let hasSession = false;

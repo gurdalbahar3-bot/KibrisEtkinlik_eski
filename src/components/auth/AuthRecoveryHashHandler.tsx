@@ -4,11 +4,15 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import { establishRecoverySessionAction } from "@/lib/auth/password-recovery-actions";
-import { passwordResetPath } from "@/lib/auth/password-recovery";
+import {
+  isSafePasswordResetReturnTo,
+  passwordResetPath,
+} from "@/lib/auth/password-recovery";
 
 /**
  * Catches implicit Supabase recovery redirects that land on Site URL with
  * `#access_token=…&refresh_token=…&type=recovery` (hash is invisible to the server).
+ * Preserves allowlisted `returnTo` from the current query string when present.
  * Does not interfere with customer/organizer password login forms.
  */
 export function AuthRecoveryHashHandler({ locale }: { locale: string }) {
@@ -33,6 +37,13 @@ export function AuthRecoveryHashHandler({ locale }: { locale: string }) {
 
     started.current = true;
 
+    const search = new URLSearchParams(window.location.search);
+    const returnToRaw = search.get("returnTo");
+    const returnTo = isSafePasswordResetReturnTo(returnToRaw) ? returnToRaw : null;
+    const returnQuery = returnTo
+      ? `?returnTo=${encodeURIComponent(returnTo)}`
+      : "";
+
     void (async () => {
       const result = await establishRecoverySessionAction({
         locale,
@@ -47,9 +58,13 @@ export function AuthRecoveryHashHandler({ locale }: { locale: string }) {
       );
 
       if (result.ok) {
-        router.replace(passwordResetPath(locale));
+        router.replace(`${passwordResetPath(locale)}${returnQuery}`);
       } else {
-        router.replace(`${passwordResetPath(locale)}?error=recovery`);
+        router.replace(
+          `${passwordResetPath(locale)}${
+            returnQuery ? `${returnQuery}&error=recovery` : "?error=recovery"
+          }`
+        );
       }
     })();
   }, [locale, router]);
