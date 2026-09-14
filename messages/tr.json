@@ -240,7 +240,19 @@
     "errorNotCustomer": "Bu hesap müşteri girişi için uygun değil. Organizatör hesabıyla /organizer/login kullanın.",
     "errorConfig": "Giriş şu an yapılandırılamadı. Lütfen sonra tekrar deneyin.",
     "errorConfirm": "Kayıt alındı. E-posta doğrulamasından sonra giriş yapabilirsiniz.",
-    "resetSuccess": "Şifre güncellendi. Yeni şifrenizle giriş yapın."
+    "resetSuccess": "Şifre güncellendi. Yeni şifrenizle giriş yapın.",
+    "forgotPassword": "Şifremi unuttum?"
+  },
+  "forgotPassword": {
+    "title": "Şifremi unuttum",
+    "subtitle": "E-posta adresinizi girin, size sıfırlama bağlantısı gönderelim.",
+    "email": "E-posta",
+    "submit": "Sıfırlama bağlantısı gönder",
+    "sent": "Bu e-posta ile bir hesap varsa sıfırlama bağlantısı gönderildi.",
+    "backToLogin": "Girişe dön",
+    "errorMissing": "E-posta gerekli.",
+    "errorSend": "Sıfırlama bağlantısı gönderilemedi. Lütfen tekrar deneyin.",
+    "errorConfig": "Şifre sıfırlama şu an yapılandırılmamış."
   },
   "customerAuth": {
     "signupTitle": "Müşteri kaydı",

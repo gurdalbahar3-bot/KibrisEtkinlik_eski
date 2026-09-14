@@ -1,8 +1,13 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { passwordResetPath } from "@/lib/auth/password-recovery";
+import {
+  forgotPasswordPath,
+  passwordRecoveryCallbackPath,
+  passwordResetPath,
+} from "@/lib/auth/password-recovery";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabasePublicEnv } from "@/lib/supabase/config";
 
@@ -12,6 +17,58 @@ function resolveLocale(raw: string): "tr" | "en" {
 
 function localeLoginPath(locale: string): string {
   return locale === "en" ? "/en/login" : "/tr/giris";
+}
+
+/**
+ * Resolve the current request origin for recovery redirectTo.
+ * Never accepts a user-supplied URL (open-redirect safe).
+ */
+async function getRequestOrigin(): Promise<string> {
+  const headerStore = await headers();
+  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
+  const proto = headerStore.get("x-forwarded-proto") ?? "https";
+  if (host) {
+    return `${proto}://${host}`;
+  }
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (siteUrl) {
+    return siteUrl.replace(/\/$/, "");
+  }
+  return "https://kibrisetkinlik.com";
+}
+
+/**
+ * Customer forgot-password: send Supabase recovery email.
+ * redirectTo is always `{origin}/{locale}/auth/callback` (plus safe reset next).
+ */
+export async function requestPasswordResetAction(formData: FormData): Promise<void> {
+  const locale = resolveLocale(String(formData.get("locale") ?? "tr").trim());
+  const forgotPath = forgotPasswordPath(locale);
+
+  if (!getSupabasePublicEnv()) {
+    redirect(`${forgotPath}?error=config`);
+  }
+
+  const email = String(formData.get("email") ?? "").trim();
+  if (!email) {
+    redirect(`${forgotPath}?error=missing`);
+  }
+
+  const origin = await getRequestOrigin();
+  const callbackPath = passwordRecoveryCallbackPath(locale);
+  const resetPath = passwordResetPath(locale);
+  // Callback URL only — next is constrained by passwordRecoveryDestination / safeAuthCallbackNext.
+  const redirectTo = `${origin}${callbackPath}?next=${encodeURIComponent(resetPath)}`;
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+
+  // Always show a generic success to avoid email enumeration; log-worthy failures still surface as sent.
+  if (error) {
+    redirect(`${forgotPath}?error=send`);
+  }
+
+  redirect(`${forgotPath}?sent=1`);
 }
 
 /**

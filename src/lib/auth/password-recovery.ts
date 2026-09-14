@@ -6,6 +6,15 @@ export function passwordResetPath(locale: string): string {
   return locale === "en" ? "/en/reset-password" : "/tr/reset-password";
 }
 
+export function forgotPasswordPath(locale: string): string {
+  return locale === "en" ? "/en/forgot-password" : "/tr/forgot-password";
+}
+
+/** Auth callback path used as Supabase recovery redirectTo (no open redirects). */
+export function passwordRecoveryCallbackPath(locale: string): string {
+  return `/${locale === "en" ? "en" : "tr"}/auth/callback`;
+}
+
 export function isPasswordRecoveryType(type: string | null | undefined): boolean {
   return (type ?? "").trim().toLowerCase() === "recovery";
 }

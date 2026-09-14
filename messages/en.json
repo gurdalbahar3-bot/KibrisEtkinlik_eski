@@ -240,7 +240,19 @@
     "errorNotCustomer": "This account is not for customer sign-in. Organizers should use /organizer/login.",
     "errorConfig": "Sign-in is not configured right now. Please try again later.",
     "errorConfirm": "Account created. Please confirm your email, then sign in.",
-    "resetSuccess": "Password updated. Sign in with your new password."
+    "resetSuccess": "Password updated. Sign in with your new password.",
+    "forgotPassword": "Forgot password?"
+  },
+  "forgotPassword": {
+    "title": "Forgot password",
+    "subtitle": "Enter your email and we will send a reset link.",
+    "email": "Email",
+    "submit": "Send reset link",
+    "sent": "If an account exists for that email, a reset link has been sent.",
+    "backToLogin": "Back to sign in",
+    "errorMissing": "Email is required.",
+    "errorSend": "Could not send the reset link. Please try again.",
+    "errorConfig": "Password reset is not configured right now."
   },
   "customerAuth": {
     "signupTitle": "Customer sign up",
