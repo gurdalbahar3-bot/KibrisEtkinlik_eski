@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabasePublicEnv } from "@/lib/supabase/config";
 import type { CustomerSession } from "@/types/customer/session";
+import type { DbAccountType } from "@/types/supabase/database";
 
 type ProfileGateRow = {
   id: string;
@@ -27,8 +28,18 @@ async function loadCustomerProfile(userId: string): Promise<ProfileGateRow | nul
   return data as ProfileGateRow;
 }
 
+const STOREFRONT_ACCOUNT_TYPES = new Set<DbAccountType>([
+  "customer",
+  "organizer",
+  "venue_owner",
+]);
+
+function isStorefrontAccountType(value: string | null): value is DbAccountType {
+  return value !== null && STOREFRONT_ACCOUNT_TYPES.has(value as DbAccountType);
+}
+
 function toSession(profile: ProfileGateRow): CustomerSession | null {
-  if (profile.account_type !== "customer") {
+  if (!isStorefrontAccountType(profile.account_type)) {
     return null;
   }
 
@@ -36,12 +47,12 @@ function toSession(profile: ProfileGateRow): CustomerSession | null {
     userId: profile.id,
     email: profile.email,
     fullName: profile.full_name,
-    accountType: "customer",
+    accountType: profile.account_type,
     verificationStatus: profile.verification_status ?? "not_required",
   };
 }
 
-/** Current customer session or null. Never elevates to organizer/SA. */
+/** Current storefront session or null. Never elevates to Super Admin. */
 export async function getCustomerSession(): Promise<CustomerSession | null> {
   if (!getSupabasePublicEnv()) {
     return null;
@@ -65,9 +76,8 @@ export async function getCustomerSession(): Promise<CustomerSession | null> {
 }
 
 /**
- * Require a verified customer session.
- * @param loginPath Absolute path (with locale prefix) to redirect when unauthenticated
- *   or when the signed-in account is not a customer (e.g. organizer).
+ * Require an authenticated storefront session (customer, organizer, or venue_owner).
+ * @param loginPath Absolute path (with locale prefix) to redirect when unauthenticated.
  */
 export async function requireCustomer(loginPath = "/tr/giris"): Promise<CustomerSession> {
   const session = await getCustomerSession();

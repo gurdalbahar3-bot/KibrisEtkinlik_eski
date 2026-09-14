@@ -332,5 +332,15 @@
   "venueSubmitForReviewHint": "Submit this draft venue for review. After approval it becomes active and can be used for events.",
   "msgVenueSubmitted": "Venue submitted for review.",
   "venueAwaitingReview": "Waiting for review.",
-  "venueAwaitingActivation": "Will become active after approval."
+  "venueAwaitingActivation": "Will become active after approval.",
+  "loginResetSuccess": "Password updated. Sign in with your new password.",
+  "forgotPassword": "Forgot password?",
+  "forgotTitle": "Forgot password",
+  "forgotSubtitle": "Enter your email and we will send a reset link.",
+  "forgotSubmit": "Send reset link",
+  "forgotSent": "If an account exists for that email, a reset link has been sent.",
+  "forgotBackToLogin": "Back to organizer sign in",
+  "forgotErrorMissing": "Email is required.",
+  "forgotErrorSend": "Could not send the reset link. Please try again.",
+  "forgotErrorConfig": "Password reset is not configured right now."
 }

@@ -16,7 +16,8 @@
     "close": "Close",
     "organizer": "Organizer",
     "login": "Sign in",
-    "orders": "Orders"
+    "orders": "Orders",
+    "organizerLogin": "Organizer sign in"
   },
   "hero": {
     "title": "What's on in Cyprus?",

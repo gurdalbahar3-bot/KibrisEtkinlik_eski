@@ -4,7 +4,13 @@ import { useTranslations } from "next-intl";
 
 import { updatePasswordFromRecoveryAction } from "@/lib/auth/password-recovery-actions";
 
-export function ResetPasswordForm({ locale }: { locale: string }) {
+export function ResetPasswordForm({
+  locale,
+  returnTo,
+}: {
+  locale: string;
+  returnTo: string;
+}) {
   const t = useTranslations("passwordReset");
 
   return (
@@ -14,6 +20,7 @@ export function ResetPasswordForm({ locale }: { locale: string }) {
       data-testid="reset-password-form"
     >
       <input type="hidden" name="locale" value={locale} />
+      {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
 
       <div>
         <label htmlFor="password" className="mb-1 block text-sm font-medium text-slate-700">

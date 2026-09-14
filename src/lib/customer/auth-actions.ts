@@ -55,12 +55,14 @@ export async function loginCustomerAction(formData: FormData): Promise<void> {
     redirect(`${loginPath}${q}`);
   }
 
+  // Same Supabase account may be organizer/venue_owner and still shop on the storefront.
+  // Organizer OS keeps its own approved organizer|venue_owner guard.
   const gate = await assertCustomerProfile(signInData.user.id);
   if (!gate.ok) {
     await supabase.auth.signOut();
     const q = safeNext
-      ? `?error=not_customer&next=${encodeURIComponent(safeNext)}`
-      : "?error=not_customer";
+      ? `?error=invalid&next=${encodeURIComponent(safeNext)}`
+      : "?error=invalid";
     redirect(`${loginPath}${q}`);
   }
 

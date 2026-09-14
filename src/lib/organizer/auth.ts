@@ -27,8 +27,16 @@ async function loadOrganizerProfile(userId: string): Promise<ProfileGateRow | nu
   return data as ProfileGateRow;
 }
 
+/**
+ * Organizer OS gate: approved organizer or venue_owner only.
+ * Customer storefront access is intentionally separate and more permissive.
+ */
 function toSession(profile: ProfileGateRow): OrganizerSession | null {
-  if (profile.account_type !== "organizer") {
+  const accountType = profile.account_type;
+  if (
+    (accountType !== "organizer" && accountType !== "venue_owner") ||
+    profile.verification_status !== "approved"
+  ) {
     return null;
   }
 
@@ -36,8 +44,8 @@ function toSession(profile: ProfileGateRow): OrganizerSession | null {
     userId: profile.id,
     email: profile.email,
     fullName: profile.full_name,
-    accountType: "organizer",
-    verificationStatus: profile.verification_status ?? "pending",
+    accountType,
+    verificationStatus: profile.verification_status,
   };
 }
 

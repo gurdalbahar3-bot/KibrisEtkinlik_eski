@@ -16,7 +16,8 @@
     "close": "Kapat",
     "organizer": "Organizatör",
     "login": "Giriş",
-    "orders": "Siparişler"
+    "orders": "Siparişler",
+    "organizerLogin": "Organizatör Girişi"
   },
   "hero": {
     "title": "Kıbrıs'ta ne var?",

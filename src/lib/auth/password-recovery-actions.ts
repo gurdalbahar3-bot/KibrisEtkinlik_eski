@@ -4,19 +4,21 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import {
+  customerPasswordResetReturnTo,
   forgotPasswordPath,
+  isSafePasswordResetReturnTo,
+  organizerForgotPasswordPath,
+  organizerPasswordResetReturnTo,
   passwordRecoveryCallbackPath,
+  passwordResetCompletedPath,
   passwordResetPath,
+  safePasswordResetReturnTo,
 } from "@/lib/auth/password-recovery";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabasePublicEnv } from "@/lib/supabase/config";
 
 function resolveLocale(raw: string): "tr" | "en" {
   return raw === "en" ? "en" : "tr";
-}
-
-function localeLoginPath(locale: string): string {
-  return locale === "en" ? "/en/login" : "/tr/giris";
 }
 
 /**
@@ -38,12 +40,18 @@ async function getRequestOrigin(): Promise<string> {
 }
 
 /**
- * Customer forgot-password: send Supabase recovery email.
- * redirectTo is always `{origin}/{locale}/auth/callback` (plus safe reset next).
+ * Forgot-password: send Supabase recovery email.
+ * redirectTo is always `{origin}/{locale}/auth/callback?next=…&returnTo=…`
+ * so Supabase must not fall back to bare Site URL when Redirect URLs allow the path.
  */
 export async function requestPasswordResetAction(formData: FormData): Promise<void> {
   const locale = resolveLocale(String(formData.get("locale") ?? "tr").trim());
-  const forgotPath = forgotPasswordPath(locale);
+  const entry =
+    String(formData.get("entry") ?? "customer").trim() === "organizer"
+      ? "organizer"
+      : "customer";
+  const forgotPath =
+    entry === "organizer" ? organizerForgotPasswordPath() : forgotPasswordPath(locale);
 
   if (!getSupabasePublicEnv()) {
     redirect(`${forgotPath}?error=config`);
@@ -54,16 +62,24 @@ export async function requestPasswordResetAction(formData: FormData): Promise<vo
     redirect(`${forgotPath}?error=missing`);
   }
 
+  const returnTo =
+    entry === "organizer"
+      ? organizerPasswordResetReturnTo()
+      : customerPasswordResetReturnTo(locale);
+
   const origin = await getRequestOrigin();
   const callbackPath = passwordRecoveryCallbackPath(locale);
   const resetPath = passwordResetPath(locale);
-  // Callback URL only — next is constrained by passwordRecoveryDestination / safeAuthCallbackNext.
-  const redirectTo = `${origin}${callbackPath}?next=${encodeURIComponent(resetPath)}`;
+  // Full callback URL — path + allowlisted next/returnTo (never bare origin).
+  const redirectTo =
+    `${origin}${callbackPath}` +
+    `?next=${encodeURIComponent(resetPath)}` +
+    `&returnTo=${encodeURIComponent(returnTo)}`;
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
 
-  // Always show a generic success to avoid email enumeration; log-worthy failures still surface as sent.
+  // Always show a generic success to avoid email enumeration; send failures still surface.
   if (error) {
     redirect(`${forgotPath}?error=send`);
   }
@@ -108,25 +124,29 @@ export async function updatePasswordFromRecoveryAction(
 ): Promise<void> {
   const locale = resolveLocale(String(formData.get("locale") ?? "tr").trim());
   const resetPath = passwordResetPath(locale);
-  const loginPath = localeLoginPath(locale);
+  const returnToRaw = String(formData.get("returnTo") ?? "").trim();
+  const returnTo = safePasswordResetReturnTo(returnToRaw || null, locale);
+  const returnQuery = isSafePasswordResetReturnTo(returnToRaw)
+    ? `?returnTo=${encodeURIComponent(returnToRaw)}`
+    : "";
 
   if (!getSupabasePublicEnv()) {
-    redirect(`${resetPath}?error=config`);
+    redirect(`${resetPath}${returnQuery ? `${returnQuery}&error=config` : "?error=config"}`);
   }
 
   const password = String(formData.get("password") ?? "");
   const confirm = String(formData.get("confirm") ?? "");
 
   if (!password || !confirm) {
-    redirect(`${resetPath}?error=missing`);
+    redirect(`${resetPath}${returnQuery ? `${returnQuery}&error=missing` : "?error=missing"}`);
   }
 
   if (password.length < 8) {
-    redirect(`${resetPath}?error=weak`);
+    redirect(`${resetPath}${returnQuery ? `${returnQuery}&error=weak` : "?error=weak"}`);
   }
 
   if (password !== confirm) {
-    redirect(`${resetPath}?error=mismatch`);
+    redirect(`${resetPath}${returnQuery ? `${returnQuery}&error=mismatch` : "?error=mismatch"}`);
   }
 
   const supabase = await createSupabaseServerClient();
@@ -135,15 +155,15 @@ export async function updatePasswordFromRecoveryAction(
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(`${resetPath}?error=session`);
+    redirect(`${resetPath}${returnQuery ? `${returnQuery}&error=session` : "?error=session"}`);
   }
 
   const { error } = await supabase.auth.updateUser({ password });
   if (error) {
-    redirect(`${resetPath}?error=update`);
+    redirect(`${resetPath}${returnQuery ? `${returnQuery}&error=update` : "?error=update"}`);
   }
 
   // End recovery session so the user signs in deliberately (customer or organizer).
   await supabase.auth.signOut();
-  redirect(`${loginPath}?reset=1`);
+  redirect(passwordResetCompletedPath(returnTo));
 }

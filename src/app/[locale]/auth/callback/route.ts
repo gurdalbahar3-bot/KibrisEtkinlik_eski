@@ -26,7 +26,11 @@ export async function GET(request: Request, { params }: Params) {
   const recovery = isPasswordRecoveryType(typeRaw);
 
   const next = recovery
-    ? passwordRecoveryDestination(locale, searchParams.get("next"))
+    ? passwordRecoveryDestination(
+        locale,
+        searchParams.get("next"),
+        searchParams.get("returnTo")
+      )
     : safeAuthCallbackNext(searchParams.get("next"), locale);
 
   const supabase = await createSupabaseServerClient();

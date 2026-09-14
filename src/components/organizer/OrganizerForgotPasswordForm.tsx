@@ -1,30 +1,31 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-
 import { requestPasswordResetAction } from "@/lib/auth/password-recovery-actions";
 
-export function ForgotPasswordForm({
+type Labels = {
+  email: string;
+  submit: string;
+};
+
+export function OrganizerForgotPasswordForm({
   locale,
-  entry = "customer",
+  labels,
 }: {
   locale: string;
-  entry?: "customer" | "organizer";
+  labels: Labels;
 }) {
-  const t = useTranslations("forgotPassword");
-
   return (
     <form
       action={requestPasswordResetAction}
-      className="mx-auto w-full max-w-md space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-      data-testid="forgot-password-form"
+      className="space-y-4"
+      data-testid="organizer-forgot-password-form"
     >
       <input type="hidden" name="locale" value={locale} />
-      <input type="hidden" name="entry" value={entry} />
+      <input type="hidden" name="entry" value="organizer" />
 
       <div>
-        <label htmlFor="email" className="mb-1 block text-sm font-medium text-slate-700">
-          {t("email")}
+        <label htmlFor="email" className="block text-sm font-medium text-slate-700">
+          {labels.email}
         </label>
         <input
           id="email"
@@ -32,7 +33,7 @@ export function ForgotPasswordForm({
           type="email"
           required
           autoComplete="email"
-          className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-teal-600/30 focus:ring-2"
+          className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
         />
       </div>
 
@@ -40,7 +41,7 @@ export function ForgotPasswordForm({
         type="submit"
         className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-teal-700 px-4 text-sm font-semibold text-white transition hover:bg-teal-800"
       >
-        {t("submit")}
+        {labels.submit}
       </button>
     </form>
   );

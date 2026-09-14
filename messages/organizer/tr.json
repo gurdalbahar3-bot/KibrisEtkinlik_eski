@@ -332,5 +332,15 @@
   "venueSubmitForReviewHint": "Taslak mekanı incelemeye gönderin. Onaydan sonra aktif olur ve etkinlikte kullanılabilir.",
   "msgVenueSubmitted": "Mekan incelemeye gönderildi.",
   "venueAwaitingReview": "İnceleme bekleniyor.",
-  "venueAwaitingActivation": "Onay sonrası aktif olacaktır."
+  "venueAwaitingActivation": "Onay sonrası aktif olacaktır.",
+  "loginResetSuccess": "Şifre güncellendi. Yeni şifrenizle giriş yapın.",
+  "forgotPassword": "Şifremi unuttum?",
+  "forgotTitle": "Şifremi unuttum",
+  "forgotSubtitle": "E-posta adresinizi girin, size sıfırlama bağlantısı gönderelim.",
+  "forgotSubmit": "Sıfırlama bağlantısı gönder",
+  "forgotSent": "Bu e-posta ile bir hesap varsa sıfırlama bağlantısı gönderildi.",
+  "forgotBackToLogin": "Organizatör girişine dön",
+  "forgotErrorMissing": "E-posta gerekli.",
+  "forgotErrorSend": "Sıfırlama bağlantısı gönderilemedi. Lütfen tekrar deneyin.",
+  "forgotErrorConfig": "Şifre sıfırlama şu an yapılandırılmamış."
 }

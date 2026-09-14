@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
+import NextLink from "next/link";
 import { Link, usePathname, useRouter } from "@/lib/i18n/navigation";
 
 const NAV_ITEMS = [
@@ -113,6 +114,13 @@ export function Header() {
           >
             {t("login")}
           </Link>
+          <NextLink
+            href="/organizer/login"
+            className="hidden text-xs font-medium text-slate-500 underline-offset-2 transition hover:text-slate-800 hover:underline sm:inline"
+            data-testid="organizer-login-link"
+          >
+            {t("organizerLogin")}
+          </NextLink>
 
           <button
             type="button"
@@ -166,6 +174,15 @@ export function Header() {
               >
                 {t("login")}
               </Link>
+            </li>
+            <li>
+              <NextLink
+                href="/organizer/login"
+                className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                onClick={() => setMobileOpen(false)}
+              >
+                {t("organizerLogin")}
+              </NextLink>
             </li>
           </ul>
         </nav>

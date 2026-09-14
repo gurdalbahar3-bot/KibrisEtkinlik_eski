@@ -3,12 +3,17 @@ import NextLink from "next/link";
 import { Link } from "@/lib/i18n/navigation";
 
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
+import {
+  customerPasswordResetReturnTo,
+  isSafePasswordResetReturnTo,
+  organizerPasswordResetReturnTo,
+} from "@/lib/auth/password-recovery";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabasePublicEnv } from "@/lib/supabase/config";
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; returnTo?: string }>;
 };
 
 export const dynamic = "force-dynamic";
@@ -21,6 +26,10 @@ export default async function ResetPasswordPage({ params, searchParams }: Props)
   const query = await searchParams;
   const t = await getTranslations("passwordReset");
   const configured = Boolean(getSupabasePublicEnv());
+  const returnTo = isSafePasswordResetReturnTo(query.returnTo)
+    ? query.returnTo
+    : customerPasswordResetReturnTo(locale);
+  const organizerReturn = returnTo === organizerPasswordResetReturnTo();
 
   let hasSession = false;
   if (configured) {
@@ -77,24 +86,27 @@ export default async function ResetPasswordPage({ params, searchParams }: Props)
           {t("errorConfig")}
         </p>
       ) : hasSession ? (
-        <ResetPasswordForm locale={locale} />
+        <ResetPasswordForm locale={locale} returnTo={returnTo} />
       ) : (
         <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
           <p className="text-sm text-slate-700">{t("errorSession")}</p>
           <p className="text-xs text-slate-500">{t("sessionHint")}</p>
           <div className="flex flex-wrap justify-center gap-3 pt-2">
-            <Link
-              href="/login"
-              className="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-200 px-3 text-sm font-semibold text-slate-800 hover:bg-slate-50"
-            >
-              {t("customerLogin")}
-            </Link>
-            <NextLink
-              href="/organizer/login"
-              className="inline-flex min-h-10 items-center justify-center rounded-xl border border-teal-200 px-3 text-sm font-semibold text-teal-900 hover:bg-teal-50"
-            >
-              {t("organizerLogin")}
-            </NextLink>
+            {organizerReturn ? (
+              <NextLink
+                href="/organizer/login"
+                className="inline-flex min-h-10 items-center justify-center rounded-xl border border-teal-200 px-3 text-sm font-semibold text-teal-900 hover:bg-teal-50"
+              >
+                {t("organizerLogin")}
+              </NextLink>
+            ) : (
+              <Link
+                href="/login"
+                className="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-200 px-3 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+              >
+                {t("customerLogin")}
+              </Link>
+            )}
           </div>
         </div>
       )}
