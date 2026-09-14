@@ -11,7 +11,7 @@ import { Link } from "@/lib/i18n/navigation";
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ next?: string; error?: string }>;
+  searchParams: Promise<{ next?: string; error?: string; reset?: string }>;
 };
 
 export default async function CustomerLoginPage({ params, searchParams }: Props) {
@@ -55,12 +55,22 @@ export default async function CustomerLoginPage({ params, searchParams }: Props)
       break;
   }
 
+  const resetSuccess = query.reset === "1" ? t("resetSuccess") : null;
+
   return (
     <section className="section-container py-12 sm:py-16">
       <div className="mx-auto mb-8 max-w-md text-center">
         <h1 className="text-3xl font-bold tracking-tight text-slate-900">{t("title")}</h1>
         <p className="mt-2 text-sm text-slate-600">{t("subtitle")}</p>
       </div>
+      {resetSuccess ? (
+        <p
+          className="mx-auto mb-4 max-w-md rounded-lg bg-teal-50 px-3 py-2 text-center text-sm text-teal-900"
+          role="status"
+        >
+          {resetSuccess}
+        </p>
+      ) : null}
       {errorMessage ? (
         <p
           className="mx-auto mb-4 max-w-md rounded-lg bg-rose-50 px-3 py-2 text-center text-sm text-rose-700"

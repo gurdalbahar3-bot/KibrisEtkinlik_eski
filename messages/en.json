@@ -239,7 +239,8 @@
     "errorInvalid": "Incorrect email or password.",
     "errorNotCustomer": "This account is not for customer sign-in. Organizers should use /organizer/login.",
     "errorConfig": "Sign-in is not configured right now. Please try again later.",
-    "errorConfirm": "Account created. Please confirm your email, then sign in."
+    "errorConfirm": "Account created. Please confirm your email, then sign in.",
+    "resetSuccess": "Password updated. Sign in with your new password."
   },
   "customerAuth": {
     "signupTitle": "Customer sign up",
@@ -421,5 +422,22 @@
     "errorCapacity": "Not enough capacity.",
     "errorZone": "Invalid zone or sale mode.",
     "errorGeneric": "Could not create the reservation."
+  },
+  "passwordReset": {
+    "title": "Set a new password",
+    "subtitle": "Choose a new password for your account. This is separate from sign-in.",
+    "password": "New password",
+    "passwordHint": "At least 8 characters.",
+    "confirm": "Confirm password",
+    "submit": "Update password",
+    "errorMissing": "Enter and confirm your new password.",
+    "errorWeak": "Password must be at least 8 characters.",
+    "errorMismatch": "Passwords do not match.",
+    "errorSession": "This reset link is invalid or has expired. Request a new password reset email.",
+    "errorUpdate": "Could not update the password. Please try again.",
+    "errorConfig": "Password reset is not configured right now.",
+    "sessionHint": "Open the link from your email again, or request a new reset.",
+    "customerLogin": "Customer sign in",
+    "organizerLogin": "Organizer sign in"
   }
 }

@@ -239,7 +239,8 @@
     "errorInvalid": "E-posta veya şifre hatalı.",
     "errorNotCustomer": "Bu hesap müşteri girişi için uygun değil. Organizatör hesabıyla /organizer/login kullanın.",
     "errorConfig": "Giriş şu an yapılandırılamadı. Lütfen sonra tekrar deneyin.",
-    "errorConfirm": "Kayıt alındı. E-posta doğrulamasından sonra giriş yapabilirsiniz."
+    "errorConfirm": "Kayıt alındı. E-posta doğrulamasından sonra giriş yapabilirsiniz.",
+    "resetSuccess": "Şifre güncellendi. Yeni şifrenizle giriş yapın."
   },
   "customerAuth": {
     "signupTitle": "Müşteri kaydı",
@@ -421,5 +422,22 @@
     "errorCapacity": "Kapasite yetersiz.",
     "errorZone": "Bölge veya satış modu geçersiz.",
     "errorGeneric": "Rezervasyon oluşturulamadı."
+  },
+  "passwordReset": {
+    "title": "Yeni şifre belirle",
+    "subtitle": "Hesabınız için yeni bir şifre seçin. Bu adım giriş formlarından ayrıdır.",
+    "password": "Yeni şifre",
+    "passwordHint": "En az 8 karakter.",
+    "confirm": "Şifreyi doğrula",
+    "submit": "Şifreyi güncelle",
+    "errorMissing": "Yeni şifrenizi girin ve doğrulayın.",
+    "errorWeak": "Şifre en az 8 karakter olmalı.",
+    "errorMismatch": "Şifreler eşleşmiyor.",
+    "errorSession": "Bu sıfırlama bağlantısı geçersiz veya süresi dolmuş. Yeni bir şifre sıfırlama e-postası isteyin.",
+    "errorUpdate": "Şifre güncellenemedi. Lütfen tekrar deneyin.",
+    "errorConfig": "Şifre sıfırlama şu an yapılandırılmamış.",
+    "sessionHint": "E-postadaki bağlantıyı yeniden açın veya yeni bir sıfırlama isteyin.",
+    "customerLogin": "Müşteri girişi",
+    "organizerLogin": "Organizatör girişi"
   }
 }

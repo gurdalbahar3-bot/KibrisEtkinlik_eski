@@ -38,6 +38,7 @@ export const routing = defineRouting({
       tr: "/giris",
       en: "/login",
     },
+    "/reset-password": "/reset-password",
     "/signup": {
       tr: "/kayit",
       en: "/signup",
