@@ -116,7 +116,7 @@ export function Header() {
           </Link>
           <NextLink
             href="/organizer/login"
-            className="hidden text-xs font-medium text-slate-500 underline-offset-2 transition hover:text-slate-800 hover:underline sm:inline"
+            className="hidden text-xs font-medium text-slate-600 underline-offset-2 transition hover:text-slate-900 hover:underline sm:inline"
             data-testid="organizer-login-link"
           >
             {t("organizerLogin")}
@@ -178,7 +178,7 @@ export function Header() {
             <li>
               <NextLink
                 href="/organizer/login"
-                className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 onClick={() => setMobileOpen(false)}
               >
                 {t("organizerLogin")}
