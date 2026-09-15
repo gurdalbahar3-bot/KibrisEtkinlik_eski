@@ -1,22 +1,26 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { lowestOfferPrice } from "@/lib/data/adapters/ticket-offer-mapper";
 import { formatTicketPrice } from "@/lib/discovery/format-price";
+import { Link } from "@/lib/i18n/navigation";
 import type { DiscoveryTicketOffer } from "@/types/event";
 
 interface EventTicketOffersProps {
   offers: DiscoveryTicketOffer[];
   isFree: boolean;
   officialTicketUrl?: string;
+  eventId: string;
 }
 
 export async function EventTicketOffers({
   offers,
   isFree,
   officialTicketUrl,
+  eventId,
 }: EventTicketOffersProps) {
   const t = await getTranslations("eventDetail");
   const locale = (await getLocale()) as "tr" | "en";
   const fromPrice = lowestOfferPrice(offers);
+  const buyable = offers.filter((o) => o.saleMode === "ticket_based" && !o.isSoldOut);
 
   return (
     <section className="mt-8 rounded-2xl border border-slate-100 bg-white p-6 shadow-card" aria-labelledby="ticket-offers-title">
@@ -76,8 +80,20 @@ export async function EventTicketOffers({
         >
           {t("officialTickets")} →
         </a>
-      ) : offers.length > 0 ? (
-        <p className="mt-6 text-sm text-slate-500">{t("noCheckoutHint")}</p>
+      ) : buyable.length > 0 ? (
+        <Link
+          href={{
+            pathname: "/checkout",
+            query: {
+              event: eventId,
+              type: buyable[0]!.id,
+            },
+          }}
+          className="btn-primary mt-6 inline-flex w-full sm:w-auto"
+          data-testid="buy-tickets-cta"
+        >
+          {t("buyTickets")}
+        </Link>
       ) : null}
     </section>
   );

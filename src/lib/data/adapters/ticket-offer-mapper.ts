@@ -13,6 +13,7 @@ function parsePrice(value: number | string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+/** Map DB `sale_mode` (`ticket_based` | `seat_based`) → discovery TicketSaleMode. */
 function normalizeSaleMode(raw: string | null | undefined): TicketSaleMode {
   return raw === "seat_based" ? "seat_based" : "ticket_based";
 }
@@ -39,11 +40,14 @@ export function mapTicketTypeRowToOffer(
 
   return {
     id: row.id,
+    eventId: row.event_id,
+    zoneId: row.zone_id,
     name: row.name.trim(),
     zoneName: zone.name.trim(),
     zoneType: zone.zone_type,
     saleMode,
     price,
+    maxPerOrder: row.max_per_order,
     description: row.description?.trim() || undefined,
     remaining,
     isSoldOut: remaining === 0,

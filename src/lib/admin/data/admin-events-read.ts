@@ -1,3 +1,4 @@
+import { isDefaultPublishableStatus } from "@/lib/admin/publish-event-result";
 import { resolveEventDistrict } from "@/lib/data/adapters/district-resolve";
 import { normalizeEventCategory } from "@/lib/data/adapters/event-mapper";
 import { discoveryEventsRepository } from "@/lib/data/discovery-repository";
@@ -96,7 +97,7 @@ async function fetchEventsViaAuthenticatedSupabase(): Promise<AdminEventListItem
     throw new Error(`Admin events read failed: ${error.message}`);
   }
 
-  const rows = (data ?? []) as DbEventRow[];
+  const rows = (data ?? []) as unknown as DbEventRow[];
   const ownerIds = [...new Set(rows.map((row) => row.owner_id))];
   const ownerById = await fetchOwnerProfiles(ownerIds);
 
@@ -119,7 +120,7 @@ async function fetchEventByIdViaAuthenticatedSupabase(id: string): Promise<Admin
     return null;
   }
 
-  const row = data as DbEventRow;
+  const row = data as unknown as DbEventRow;
   const ownerById = await fetchOwnerProfiles([row.owner_id]);
   const base = mapEventRow(row, ownerById);
 
@@ -192,4 +193,21 @@ export async function getAdminPublicEventById(id: string): Promise<AdminEventDet
   }
 
   return fetchEventByIdViaDiscoveryFallback(id);
+}
+
+/**
+ * Real events eligible for the default Super Admin publish button.
+ * Dev cookie / unauthenticated sessions get an empty list (fail-closed, no mock catalog).
+ */
+export async function getAdminPublishableEvents(): Promise<AdminEventListItem[]> {
+  if (!isSupabaseDataSource()) {
+    return [];
+  }
+
+  if (!(await isAuthenticatedSuperAdmin())) {
+    return [];
+  }
+
+  const events = await fetchEventsViaAuthenticatedSupabase();
+  return events.filter((event) => isDefaultPublishableStatus(event.status));
 }

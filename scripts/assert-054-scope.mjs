@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import assert from "node:assert/strict";
 import test from "node:test";
+import { assertPost055Allowlist } from "./migration-scope-allowlist.mjs";
 
 const root = join(import.meta.dirname, "..");
 const migrationsDir = join(root, "supabase/migrations");
@@ -22,7 +23,7 @@ function numberedMigrations() {
     .map((row) => ({ name: row.name, n: Number(row.match[1]) }));
 }
 
-test("054 exists and 056+ stay out of this change", () => {
+test("054 exists and post-055 migrations stay on project allowlist", () => {
   const files = readdirSync(migrationsDir).filter((name) => name.endsWith(".sql"));
   assert.ok(files.includes("054_event_lifecycle.sql"), "054_event_lifecycle.sql must exist");
   assert.ok(files.includes("053_create_event_atomic.sql"), "053 must remain");
@@ -30,10 +31,7 @@ test("054 exists and 056+ stay out of this change", () => {
   assert.ok(files.includes("051_approval_audit.sql"), "051 must remain");
 
   const numbered = numberedMigrations();
-  assert.ok(
-    numbered.every((row) => row.n <= 55),
-    `unexpected 056+ migration: ${numbered.filter((row) => row.n >= 56).map((row) => row.name).join(", ")}`
-  );
+  assertPost055Allowlist(numbered, assert);
   assert.equal(
     numbered.filter((row) => row.n === 54).length,
     1,

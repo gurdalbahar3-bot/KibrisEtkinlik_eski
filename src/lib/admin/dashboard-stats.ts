@@ -1,6 +1,12 @@
+import { getAdminPublicEvents } from "@/lib/admin/data/admin-events-read";
+import {
+  buildAdminDashboardViewModel,
+  type AdminDashboardViewModel,
+} from "@/lib/admin/dashboard-view-model";
 import type { AdminDashboardStat } from "@/lib/admin/mock/dashboard-stats";
-import { countBlockedPendingCandidates } from "@/lib/admin/review/image-review-service";
 import { mockAdminIntakeRepository } from "@/lib/admin/repositories/mock-admin-intake-repository";
+import { countBlockedPendingCandidates } from "@/lib/admin/review/image-review-service";
+import { getDataSource } from "@/lib/supabase/config";
 
 /** Derive queue counts from mock intake repository; ads remain static until FAZ 4+. */
 export function getDashboardStatsFromRepository(): AdminDashboardStat[] {
@@ -64,4 +70,13 @@ export function getDashboardStatsFromRepository(): AdminDashboardStat[] {
       href: "/admin/distribution/ads",
     },
   ];
+}
+
+export async function getAdminDashboardViewModel(): Promise<AdminDashboardViewModel> {
+  const dataSource = getDataSource();
+  return buildAdminDashboardViewModel({
+    dataSource,
+    mockIntakeStats: getDashboardStatsFromRepository(),
+    adminEvents: dataSource === "supabase" ? await getAdminPublicEvents() : [],
+  });
 }

@@ -55,29 +55,39 @@ export const VENUE_DISCOVERY_SELECT = `
   kktc_districts ( code )
 `.trim();
 
-/** Detail-only ticket catalog. Public SELECT is gated by event_is_published (034). */
-export const EVENT_TICKET_OFFER_SELECT = `
+/**
+ * Public ticket catalog columns — flat selects only.
+ * Nested `event_ticket_zones(...)` embeds were timing out at the API gateway
+ * under RLS (`event_is_published` / `can_manage_event` on both tables).
+ * Zones are fetched separately and joined in application code.
+ */
+export const EVENT_TICKET_TYPE_OFFER_SELECT = `
   id,
   event_id,
   zone_id,
   name,
   price,
   description,
-  is_active,
-  event_ticket_zones (
-    id,
-    event_id,
-    name,
-    zone_type,
-    sale_mode,
-    capacity,
-    reserved_count,
-    sold_count,
-    description,
-    sort_order,
-    is_active
-  )
+  max_per_order,
+  is_active
 `.trim();
+
+export const EVENT_TICKET_ZONE_OFFER_SELECT = `
+  id,
+  event_id,
+  name,
+  zone_type,
+  sale_mode,
+  capacity,
+  reserved_count,
+  sold_count,
+  description,
+  sort_order,
+  is_active
+`.trim();
+
+/** @deprecated Prefer flat TYPE + ZONE selects; kept for string references in comments/tests. */
+export const EVENT_TICKET_OFFER_SELECT = EVENT_TICKET_TYPE_OFFER_SELECT;
 
 export const DISTRICT_DISCOVERY_SELECT = `
   code,

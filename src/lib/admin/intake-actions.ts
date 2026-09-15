@@ -11,7 +11,6 @@ import {
 import type { ManualIntakeFormData } from "@/types/admin/intake";
 import type { DistrictSlug, EventCategory } from "@/types/event";
 import { DISTRICT_SLUGS, CATEGORY_KEYS } from "@/lib/data/categories";
-import { mockPublishingAdapter } from "@/lib/admin/adapters/mock/mock-publishing";
 import { canHumanApprove } from "@/lib/admin/publishing/publish-checklist";
 import {
   canTransitionIntakeToPendingApproval,
@@ -173,18 +172,10 @@ export async function approveIntakeAction(id: string): Promise<IntakeActionResul
   return { ok: true };
 }
 
-export async function publishIntakeFormAction(formData: FormData): Promise<void> {
-  const intakeId = String(formData.get("intakeId") ?? "");
-  const session = await getSuperAdminActor();
-  await mockPublishingAdapter.publish(intakeId, {
-    type: "SUPER_ADMIN",
-    id: session.id,
-  });
-
-  revalidatePath("/admin");
-  revalidatePath("/admin/publishing");
-  revalidatePath(`/admin/publishing/${intakeId}`);
-  revalidatePath("/admin/review/approval");
+export async function publishIntakeFormAction(): Promise<void> {
+  throw new Error(
+    "Mock intake publish is disabled. Super Admin publish uses publish_event RPC on real events."
+  );
 }
 
 export async function rejectIntakeAction(

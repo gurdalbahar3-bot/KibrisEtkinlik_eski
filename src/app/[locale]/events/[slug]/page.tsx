@@ -15,9 +15,10 @@ import {
 import { buildEventMapsDestination } from "@/lib/discovery/venue-directions";
 import { getEventImage, getEventImageSources } from "@/lib/ui/event-image";
 import { eventToJsonLd, formatEventDate } from "@/lib/seo/jsonld";
+import { shouldShowFreeBadge } from "@/lib/organizer/ticket-consistency";
 import type { DistrictSlug } from "@/types/event";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://globaleventdiscovery.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kibrisetkinlik.com";
 
 /** Runtime discovery fetch — slug list comes from Supabase, not mock static params. */
 export const dynamic = "force-dynamic";
@@ -38,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const tDist = await getTranslations({ locale, namespace: "districts" });
     const name = tDist(slug as DistrictSlug);
     return {
-      title: `${name} — ${locale === "tr" ? "Etkinlikler" : "Events"} | Global Event Discovery`,
+      title: `${name} — ${locale === "tr" ? "Etkinlikler" : "Events"} | Kıbrıs Etkinlik`,
       description:
         locale === "tr"
           ? `${name} ilçesindeki konser, festival ve etkinlikleri keşfedin.`
@@ -53,7 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const image = getEventImage(event);
 
   return {
-    title: `${event.title} | Global Event Discovery`,
+    title: `${event.title} | Kıbrıs Etkinlik`,
     description: event.description,
     alternates: { canonical: `${SITE_URL}${path}` },
     openGraph: {
@@ -93,7 +94,11 @@ export default async function EventOrDistrictPage({ params }: Props) {
 
   const [venue, ticketOffers, relatedEvents] = await Promise.all([
     discoveryVenuesRepository.getBySlug(event.venueSlug),
-    discoveryEventsRepository.getTicketOffers(event.id),
+    // Ticket catalog is additive — never fail the whole public detail page on offer fetch.
+    discoveryEventsRepository.getTicketOffers(event.id).catch((err) => {
+      console.error("[event-detail] ticket offers failed:", err);
+      return [];
+    }),
     discoveryEventsRepository.getRelatedEvents(event, 4),
   ]);
 
@@ -132,11 +137,11 @@ export default async function EventOrDistrictPage({ params }: Props) {
             className="object-cover"
             priority
           />
-          {event.isFree && (
+          {shouldShowFreeBadge(event.isFree, ticketOffers.length) ? (
             <span className="absolute left-4 top-4 rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold text-white shadow">
               {t("free")}
             </span>
-          )}
+          ) : null}
         </div>
 
         <div>
@@ -221,8 +226,9 @@ export default async function EventOrDistrictPage({ params }: Props) {
 
           <EventTicketOffers
             offers={ticketOffers}
-            isFree={event.isFree}
+            isFree={shouldShowFreeBadge(event.isFree, ticketOffers.length)}
             officialTicketUrl={event.officialTicketUrl}
+            eventId={event.id}
           />
         </div>
       </div>

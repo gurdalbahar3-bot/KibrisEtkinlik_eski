@@ -2,6 +2,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Inter } from "next/font/google";
+import { AuthRecoveryHashHandler } from "@/components/auth/AuthRecoveryHashHandler";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { routing } from "@/lib/i18n/routing";
@@ -36,6 +37,7 @@ export default async function LocaleLayout({ children, params }: Props) {
     <html lang={locale} className={inter.variable}>
       <body className="min-h-screen font-sans antialiased">
         <NextIntlClientProvider messages={messages}>
+          <AuthRecoveryHashHandler locale={locale} />
           <Header />
           <main>{children}</main>
           <Footer />

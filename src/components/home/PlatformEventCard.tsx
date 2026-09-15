@@ -3,6 +3,7 @@ import { Link } from "@/lib/i18n/navigation";
 import { getEventImage, getEventImageSources } from "@/lib/ui/event-image";
 import { PosterImage } from "@/components/ui/PosterImage";
 import { formatEventDate } from "@/lib/seo/jsonld";
+import { hasEventVenueLink } from "@/lib/ui/event-venue-link";
 import type { DiscoveryEvent } from "@/types/event";
 import type { Locale } from "@/lib/i18n/routing";
 
@@ -98,8 +99,19 @@ export async function PlatformEventCard({
         <div className={`space-y-1 ${isCompact ? "text-xs" : "text-sm"} text-slate-600`}>
           <p className="flex items-center gap-1.5 line-clamp-1">
             <PinIcon className="shrink-0 text-accent-500" />
-            <span>
-              {event.venue} · {tDist(event.district)}
+            <span className="min-w-0">
+              {hasEventVenueLink(event) ? (
+                <Link
+                  href={{ pathname: "/venues/[slug]", params: { slug: event.venueSlug } }}
+                  className="font-medium text-slate-700 underline-offset-2 transition hover:text-brand-700 hover:underline"
+                >
+                  {event.venue}
+                </Link>
+              ) : (
+                event.venue
+              )}
+              <span className="text-slate-400"> · </span>
+              {tDist(event.district)}
             </span>
           </p>
           {!isCompact && (

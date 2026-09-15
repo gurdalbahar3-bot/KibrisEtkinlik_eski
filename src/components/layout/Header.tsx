@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
+import NextLink from "next/link";
 import { Link, usePathname, useRouter } from "@/lib/i18n/navigation";
 
 const NAV_ITEMS = [
@@ -48,7 +49,7 @@ export function Header() {
       <div className="section-container flex h-16 items-center justify-between gap-4">
         <Link href="/" className="flex min-w-0 shrink items-center gap-2">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-600 to-brand-800 text-sm font-bold text-white shadow-sm">
-            G
+            K
           </span>
           <span className="truncate text-sm font-semibold text-slate-900 md:hidden">
             {tMeta("siteNameShort")}
@@ -101,6 +102,26 @@ export function Header() {
             {switchLocale}
           </button>
 
+          <Link
+            href="/account/orders"
+            className="hidden rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 sm:inline-flex"
+          >
+            {t("orders")}
+          </Link>
+          <Link
+            href="/login"
+            className="hidden rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:border-brand-400 hover:text-brand-700 sm:inline-flex"
+          >
+            {t("login")}
+          </Link>
+          <NextLink
+            href="/organizer/login"
+            className="hidden text-xs font-medium text-slate-600 underline-offset-2 transition hover:text-slate-900 hover:underline sm:inline"
+            data-testid="organizer-login-link"
+          >
+            {t("organizerLogin")}
+          </NextLink>
+
           <button
             type="button"
             className="inline-flex rounded-lg p-2 text-slate-700 md:hidden"
@@ -136,6 +157,33 @@ export function Header() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link
+                href="/account/orders"
+                className="block rounded-lg px-3 py-3 text-base font-medium text-slate-700 hover:bg-slate-50"
+                onClick={() => setMobileOpen(false)}
+              >
+                {t("orders")}
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/login"
+                className="block rounded-lg px-3 py-3 text-base font-medium text-slate-700 hover:bg-slate-50"
+                onClick={() => setMobileOpen(false)}
+              >
+                {t("login")}
+              </Link>
+            </li>
+            <li>
+              <NextLink
+                href="/organizer/login"
+                className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                onClick={() => setMobileOpen(false)}
+              >
+                {t("organizerLogin")}
+              </NextLink>
+            </li>
           </ul>
         </nav>
       )}

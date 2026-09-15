@@ -34,6 +34,37 @@ export const routing = defineRouting({
       tr: "/ilceler",
       en: "/districts",
     },
+    "/login": {
+      tr: "/giris",
+      en: "/login",
+    },
+    "/forgot-password": "/forgot-password",
+    "/reset-password": "/reset-password",
+    "/signup": {
+      tr: "/kayit",
+      en: "/signup",
+    },
+    "/checkout": {
+      tr: "/odeme",
+      en: "/checkout",
+    },
+    "/account/orders": {
+      tr: "/hesap/siparisler",
+      en: "/account/orders",
+    },
+    "/account/orders/[id]": {
+      tr: "/hesap/siparisler/[id]",
+      en: "/account/orders/[id]",
+    },
+    "/account/tickets": {
+      tr: "/hesap/biletler",
+      en: "/account/tickets",
+    },
+    "/organizer": "/organizer",
+    "/organizer/events": "/organizer/events",
+    "/organizer/events/new": "/organizer/events/new",
+    "/organizer/events/[id]": "/organizer/events/[id]",
+    "/organizer/events/[id]/tickets": "/organizer/events/[id]/tickets",
   },
 });
 
