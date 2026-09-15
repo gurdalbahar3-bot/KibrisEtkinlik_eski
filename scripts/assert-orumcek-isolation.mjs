@@ -38,3 +38,18 @@ test("orumcek is isolated from public discovery paths", () => {
   }
   assert.deepEqual(hits, [], `Public discovery path imported Örümcek:\n${hits.join("\n")}`);
 });
+
+test("orumcek crawl path never imports publish_event adapters", () => {
+  const hits = [];
+  for (const file of listFiles(join(root, "src/lib/orumcek"))) {
+    const source = readFileSync(file, "utf8");
+    if (
+      source.includes("publish-event-action") ||
+      source.includes("publishEventAction") ||
+      source.includes("approve-and-publish-event-action")
+    ) {
+      hits.push(file.replace(root + "/", ""));
+    }
+  }
+  assert.deepEqual(hits, [], `Örümcek imported a publish adapter:\n${hits.join("\n")}`);
+});

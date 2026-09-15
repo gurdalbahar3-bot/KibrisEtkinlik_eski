@@ -23,6 +23,7 @@ function sampleRaw(overrides: Partial<RawSpiderEvent> = {}): RawSpiderEvent {
     rawDistrict: "Lefke",
     rawCategory: "concert",
     capturedAt: "2026-09-15T10:00:00.000Z",
+    provenance: "FIXTURE",
     evidence: [
       createEvidence("JSON", "https://www.gisekibris.com/events/test", "2026-09-15T10:00:00.000Z", "fixture"),
     ],

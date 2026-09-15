@@ -259,5 +259,18 @@
   "orumcekStatusReview": "İnceleme",
   "orumcekStatusPendingApproval": "Onay bekliyor",
   "orumcekStatusApprovedReady": "SA yayınına hazır",
-  "orumcekStatusRejected": "Reddedildi"
+  "orumcekStatusRejected": "Reddedildi",
+  "orumcekLiveCrawlGatedBadge": "Canlı tarama kapılı — yalnızca allowlist, otomatik yayın yok",
+  "orumcekRunLiveCrawl": "Kıbrıs Biletcim taramasını çalıştır",
+  "orumcekLiveCrawlDisabledHint": "Canlı tarama ORUMCEK_LIVE_CRAWL=1 olmadan kapalı kalır. Bayrağı set ettikten sonra dev sunucusunu yeniden başlatın. Varsayılan hâlâ fixture / dry-run.",
+  "orumcekLiveCrawlEnabledHint": "Bayrak açık. Yalnızca allowlist kaynağı (Kıbrıs Biletcim) çekilir, admin taslaklarına yazılır; public events yazılmaz ve publish_event çağrılmaz.",
+  "orumcekProvenance": "Kaynak türü",
+  "orumcekProvenanceFixture": "Fixture / dry-run",
+  "orumcekProvenanceLiveCrawl": "Canlı tarama",
+  "orumcekLastCrawl": "Son kapılı tarama",
+  "orumcekCrawlIngested": "Yeni taslak",
+  "orumcekCrawlDuplicates": "Mükerrer",
+  "orumcekCrawlSkipped": "Atlanan",
+  "orumcekCrawlSource": "Kaynak",
+  "orumcekNoPublicWrite": "Public katalog yazımı"
 }

@@ -8,9 +8,14 @@ import {
   resolveAdminLocale,
 } from "@/lib/admin/i18n";
 import { mockAdminIntakeRepository } from "@/lib/admin/repositories/mock-admin-intake-repository";
-import { reloadOrumcekFixturesAction } from "@/lib/orumcek/admin-actions";
+import {
+  reloadOrumcekFixturesAction,
+  runOrumcekLiveCrawlAction,
+} from "@/lib/orumcek/admin-actions";
+import { isLiveCrawlFlagOn } from "@/lib/orumcek/crawl-gate";
 import { ensureFixtureDrafts } from "@/lib/orumcek/fixtures";
-import { listDrafts } from "@/lib/orumcek/store";
+import { PRIMARY_LIVE_CRAWL_SOURCE_ID } from "@/lib/orumcek/sources";
+import { getLastOrumcekCrawlRun, listDrafts } from "@/lib/orumcek/store";
 import type { IntakeDraft, OrumcekStatus } from "@/lib/orumcek/types";
 
 type ViewFilter = "queue" | "approved" | "rejected" | "all";
@@ -47,6 +52,8 @@ export default async function AdminAiReviewPage({ searchParams }: Props) {
   ensureFixtureDrafts();
   const drafts = filterDrafts(listDrafts(), view);
   const intakes = mockAdminIntakeRepository.getByStatus("AI_REVIEW");
+  const liveCrawlOn = isLiveCrawlFlagOn();
+  const lastCrawl = getLastOrumcekCrawlRun();
 
   const tabs: { id: ViewFilter; label: string }[] = [
     { id: "queue", label: t("orumcekFilterQueue") },
@@ -63,22 +70,66 @@ export default async function AdminAiReviewPage({ searchParams }: Props) {
           <p className="mt-1 text-sm text-slate-600">{t("orumcekSubtitle")}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <span className="inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-900">
-              {t("orumcekFixturesOnlyBadge")}
+              {liveCrawlOn ? t("orumcekLiveCrawlGatedBadge") : t("orumcekFixturesOnlyBadge")}
             </span>
             <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-900">
               {t("orumcekNoAutoPublishBadge")}
             </span>
           </div>
         </div>
-        <form action={reloadOrumcekFixturesAction}>
-          <button
-            type="submit"
-            className="inline-flex min-h-10 items-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            {t("orumcekReloadFixtures")}
-          </button>
-        </form>
+        <div className="flex flex-wrap items-center gap-2">
+          <form action={reloadOrumcekFixturesAction}>
+            <button
+              type="submit"
+              className="inline-flex min-h-10 items-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              {t("orumcekReloadFixtures")}
+            </button>
+          </form>
+          <form action={runOrumcekLiveCrawlAction}>
+            <input type="hidden" name="sourceId" value={PRIMARY_LIVE_CRAWL_SOURCE_ID} />
+            <button
+              type="submit"
+              disabled={!liveCrawlOn}
+              className="inline-flex min-h-10 items-center rounded-lg bg-brand-700 px-4 text-sm font-semibold text-white hover:bg-brand-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+            >
+              {t("orumcekRunLiveCrawl")}
+            </button>
+          </form>
+        </div>
       </header>
+
+      <p className="rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-700">
+        {liveCrawlOn ? t("orumcekLiveCrawlEnabledHint") : t("orumcekLiveCrawlDisabledHint")}
+      </p>
+
+      {lastCrawl ? (
+        <section className="rounded-xl border border-slate-200 bg-white px-5 py-4 text-sm shadow-sm">
+          <h2 className="font-semibold text-slate-900">{t("orumcekLastCrawl")}</h2>
+          <dl className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <dt className="text-slate-500">{t("orumcekCrawlSource")}</dt>
+              <dd className="font-medium text-slate-900">{lastCrawl.sourceName}</dd>
+            </div>
+            <div>
+              <dt className="text-slate-500">{t("orumcekCrawlIngested")}</dt>
+              <dd className="font-medium text-slate-900">{lastCrawl.ingested}</dd>
+            </div>
+            <div>
+              <dt className="text-slate-500">{t("orumcekCrawlDuplicates")}</dt>
+              <dd className="font-medium text-slate-900">{lastCrawl.duplicates}</dd>
+            </div>
+            <div>
+              <dt className="text-slate-500">{t("orumcekCrawlSkipped")}</dt>
+              <dd className="font-medium text-slate-900">{lastCrawl.skipped}</dd>
+            </div>
+            <div>
+              <dt className="text-slate-500">{t("orumcekNoPublicWrite")}</dt>
+              <dd className="font-medium text-slate-900">{t("orumcekReadyForSaOnly")}</dd>
+            </div>
+          </dl>
+        </section>
+      ) : null}
 
       <nav className="flex flex-wrap gap-2" aria-label={t("orumcekTitle")}>
         {tabs.map((tab) => {

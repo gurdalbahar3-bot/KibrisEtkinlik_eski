@@ -2,8 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { getAdminAuth } from "@/lib/admin/auth";
+import { crawlAndIngestAllowlistedSource } from "@/lib/orumcek/crawl";
+import { getRequestedCrawlSourceId } from "@/lib/orumcek/crawl-gate";
 import { reloadFixtureDrafts } from "@/lib/orumcek/fixtures";
 import { applyDraftTransition } from "@/lib/orumcek/transitions";
+import { PRIMARY_LIVE_CRAWL_SOURCE_ID } from "@/lib/orumcek/sources";
+import type { LiveCrawlIngestResult } from "@/lib/orumcek/types";
 
 export type OrumcekActionResult =
   | { ok: true; publishCalled: false }
@@ -56,6 +60,27 @@ export async function reloadOrumcekFixturesAction(): Promise<void> {
   await requireSuperAdminId();
   reloadFixtureDrafts();
   revalidateOrumcekPaths();
+}
+
+export async function runOrumcekLiveCrawlAction(formData: FormData): Promise<void> {
+  await requireSuperAdminId();
+  const requested = String(formData.get("sourceId") ?? "").trim() || getRequestedCrawlSourceId();
+  const result = await crawlAndIngestAllowlistedSource(requested);
+  if (!result.ok) {
+    throw new Error(result.message);
+  }
+  revalidateOrumcekPaths();
+}
+
+export async function runOrumcekLiveCrawl(
+  sourceId: string = PRIMARY_LIVE_CRAWL_SOURCE_ID
+): Promise<LiveCrawlIngestResult> {
+  await requireSuperAdminId();
+  const result = await crawlAndIngestAllowlistedSource(sourceId);
+  if (result.ok) {
+    revalidateOrumcekPaths();
+  }
+  return result;
 }
 
 export async function approveOrumcekDraft(id: string): Promise<OrumcekActionResult> {
