@@ -28,6 +28,7 @@ export const FIXTURE_RAW_EVENTS: RawSpiderEvent[] = [
     rawCategory: "concert",
     rawArtist: "Local Acoustic Collective",
     capturedAt: "2026-09-15T09:00:00.000Z",
+    provenance: "FIXTURE",
     evidence: fixtureEvidence(
       "https://www.gisekibris.com/events/lefke-akustik-gece",
       "2026-09-15T09:00:00.000Z",
@@ -45,6 +46,7 @@ export const FIXTURE_RAW_EVENTS: RawSpiderEvent[] = [
     rawCategory: "concert",
     rawArtist: "Local Acoustic Collective",
     capturedAt: "2026-09-15T09:00:00.000Z",
+    provenance: "FIXTURE",
     evidence: fixtureEvidence(
       "https://www.gisekibris.com/events/lefke-akustik-gece",
       "2026-09-15T09:00:00.000Z",
@@ -61,6 +63,7 @@ export const FIXTURE_RAW_EVENTS: RawSpiderEvent[] = [
     rawDistrict: "Girne",
     rawCategory: "festival",
     capturedAt: "2026-09-15T09:10:00.000Z",
+    provenance: "FIXTURE",
     evidence: fixtureEvidence(
       "https://www.girnebelediyesi.com/etkinlikler/girne-kultur-festivali",
       "2026-09-15T09:10:00.000Z",
@@ -75,6 +78,7 @@ export const FIXTURE_RAW_EVENTS: RawSpiderEvent[] = [
     rawDistrict: "Gazimağusa",
     rawCategory: "concert",
     capturedAt: "2026-09-15T09:20:00.000Z",
+    provenance: "FIXTURE",
     evidence: fixtureEvidence(
       "https://www.emu.edu.tr/events/spring-concert",
       "2026-09-15T09:20:00.000Z",
@@ -92,6 +96,7 @@ export const FIXTURE_RAW_EVENTS: RawSpiderEvent[] = [
     rawCategory: "standup",
     rawArtist: "KKTC Comedy Night",
     capturedAt: "2026-09-15T09:30:00.000Z",
+    provenance: "FIXTURE",
     evidence: fixtureEvidence(
       "https://www.kibrisbiletcim.com/events/lefkosa-stand-up",
       "2026-09-15T09:30:00.000Z",

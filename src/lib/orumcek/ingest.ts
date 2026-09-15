@@ -9,7 +9,7 @@ import {
   resolveDistrictOrThrow,
 } from "@/lib/orumcek/identity";
 import { destinationFromConfidence, transitionMotor } from "@/lib/orumcek/state-machine";
-import { assertFixturesOnlyMode, matchSourceSeed } from "@/lib/orumcek/sources";
+import { matchSourceSeed } from "@/lib/orumcek/sources";
 import {
   getDraftByIdentityKey,
   getObservationByKey,
@@ -25,9 +25,20 @@ import type {
   SpiderIntakePort,
   SpiderObservation,
 } from "@/lib/orumcek/types";
-import type { RawSpiderEvent } from "@/types/admin/raw-spider-event";
+import type { RawSpiderEvent, SpiderCaptureProvenance } from "@/types/admin/raw-spider-event";
 
 const SYSTEM_ACTOR = { actor: "SYSTEM" as const, actorId: "orumcek-intake" };
+
+function provenanceOf(raw: RawSpiderEvent): SpiderCaptureProvenance {
+  return raw.provenance === "LIVE_CRAWL" ? "LIVE_CRAWL" : "FIXTURE";
+}
+
+function mergeProvenance(
+  current: SpiderCaptureProvenance,
+  incoming: SpiderCaptureProvenance
+): SpiderCaptureProvenance {
+  return current === "LIVE_CRAWL" || incoming === "LIVE_CRAWL" ? "LIVE_CRAWL" : "FIXTURE";
+}
 
 function newId(prefix: string): string {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -70,6 +81,8 @@ function createObservation(raw: RawSpiderEvent): SpiderObservation {
     raw,
     capturedAt: raw.capturedAt,
     evidence: raw.evidence,
+    provenance: provenanceOf(raw),
+    crawlRunId: raw.crawlRunId,
   };
 }
 
@@ -126,6 +139,8 @@ function createDraft(observation: SpiderObservation): IntakeDraft {
       contradictions: [],
       reasons: ["Awaiting stub draft."],
     },
+    provenance: observation.provenance,
+    crawlRunId: observation.crawlRunId,
     wrotePublicEvent: false,
     createdAt: timestamp,
     updatedAt: timestamp,
@@ -139,7 +154,6 @@ function createDraft(observation: SpiderObservation): IntakeDraft {
  * Same observation key or same identity key does not create a second draft.
  */
 export function ingestRawSpiderEvent(rawInput: RawSpiderEvent): SpiderIngestResult {
-  assertFixturesOnlyMode();
   const raw = withEvidence(rawInput);
   validateRawSpiderEvent(raw);
 
@@ -172,6 +186,8 @@ export function ingestRawSpiderEvent(rawInput: RawSpiderEvent): SpiderIngestResu
         ...existingDraft.identity,
         observationIds,
       },
+      provenance: mergeProvenance(existingDraft.provenance, observation.provenance),
+      crawlRunId: observation.crawlRunId ?? existingDraft.crawlRunId,
       wrotePublicEvent: false,
     };
 

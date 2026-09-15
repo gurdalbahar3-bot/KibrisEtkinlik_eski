@@ -1,9 +1,10 @@
-import type { IntakeDraft, OrumcekStatus, SpiderObservation } from "@/lib/orumcek/types";
+import type { IntakeDraft, OrumcekCrawlRunSummary, OrumcekStatus, SpiderObservation } from "@/lib/orumcek/types";
 
 interface OrumcekStore {
   drafts: IntakeDraft[];
   observations: SpiderObservation[];
   fixturesSeeded: boolean;
+  lastCrawlRun: OrumcekCrawlRunSummary | null;
 }
 
 const STORE_KEY = Symbol.for("ged.orumcekIntakeStore");
@@ -18,6 +19,7 @@ function getStore(): OrumcekStore {
       drafts: [],
       observations: [],
       fixturesSeeded: false,
+      lastCrawlRun: null,
     };
   }
 
@@ -29,6 +31,7 @@ export function resetOrumcekStore(): void {
   store.drafts = [];
   store.observations = [];
   store.fixturesSeeded = false;
+  store.lastCrawlRun = null;
 }
 
 export function isOrumcekFixtureSeeded(): boolean {
@@ -105,4 +108,14 @@ export function replaceDraft(draft: IntakeDraft): IntakeDraft {
 export function getObservationsForDraft(draft: IntakeDraft): SpiderObservation[] {
   const ids = new Set(draft.observationIds);
   return structuredClone(getStore().observations.filter((item) => ids.has(item.id)));
+}
+
+export function recordOrumcekCrawlRun(run: OrumcekCrawlRunSummary): OrumcekCrawlRunSummary {
+  getStore().lastCrawlRun = structuredClone(run);
+  return structuredClone(run);
+}
+
+export function getLastOrumcekCrawlRun(): OrumcekCrawlRunSummary | null {
+  const run = getStore().lastCrawlRun;
+  return run ? structuredClone(run) : null;
 }

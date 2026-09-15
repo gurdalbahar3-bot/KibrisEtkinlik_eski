@@ -20,6 +20,7 @@ function sampleRaw(overrides: Partial<RawSpiderEvent> = {}): RawSpiderEvent {
     rawCategory: "concert",
     rawArtist: "Local Acoustic Collective",
     capturedAt: "2026-09-15T10:00:00.000Z",
+    provenance: "FIXTURE",
     evidence: [
       createEvidence(
         "JSON",
@@ -42,6 +43,7 @@ test("ingest creates a draft in PENDING_APPROVAL or REVIEW and never writes publ
   assert.notEqual(result.draft.status, "PUBLISHED");
   assert.equal(result.draft.draft.title, "Lefke Akustik Gece");
   assert.equal(result.draft.draft.districtId, "lefke");
+  assert.equal(result.draft.provenance, "FIXTURE");
 });
 
 test("same raw event is idempotent and does not duplicate drafts", () => {

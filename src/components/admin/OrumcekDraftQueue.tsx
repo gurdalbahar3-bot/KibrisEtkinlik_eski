@@ -47,6 +47,13 @@ export function OrumcekDraftQueue({ drafts, locale, t }: OrumcekDraftQueueProps)
                       : draft.identity.district}
                     {draft.draft.venueName ? ` · ${draft.draft.venueName}` : ""}
                   </p>
+                  <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    {t("orumcekProvenance")}:{" "}
+                    {draft.provenance === "LIVE_CRAWL"
+                      ? t("orumcekProvenanceLiveCrawl")
+                      : t("orumcekProvenanceFixture")}
+                    {source ? ` · ${source.id}` : ""}
+                  </p>
                   <p className="mt-1 text-sm text-slate-500">
                     {formatDateTime(draft.draft.startsAt, locale)}
                   </p>

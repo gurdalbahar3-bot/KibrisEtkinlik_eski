@@ -1,6 +1,8 @@
 import type { DistrictSlug, EventCategory } from "@/types/event";
-import type { RawSpiderEvent } from "@/types/admin/raw-spider-event";
+import type { RawSpiderEvent, SpiderCaptureProvenance } from "@/types/admin/raw-spider-event";
 import type { IntakeEvidence } from "@/types/admin/intake-evidence";
+
+export type { SpiderCaptureProvenance };
 
 /**
  * Örümcek motor statuses. PUBLISHED is intentionally absent —
@@ -32,7 +34,11 @@ export interface SourceChannel {
   label?: string;
 }
 
-/** First-wave KKTC source seed — metadata only, never fetched in Sprint 1. */
+/**
+ * First-wave KKTC source seed. `liveCrawl` stays false on every seed:
+ * adapters never auto-enable. Runtime live crawl requires ORUMCEK_LIVE_CRAWL=1
+ * plus an allowlisted source id.
+ */
 export interface SourceSeed {
   id: string;
   name: string;
@@ -41,7 +47,7 @@ export interface SourceSeed {
   districtHint?: DistrictSlug;
   channels: SourceChannel[];
   enabled: boolean;
-  /** Sprint 1 hard lock: live crawl is never enabled. */
+  /** Catalog default. Never treat this as a runtime enablement flag. */
   liveCrawl: false;
   notes?: string;
 }
@@ -103,6 +109,8 @@ export interface SpiderObservation {
   raw: RawSpiderEvent;
   capturedAt: string;
   evidence: IntakeEvidence[];
+  provenance: SpiderCaptureProvenance;
+  crawlRunId?: string;
 }
 
 export interface IntakeDraft {
@@ -119,7 +127,9 @@ export interface IntakeDraft {
   approvedAt?: string;
   rejectedBy?: string;
   rejectedAt?: string;
-  /** Always false in Sprint 1 — spider never writes `events`. */
+  provenance: SpiderCaptureProvenance;
+  crawlRunId?: string;
+  /** Spider never writes `events`. Super Admin publish_event is the only public gate. */
   wrotePublicEvent: false;
   createdAt: string;
   updatedAt: string;
@@ -171,3 +181,87 @@ export interface AIDraftPort {
 export interface SpiderIntakePort {
   ingest(raw: RawSpiderEvent): Promise<SpiderIngestResult>;
 }
+
+export interface SpiderCrawlPort {
+  sourceId: string;
+  crawl(options?: SpiderCrawlOptions): Promise<RawSpiderEvent[]>;
+}
+
+export interface SpiderCrawlOptions {
+  fetchPage?: CrawlFetchFn;
+  now?: () => string;
+  maxEvents?: number;
+  delayMs?: number;
+  crawlRunId?: string;
+}
+
+export interface CrawlFetchFn {
+  (url: string): Promise<CrawlFetchResult>;
+}
+
+export interface CrawlFetchResult {
+  url: string;
+  status: number;
+  body: string;
+}
+
+export type LiveCrawlGateCode =
+  | "LIVE_CRAWL_DISABLED"
+  | "SOURCE_NOT_ALLOWLISTED"
+  | "SOURCE_UNKNOWN"
+  | "SOURCE_DISABLED"
+  | "ADAPTER_MISSING";
+
+export interface LiveCrawlGateSuccess {
+  ok: true;
+  sourceId: string;
+  flagOn: true;
+}
+
+export interface LiveCrawlGateFailure {
+  ok: false;
+  code: LiveCrawlGateCode;
+  message: string;
+  sourceId: string;
+}
+
+export type LiveCrawlGateResult = LiveCrawlGateSuccess | LiveCrawlGateFailure;
+
+export interface CrawlSkip {
+  url: string;
+  reason: string;
+}
+
+export interface OrumcekCrawlRunSummary {
+  sourceId: string;
+  sourceName: string;
+  listingUrl: string;
+  startedAt: string;
+  finishedAt: string;
+  pageFetches: number;
+  observationCount: number;
+  ingested: number;
+  duplicates: number;
+  skipped: number;
+  skipReasons: string[];
+  wrotePublicEvent: false;
+  publishCalled: false;
+}
+
+export interface LiveCrawlIngestSuccess {
+  ok: true;
+  sourceId: string;
+  listingUrl: string;
+  results: SpiderIngestResult[];
+  skipped: CrawlSkip[];
+  pageFetches: number;
+  ingested: number;
+  duplicates: number;
+  wrotePublicEvent: false;
+  publishCalled: false;
+}
+
+export type LiveCrawlIngestResult = LiveCrawlIngestSuccess | (LiveCrawlGateFailure & {
+  wrotePublicEvent: false;
+  publishCalled: false;
+});

@@ -44,6 +44,14 @@ export function OrumcekDraftDetailView({
               ? formatDistrictLabel(draft.draft.districtId, locale)
               : draft.identity.district}
           </p>
+          <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            {t("orumcekProvenance")}:{" "}
+            {draft.provenance === "LIVE_CRAWL"
+              ? t("orumcekProvenanceLiveCrawl")
+              : t("orumcekProvenanceFixture")}
+            {source ? ` · ${source.id}` : ""}
+            {draft.crawlRunId ? ` · ${draft.crawlRunId}` : ""}
+          </p>
         </div>
         <OrumcekStatusBadge status={draft.status} t={t} />
       </header>
@@ -143,7 +151,10 @@ export function OrumcekDraftDetailView({
               <p className="break-all text-slate-600">{observation.sourceUrl}</p>
               <p className="text-slate-500">
                 {formatDateTime(observation.capturedAt, locale)} · {observation.raw.rawDistrict} ·{" "}
-                {observation.raw.rawVenue ?? "—"}
+                {observation.raw.rawVenue ?? "—"} ·{" "}
+                {observation.provenance === "LIVE_CRAWL"
+                  ? t("orumcekProvenanceLiveCrawl")
+                  : t("orumcekProvenanceFixture")}
               </p>
             </li>
           ))}

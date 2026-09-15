@@ -259,5 +259,18 @@
   "orumcekStatusReview": "Review",
   "orumcekStatusPendingApproval": "Pending approval",
   "orumcekStatusApprovedReady": "Ready for SA publish",
-  "orumcekStatusRejected": "Rejected"
+  "orumcekStatusRejected": "Rejected",
+  "orumcekLiveCrawlGatedBadge": "Live crawl gated — allowlist only, no auto-publish",
+  "orumcekRunLiveCrawl": "Run Kıbrıs Biletcim crawl",
+  "orumcekLiveCrawlDisabledHint": "Live crawl stays off until ORUMCEK_LIVE_CRAWL=1. Restart the dev server after setting the flag. Defaults remain fixtures / dry-run.",
+  "orumcekLiveCrawlEnabledHint": "Flag is on. This fetches the allowlisted listing only (Kıbrıs Biletcim), ingests admin drafts, and never writes public events or calls publish_event.",
+  "orumcekProvenance": "Provenance",
+  "orumcekProvenanceFixture": "Fixture / dry-run",
+  "orumcekProvenanceLiveCrawl": "Live crawl",
+  "orumcekLastCrawl": "Last gated crawl",
+  "orumcekCrawlIngested": "New drafts",
+  "orumcekCrawlDuplicates": "Duplicates",
+  "orumcekCrawlSkipped": "Skipped",
+  "orumcekCrawlSource": "Source",
+  "orumcekNoPublicWrite": "Public catalog write"
 }

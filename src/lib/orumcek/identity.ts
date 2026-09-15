@@ -51,6 +51,34 @@ export function tryResolveDistrict(rawDistrict?: string): DistrictSlug | undefin
   return DISTRICT_ALIASES[slug];
 }
 
+/**
+ * Scan free text (venue, address, title) for a KKTC district alias.
+ * Used by live-crawl mapping when the source has no structured district field.
+ */
+export function inferDistrictFromText(text?: string): DistrictSlug | undefined {
+  if (!text?.trim()) {
+    return undefined;
+  }
+  const direct = tryResolveDistrict(text);
+  if (direct) {
+    return direct;
+  }
+
+  const folded = foldDistrictToken(text);
+  const needles: Array<[string, DistrictSlug]> = [
+    ...DISTRICT_SLUGS.map((slug) => [slug, slug] as [string, DistrictSlug]),
+    ...Object.entries(DISTRICT_ALIASES),
+  ].sort((a, b) => b[0].length - a[0].length);
+
+  for (const [needle, slug] of needles) {
+    const pattern = new RegExp(`(^|-)${needle}(-|$)`);
+    if (pattern.test(folded)) {
+      return slug;
+    }
+  }
+  return undefined;
+}
+
 const UNDATED_KEY = "undated";
 
 export function normalizeIdentityTitle(title: string): string {

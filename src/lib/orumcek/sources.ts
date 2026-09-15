@@ -1,8 +1,16 @@
 import type { SourceSeed } from "@/lib/orumcek/types";
 
 /**
- * First-wave KKTC source seeds. URLs are catalog metadata only.
- * Sprint 1 never fetches these; liveCrawl is locked to false.
+ * Sprint 2 primary live-crawl source: Kıbrıs Biletcim.
+ * Public listing at /tr/etkinlikler plus schema.org Event JSON-LD on detail pages.
+ * Runtime still requires ORUMCEK_LIVE_CRAWL=1 — seeds stay liveCrawl: false.
+ */
+export const PRIMARY_LIVE_CRAWL_SOURCE_ID = "kibris-biletcim" as const;
+export const LIVE_CRAWL_ALLOWLIST = [PRIMARY_LIVE_CRAWL_SOURCE_ID] as const;
+
+/**
+ * First-wave KKTC source seeds. URLs are catalog metadata.
+ * liveCrawl remains false on every seed; the allowlist + env flag is the runtime gate.
  */
 export const SOURCE_SEEDS: readonly SourceSeed[] = [
   {
@@ -13,7 +21,7 @@ export const SOURCE_SEEDS: readonly SourceSeed[] = [
     channels: [{ kind: "WEBSITE", url: "https://www.gisekibris.com" }],
     enabled: true,
     liveCrawl: false,
-    notes: "Primary KKTC ticketing aggregator.",
+    notes: "KKTC ticketing aggregator. Homepage is CSS-in-JS without stable event URLs or JSON-LD — not Sprint 2 crawl target.",
   },
   {
     id: "kibris-biletcim",
@@ -23,6 +31,8 @@ export const SOURCE_SEEDS: readonly SourceSeed[] = [
     channels: [{ kind: "WEBSITE", url: "https://www.kibrisbiletcim.com" }],
     enabled: true,
     liveCrawl: false,
+    notes:
+      "Sprint 2 primary crawl source. Stable public listing (/tr/etkinlikler) and schema.org Event JSON-LD on event pages. Live fetch is still gated by ORUMCEK_LIVE_CRAWL=1.",
   },
   {
     id: "ada-tickets",
@@ -179,20 +189,27 @@ export function getSourceSeedById(id: string): SourceSeed | undefined {
     : undefined;
 }
 
+function hostnameOf(value: string): string | undefined {
+  try {
+    const href = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+    return new URL(href).hostname.replace(/^www\./i, "").toLowerCase();
+  } catch {
+    return undefined;
+  }
+}
+
 export function matchSourceSeed(sourceUrl: string): SourceSeed | undefined {
   const url = sourceUrl.trim().toLowerCase();
   if (!url) {
     return undefined;
   }
 
+  const host = hostnameOf(url);
   return SOURCE_SEEDS.find((seed) => {
     const candidates = [seed.websiteUrl, ...seed.channels.map((channel) => channel.url)];
-    return candidates.some((candidate) => url.startsWith(candidate.toLowerCase()));
+    if (candidates.some((candidate) => url.startsWith(candidate.toLowerCase()))) {
+      return true;
+    }
+    return Boolean(host && candidates.some((candidate) => hostnameOf(candidate) === host));
   });
-}
-
-export function assertFixturesOnlyMode(): void {
-  if (process.env.ORUMCEK_LIVE_CRAWL === "1") {
-    throw new Error("Örümcek Sprint 1 refuses live crawl. Fixtures/tests only.");
-  }
 }
