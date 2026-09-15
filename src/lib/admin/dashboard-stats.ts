@@ -6,6 +6,8 @@ import {
 import type { AdminDashboardStat } from "@/lib/admin/mock/dashboard-stats";
 import { mockAdminIntakeRepository } from "@/lib/admin/repositories/mock-admin-intake-repository";
 import { countBlockedPendingCandidates } from "@/lib/admin/review/image-review-service";
+import { ensureFixtureDrafts } from "@/lib/orumcek/fixtures";
+import { countQueueDrafts } from "@/lib/orumcek/store";
 import { getDataSource } from "@/lib/supabase/config";
 
 /** Derive queue counts from mock intake repository; ads remain static until FAZ 4+. */
@@ -13,6 +15,7 @@ export function getDashboardStatsFromRepository(): AdminDashboardStat[] {
   const repo = mockAdminIntakeRepository;
   const imageReviewIntakes = repo.getByStatus("IMAGE_REVIEW");
   const blockedCount = countBlockedPendingCandidates(imageReviewIntakes);
+  ensureFixtureDrafts();
 
   return [
     {
@@ -24,7 +27,7 @@ export function getDashboardStatsFromRepository(): AdminDashboardStat[] {
     {
       id: "ai",
       labelKey: "statAiReview",
-      count: repo.countByStatus("AI_REVIEW"),
+      count: repo.countByStatus("AI_REVIEW") + countQueueDrafts(),
       href: "/admin/review/ai",
     },
     {
